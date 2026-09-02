@@ -1,0 +1,28 @@
+# Inventory for the canonical skill library.
+#
+# A skill should be listed here when it is ready to be discovered or is being
+# evaluated. The registry records management and provenance data; SKILL.md
+# remains the portable execution document.
+
+schema_version: 1
+
+repository:
+  canonical_source: github
+  variants_policy: single-canonical-version
+  project_rules: external-to-skills
+
+categories:
+  - id: coding
+    path: skills/coding/SKILL.md
+    purpose: Software-development work.
+  - id: writing
+    path: skills/writing/SKILL.md
+    purpose: Drafting and editing written content.
+  - id: misc
+    path: skills/misc/SKILL.md
+    purpose: Research, planning, analysis, and other reusable work.
+  - id: governance
+    path: skills/governance/SKILL.md
+    purpose: Skill-library maintenance and governance.
+
+skills: []
