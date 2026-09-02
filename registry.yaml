@@ -25,4 +25,83 @@ categories:
     path: skills/governance/SKILL.md
     purpose: Skill-library maintenance and governance.
 
-skills: []
+last_reviewed: 2026-09-02
+
+sources:
+  - id: matt-pocock-skills
+    repository: https://github.com/mattpocock/skills
+    reference: 6654f6b60cd9d5be8b54c6fafe44346dabeb3b76
+    version: 1.2.3
+    license: MIT
+    role: foundation
+    update_policy: Compare upstream changes with local adaptations and evals before adoption.
+  - id: cursor-pstack
+    repository: https://github.com/cursor/plugins/tree/main/pstack
+    reference: efa2a531985e0a8084d36ff3cf87233be8a9f34b
+    version: 0.14.7
+    license: MIT
+    role: supporting-lenses
+    update_policy: Selectively review relevant skills; do not wholesale-sync Cursor-specific orchestration.
+  - id: cursor-thermos
+    repository: https://github.com/cursor/plugins/tree/main/thermos
+    reference: efa2a531985e0a8084d36ff3cf87233be8a9f34b
+    version: 1.0.0
+    license: MIT
+    role: major-change-review
+    update_policy: Compare upstream review criteria with the local major-change gate before adoption.
+  - id: cursor-continual-learning
+    repository: https://github.com/cursor/plugins/tree/main/continual-learning
+    reference: efa2a531985e0a8084d36ff3cf87233be8a9f34b
+    version: 1.0.0
+    license: MIT
+    role: governance-reference
+    update_policy: Review privacy, transcript scope, and write permissions before adopting hook changes.
+  - id: openai-codex-security
+    repository: https://github.com/openai/plugins/tree/main/plugins/codex-security
+    reference: 1e285826e604f66f7208f7ac4dba0fe8341d1f57
+    version: 0.1.22
+    license: Proprietary
+    role: external-only
+    update_policy: Follow the official Codex Security distribution and documentation; do not vendor into this repository.
+
+packages:
+  - id: matt-pocock-skills
+    source: matt-pocock-skills
+    status: trial
+    path_prefix: skills/coding/matt/engineering
+    upstream_prefix: skills/engineering
+    skills: [ask-matt, code-review, codebase-design, diagnosing-bugs, domain-modeling, grill-with-docs, implement, improve-codebase-architecture, prototype, research, resolving-merge-conflicts, setup-matt-pocock-skills, tdd, to-spec, to-tickets, triage, wayfinder, wizard]
+    adaptations: [portable-paths, local-goldilocks-gate, thermos-before-code-review]
+  - id: matt-pocock-productivity
+    source: matt-pocock-skills
+    status: trial
+    path_prefix: skills/misc/matt/productivity
+    upstream_prefix: skills/productivity
+    skills: [grill-me, grilling, handoff, teach, to-questionnaire, wait-what, writing-for-agents]
+    adaptations: [portable-paths]
+  - id: pstack-supporting
+    source: cursor-pstack
+    status: trial
+    path_prefix: skills/coding/pstack
+    upstream_prefix: skills
+    skills: [architect, arena, blast-radius, create-verification-skill, how, interrogate, maintain-verification-skill, recall, reflect, show-me-your-work, swarm, technical-writing, typescript-best-practices, why]
+    adaptations: [portable-paths, selective-adoption, matt-workflow-routing]
+  - id: thermos
+    source: cursor-thermos
+    status: trial
+    path_prefix: skills/coding/thermos
+    upstream_prefix: skills
+    skills: [thermos, thermo-nuclear-review, thermo-nuclear-code-quality-review]
+    adaptations: [major-change-gate, portable-orchestration]
+  - id: local-workflow
+    source: repository-owner
+    status: trial
+    skills: [goldilocks-review, continual-learning]
+    adaptations: [proposal-first, docs-decisions-output]
+
+external_workflows:
+  - id: codex-security
+    source: openai-codex-security
+    status: external-only
+    reference: adapters/codex-security/README.md
+    trigger: Detailed security audit, threat model, vulnerability scan, finding triage, or hardening request.

@@ -27,9 +27,13 @@ skills/
 │   ├── misc/
 │   └── governance/
 ├── adapters/       Agent-specific discovery and installation details
-│   └── claude/
+│   ├── claude/
+│   ├── codex/
+│   ├── pi/
+│   └── codex-security/
 ├── evals/          Behavioural test cases for skills
 ├── registry.yaml   Skill inventory and provenance metadata
+├── THIRD_PARTY.md   Notices for adapted external skills
 └── CHANGELOG.md    Human-readable repository history
 ```
 
@@ -45,4 +49,4 @@ skills/
 
 ## Status
 
-The repository currently contains the foundational structure only. Skills will be added after the organization, registry, installation model, and evaluation approach are agreed.
+The first trial set contains Matt Pocock’s engineering/productivity workflow, selected pstack supporting skills, the Goldilocks design gate, and the Thermos major-change review. Provenance and local adaptations are recorded in [`registry.yaml`](registry.yaml); trial skills become active after their evaluations and behavior have been checked.

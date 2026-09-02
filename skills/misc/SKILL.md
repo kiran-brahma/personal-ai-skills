@@ -9,6 +9,4 @@ Read this file when `SKILLS.md` identifies miscellaneous work as the relevant ca
 
 ## Available skills
 
-No miscellaneous skills have been added yet.
-
-When a skill is added, list it here with its path and a concise description of when it applies. Keep this catalogue focused on routing; detailed instructions belong in the specific skill.
+Matt’s productivity skills are available under [`matt/productivity`](matt/productivity/README.md): use `grilling`, `grill-me`, `handoff`, `teach`, `to-questionnaire`, `wait-what`, and `writing-for-agents` for their focused workflows.

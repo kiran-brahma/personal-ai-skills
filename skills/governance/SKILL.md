@@ -9,6 +9,6 @@ Read this file when `SKILLS.md` identifies skill-repository governance as the re
 
 ## Available skills
 
-No governance skills have been added yet.
+- [`continual-learning`](continual-learning/SKILL.md): review recent work for durable user preferences and workspace facts, then propose a small, evidence-backed update to `AGENTS.md` or `CLAUDE.md`. It never edits those files without approval.
 
-Until focused governance skills exist, follow `AGENTS.md` directly for the new-skill adoption workflow and repository controls.
+For all other governance work, follow `AGENTS.md` directly.
