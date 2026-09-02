@@ -98,6 +98,12 @@ packages:
     status: trial
     skills: [goldilocks-review, continual-learning]
     adaptations: [proposal-first, docs-decisions-output]
+  - id: owner-writing-workflows
+    source: repository-owner
+    status: trial
+    path_prefix: skills/writing
+    skills: [content-fence, book-reference-extractor, cognitive-editor, musings-reviewer, unslop]
+    adaptations: [portable-import, content-fence-primary-router, git-tracked-workflow-documents, economist-style-source]
 
 external_workflows:
   - id: codex-security
