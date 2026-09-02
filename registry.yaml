@@ -24,6 +24,9 @@ categories:
   - id: governance
     path: skills/governance/SKILL.md
     purpose: Skill-library maintenance and governance.
+  - id: business
+    path: skills/business/SKILL.md
+    purpose: Business strategy, customer understanding, decisions, and problem solving.
 
 last_reviewed: 2026-09-02
 
@@ -63,6 +66,13 @@ sources:
     license: Proprietary
     role: external-only
     update_policy: Follow the official Codex Security distribution and documentation; do not vendor into this repository.
+  - id: gstack
+    repository: https://github.com/garrytan/gstack
+    reference: 0d1bd5616c0ef096bb7ccee336f63c60ee408618
+    version: 1.79.0
+    license: MIT
+    role: supporting-methods
+    update_policy: Compare upstream methods with the local business adaptations, user context, and evaluations before adoption.
 
 packages:
   - id: matt-pocock-skills
@@ -104,6 +114,13 @@ packages:
     path_prefix: skills/writing
     skills: [content-fence, book-reference-extractor, cognitive-editor, musings-reviewer, unslop]
     adaptations: [portable-import, content-fence-primary-router, git-tracked-workflow-documents, economist-style-source]
+  - id: business-workflows
+    source: gstack
+    status: trial
+    path_prefix: skills/business
+    upstream_prefix: [office-hours, plan-ceo-review]
+    skills: [business-idea-review, customer-value-proposition, decision-navigator, business-problem-solving]
+    adaptations: [portable-workflows, owner-prompts, India-context, cash-flow-over-SaaS-metrics, evidence-first, explicit-falsifiers, cross-category-routing, no-private-context]
 
 external_workflows:
   - id: codex-security

@@ -8,6 +8,12 @@ Engineering work such as understanding a codebase, planning, implementing, debug
 
 Catalogue: [skills/coding/SKILL.md](skills/coding/SKILL.md)
 
+## Business
+
+Business strategy, customer understanding, problem solving, and consequential operating decisions.
+
+Catalogue: [skills/business/SKILL.md](skills/business/SKILL.md)
+
 ## Writing
 
 Drafting, editing, rewriting, reviewing, structuring, or adapting written content.

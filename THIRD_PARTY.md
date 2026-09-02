@@ -24,4 +24,12 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+## gstack business methods
+
+Source: [garrytan/gstack](https://github.com/garrytan/gstack), commit `0d1bd5616c0ef096bb7ccee336f63c60ee408618`, version `1.79.0`.
+
+Copyright (c) 2026 Garry Tan
+
+The repository contains selected and substantially adapted business methods, not a wholesale copy of gstack. gstack-specific runtime paths, telemetry, private memory, host integrations, promotional material, and engineering-only orchestration were not adopted.
+
 Codex Security is not included in this repository. It is tracked as an external, proprietary workflow only; see [`adapters/codex-security/README.md`](adapters/codex-security/README.md).

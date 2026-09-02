@@ -49,6 +49,7 @@ Every pull request must complete `code-review`. Detailed security audits use the
 Skills are grouped into focused categories so agents can narrow discovery before loading detailed instructions.
 
 - [`Coding`](skills/coding/SKILL.md): planning, implementation, debugging, testing, architecture, review, and release work.
+- [`Business`](skills/business/SKILL.md): business ideas, customer value propositions, strategic decisions, and complex operating problems.
 - [`Writing`](skills/writing/SKILL.md): documentation and other writing workflows.
 - [`Miscellaneous`](skills/misc/SKILL.md): research, planning, productivity, and other reusable work.
 - [`Governance`](skills/governance/SKILL.md): maintaining skills and proposing updates to project agent instructions.
@@ -61,6 +62,7 @@ Each category has a router. Each concrete skill has its own `SKILL.md`. Supporti
 - **pstack:** targeted supporting lenses for architecture, codebase understanding, blast-radius analysis, adversarial review, verification, technical writing, and long-running work.
 - **Thermos:** deep review for major changes before Matt’s final code review.
 - **Continual learning:** proposal-first updates to `AGENTS.md` and `CLAUDE.md` based on durable lessons.
+- **gstack:** selected product-discovery and founder-review methods, adapted into portable business workflows.
 - **Codex Security:** external-only workflow for detailed security audits.
 
 The source list and pinned references are in [`registry.yaml`](registry.yaml). Adapted-license notices are in [`THIRD_PARTY.md`](THIRD_PARTY.md).
