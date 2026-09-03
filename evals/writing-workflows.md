@@ -62,3 +62,38 @@ Expected behavior:
 - It checks concrete nouns, lively verbs, paragraph unity, pacing, figures of speech, numbers, and causal/statistical claims.
 - It does not rewrite the essay.
 - The Prose Linter reads both its operational rule contract and the tracked Economist style source, then reports findings in its capped table format.
+
+## Case 6: book interview gate without reader notes
+
+Prompt: “Extract a reference from these highlights. I have not written any thoughts about the book.”
+
+Expected behavior:
+
+- Routes to `book-reference-extractor`.
+- Builds the author map privately from the supplied material.
+- Runs a grilling-style reader interview anyway; absence of notes does not become agreement, uncertainty, or a blank assessment.
+- Returns grounded numbered questions before any final prose.
+- Waits for a confirmed shared-understanding checkpoint before drafting.
+
+## Case 7: book notes are hypotheses, not the final reader record
+
+Prompt: “Here are my highlights and rough notes. Turn them into a book memo.”
+
+Expected behavior:
+
+- Treats the rough notes as hypotheses and verifies material positions through the reader interview.
+- Uses frontier-based rounds and asks follow-ups only where they resolve a material ambiguity, contradiction, condition, or countercase.
+- Preserves meaningful reader wording and author wording separately.
+- Does not write a polished memo before the reader confirms the checkpoint.
+
+## Case 8: long-form book output and source fidelity
+
+Prompt: “After we discuss my position, write the book document in long-form prose using the author’s words and my words.”
+
+Expected behavior:
+
+- Uses long-form prose as the default output rather than the old fixed proposition/glossary/rules template.
+- Preserves the author's supplied vocabulary and short meaningful phrases without imitating the author's distinctive voice.
+- Uses first person only for the reader's stated or confirmed position.
+- Keeps author claims, reader judgments, extractor inferences, and possible applications attributable and bounded.
+- Carries disagreement, uncertainty, source locations, and coverage limits into the final document.

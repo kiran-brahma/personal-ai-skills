@@ -1,348 +1,203 @@
 ---
 name: book-reference-extractor
-description: Create layered, source-faithful book reference documents and memo-ready reader records from supplied highlights, excerpts, notes, or metadata. Use when the user asks for high-alpha propositions, durable book references, author arguments, observations, tensions, decision rules, reader interrogation, an independent reader assessment, or preparation for an AI-drafted Book Memo. Reconstruct the author first; then question the reader without steering; preserve the reader's dated position separately. Distinguish author claims, extractor inferences, possible applications, and reader judgments; preserve source locations. Do not use for conventional summaries, reviews, or quote collections.
+description: Build source-faithful, long-form book documents from supplied highlights, excerpts, notes, or metadata. Use when the user wants an author reconstruction, durable book reference, reader response, or Book Memo. Preserve the author's supplied vocabulary and meaningful phrases, preserve the reader's own words, and complete a grilling-style reader interview with a confirmed shared understanding before drafting final prose.
 ---
 
 # Book Reference Extractor
 
-Create a durable dual-record document from supplied book material:
+Create a durable long-form document that brings together:
 
-1. Preserve the strongest accurate reconstruction of the book and author's arguments.
-2. Preserve the reader's independent, dated assessment without merging it into the author record.
+1. the strongest accurate reconstruction of the supplied book material;
+2. the reader's independently stated position; and
+3. the tensions, applications, and unanswered questions that survive contact between them.
 
-Use memo-grade classic prose while retaining reference-grade traceability. Do not imitate the verbal fingerprints of any named writer.
+The default deliverable is continuous, memo-length prose. Call it a `Book Memo` only when the user requests that form; otherwise call it a long-form book document. The old proposition/glossary/observations/rules template is an optional extraction format, used only when the user asks for a reference schema or machine-retrievable record.
 
-## Non-negotiable separation
+## The interview gate
 
-Keep these records distinct:
+Do not draft the final document until the reader interview is complete and the reader has confirmed a shared-understanding checkpoint.
 
-- Author record: What the author claims, observes, argues, qualifies, or leaves unresolved.
-- Extractor layer: Inferences or possible applications derived from the supplied material. Label each explicitly.
-- Reader record: What the reader accepts, rejects, doubts, finds useful, or leaves unanswered.
+This gate applies even when the supplied documents contain no reader notes. When notes exist, treat them as hypotheses about the reader's position and verify them in the interview. Never silently turn notes, silence, or likely reactions into the reader's considered view.
 
-Never use the reader's view to rewrite, soften, strengthen, omit, or reinterpret the author's case. Never attribute the extractor's synthesis or the reader's position to the author.
+Before the interview, work privately from the supplied material to identify the author's governing question, claims, evidence, mechanisms, terms, boundaries, and tensions. Use that private map to ask precise questions. Do not return a polished author summary as the final document before the interview.
 
-Apply this order:
+For the interview stage, apply the `grill-with-docs` workflow in-line and follow its `grilling` and `domain-modeling` disciplines:
 
-Author first. Reader second. Comparison third, only when useful.
+- map the reader's position as a decision tree;
+- ask the current frontier in rounds, so later questions do not smuggle in unsettled assumptions;
+- sharpen overloaded terms and test concrete counterexamples;
+- continue until every material branch is resolved or explicitly deferred; and
+- do not draft on the reader's behalf before the reader confirms the shared understanding.
 
-Do not manufacture agreement. Shared understanding means a clear map of the author's case and the reader's independent position, including disagreement and uncertainty.
+The book-specific interview remains non-steering. Questions expose the reader's position; they do not defend the author, recommend an application, or supply a preferred answer. The general grilling workflow may use recommended answers for design decisions; omit recommendations here because they would contaminate an independent reader assessment.
+
+## Source and voice contract
+
+The goal is source-faithful language, not AI imitation.
+
+- Preserve the author's important terms, distinctions, and meaningful short phrases exactly as they appear in the supplied material whenever they carry conceptual weight.
+- Draft substantive author sentences from the source phrase bank first. Use minimal paraphrase when exact wording is unavailable, and omit or label anything that would require invented nuance.
+- Use the author's vocabulary when connecting ideas. Do not replace it with smoother AI synonyms that change emphasis or erase a distinction.
+- Quote only wording present in the supplied material, keep quotations short, and preserve their source location. Never manufacture an author quotation.
+- Preserve the reader's meaningful wording, especially descriptions of experience, resistance, uncertainty, and conditions. Use first person only for a position the reader stated or confirmed.
+- Let the AI supply connective prose and structure, not new beliefs, evidence, certainty, or a synthetic authorial voice.
+- Do not imitate a named author's verbal fingerprints. Using the author's concepts and supplied words is source fidelity; copying a distinctive mannerism is imitation.
+
+Maintain an internal provenance map for every substantive sentence: author-derived, reader-derived, source-grounded connective prose, extractor inference, or possible application. Label the last two when they appear in the document. Remove any sentence whose provenance cannot be defended.
 
 ## Workflow
 
-Determine the current stage and continue from it.
-
-### Stage 1: Build the author record
+### Stage 1: Intake and private source map
 
 1. Read all supplied highlights, excerpts, notes, metadata, and style guidance.
-2. Reconstruct the book's governing question, central argument, strongest propositions, evidence, mechanisms, boundaries, and unresolved tensions.
-3. Draft the complete author record without using the reader's personal views.
-4. Preserve all available source locations.
-5. If the reader has not yet been interrogated, continue to Stage 2 after the author record.
+2. Establish the title from supplied metadata. If it is unavailable, use a neutral placeholder.
+3. State the coverage boundary internally. Do not imply that a highlight set represents the whole book.
+4. Preserve page, chapter, location, section, or highlight references.
+5. Reconstruct privately:
+   - the governing question and central argument;
+   - the strongest propositions and observations;
+   - mechanisms and supporting evidence;
+   - the author's key vocabulary and exact phrases;
+   - boundaries, countercases, costs, and unresolved tensions; and
+   - the parts the supplied material does not establish.
+6. Select the two to four claims or tensions that most require the reader's judgment. Prefer material that could change interpretation, action, or the reader's view.
 
-### Stage 2: Conduct the Reader Position Interrogation
+Completion criterion: a private source map exists, every selected interview question is anchored to supplied material, and every available source location is attached.
 
-Read `references/reader-position-interrogation.md` before questioning the reader.
+### Stage 2: Reader interview
 
-1. Select only the propositions or tensions that materially require the reader's judgment.
-2. Ask four or five initial questions.
-3. Ask no more than three tailored follow-ups after receiving answers, and only when they expose a material ambiguity, contradiction, unstated condition, or missing boundary.
-4. Ask rather than teach. Do not recommend, persuade, defend the author, solve the reader's problem, praise an answer, or complete the reader's reasoning.
-5. Treat "I do not know" and non-response as valid unresolved states.
-6. Allow the reader to stop and return later with the document.
+Read `references/reader-position-interrogation.md`, then run the grilling-style interview.
 
-### Stage 3: Record the independent reader assessment
+Ask about the exact component that needs the reader's judgment: observation, mechanism, scope, conclusion, implication, cost, or revision evidence. Ask rather than teach. Accept uncertainty and deferral as real outcomes.
 
-1. Date the reader record.
-2. Preserve the reader's own wording when it carries meaning.
-3. Label any AI paraphrase as `AI summary`.
-4. Record stance, reasoning, failure conditions, relevant problem, potential benefit, risk or cost, revision evidence, and open questions when supplied.
-5. Do not force an assessment for every proposition.
-6. Mark unanswered items explicitly rather than inventing a position.
-7. Return the full document with the unchanged author record followed by the reader record.
+When the reader has supplied notes, test whether the notes are still the reader's position, what experience supports them, and where the wording needs correction. When the reader supplied no notes, begin from the selected claims and tensions rather than inferring an empty or agreeable position.
 
-### Stage 4: Draft a Book Memo only when explicitly requested
+Completion criterion: each material branch of the reader's position is resolved or marked unanswered, and the reader has not been led toward agreement.
 
-1. Use the completed author record as the source foundation.
-2. Use the reader record only as a separate independent assessment.
-3. Present the author's case before the reader's assessment.
-4. Preserve unresolved disagreement between author and reader.
-5. Do not delay the memo merely because some reader questions remain unanswered; carry them into `What Remains Unresolved`.
-6. Read `references/memo-grade-prose.md` before drafting.
+### Stage 3: Shared-understanding checkpoint
 
-## Source intake
+Before drafting, show a compact checkpoint containing only confirmed material:
 
-1. Use supplied highlights, excerpts, notes, metadata, and style guidance as the primary source.
-2. Read attached or linked source material before extracting. Use available file or connector tools when needed.
-3. Do not use external context unless the user explicitly requests it. Label external context separately and never use it to silently complete missing source material.
-4. Establish the book title from supplied metadata when possible. Otherwise use a neutral placeholder.
-5. State incomplete coverage plainly. Do not imply that a highlight set represents the whole book.
-6. Preserve page, chapter, location, section, or highlight references whenever available.
+- what the supplied material establishes about the author's case;
+- what the reader accepts, rejects, doubts, or cannot yet decide;
+- the reader's important words and the conditions attached to them;
+- the terms and distinctions that must survive into the prose; and
+- the disagreements and questions that remain open.
 
-## Alpha standard
+Ask the reader to confirm or correct it. If the reader corrects it, update the map and repeat the checkpoint. Do not draft the final document until the reader confirms it. If the reader pauses, preserve the checkpoint as an interim state and wait.
 
-Include an idea only when it is all of the following:
+Completion criterion: the reader explicitly confirms that the checkpoint is accurate, with any remaining uncertainties identified for the document.
 
-1. Non-obvious or framed in an unusually useful way.
-2. Consequential enough to change interpretation, judgment, or action.
-3. Supported by the supplied material.
-4. Transferable beyond the original example.
-5. Bounded by conditions, limits, or countercases.
+### Stage 4: Draft the long-form document
 
-Reject material that is merely memorable, fashionable, repeated, well-phrased, or generally accepted. Treat repetition as evidence of emphasis, not as a separate insight. Do not mistake novelty for importance.
+Read `references/memo-grade-prose.md` before drafting. Use it as the long-form prose standard; its filename is retained for compatibility with existing references.
 
-## Source discipline
+Write the author's case first, then the reader's response, then comparison or application only where it adds understanding. Braid the voices only with clear attribution. Do not make a sentence sound like the author's claim when it is the reader's judgment or the extractor's inference.
 
-Distinguish these epistemic statuses:
+Use a small number of descriptive headings only when they improve navigation. The default shape is:
 
-- Author claim: A general argument the author explicitly advances.
-- Author observation: A concrete pattern, event, experience, example, or behaviour the author reports.
-- Extractor inference: A conclusion reasonably derived from the supplied material but not explicitly stated by the author.
-- Possible application: A decision use suggested by the material but not claimed by the author.
-- Reader judgment: The reader's independent assessment after interrogation.
+```markdown
+# [Book Title]
 
-Label extractor inferences, possible applications, and reader judgments. Never present them as the author's position.
+Coverage note: [What the supplied material covers and does not establish.]
 
-Paraphrase by default. Preserve exact wording only when the wording itself carries unusual meaning. Do not invent context, evidence, causality, or certainty. Do not resolve contradictions unless the supplied material supports the resolution.
+## The book's argument
 
-Merge duplicates and closely related claims. Do not repeat the same insight across sections. Allow an observation to support a proposition, but require the Observations section to add concrete evidence rather than restate the claim.
+[Long-form prose using the author's vocabulary and meaningful supplied phrases.]
 
-## Internal selection workflow
+## My response
 
-Complete this privately before drafting the author record:
+[The reader's confirmed position in the reader's words and first-person perspective.]
 
-1. Generate plausible candidate ideas.
-2. Merge duplicates and closely related claims.
-3. Separate claims, observations, examples, inferences, and applications.
-4. Assess novelty, consequence, explanatory power, evidential support, transferability, durability, and boundary clarity.
-5. Remove generic advice, unsupported claims, decorative anecdotes, weak repetitions, and ideas that cannot survive a countercase.
-6. Select the propositions first.
-7. Select only the glossary terms needed to understand those propositions.
-8. Draft narrowly from the strongest surviving material.
+## Where the argument meets experience
 
-Do not reveal candidate lists, scores, or hidden deliberation.
+[Optional prose on agreement, resistance, application, or tension.]
 
-## Author record
+## What remains unresolved
 
-### The highlight set in one sentence
+[Optional prose carrying unanswered questions, boundaries, and revision conditions.]
+```
 
-State the central tension or governing claim emerging from the supplied material. Do not claim that it represents the whole book unless the source supports that conclusion.
+Adapt the headings to the material. Omit empty sections. Add a compact source note only when it improves traceability; do not turn the document back into a catalogue of fields.
 
-### Argument in view
+### Stage 5: Final source-and-voice audit
 
-Write a compact synthesis, usually 400 to 700 words when the material supports it. Explain:
+Before returning the document, inspect it sentence by sentence. Check the source, wording, speaker, confidence, and boundary of every substantive claim. Remove AI filler, generic praise, invented transitions that imply causality, and polished language that conceals uncertainty.
 
-- the problem the author is trying to solve;
-- the central argument;
-- how the selected propositions depend on, qualify, or challenge one another;
-- the most important unresolved tension; and
-- what the supplied material does not establish.
+Completion criterion: the document reads as a coherent long-form account in the author's and reader's established language, while every claim remains attributable, bounded, and traceable.
 
-Label this section `Extractor synthesis`. Do not merely repeat the proposition summaries.
+## Author reconstruction standard
 
-### Minimal glossary
+The author section is not a conventional summary. It should explain the problem the author is trying to solve, the central argument, the mechanisms that make it plausible, the evidence and examples that support it, and the strongest credible countercase. Preserve the author's uncertainty and unresolved tension. Do not use the reader's position to strengthen, soften, omit, or reinterpret the author's case.
 
-Include a term only when misunderstanding it would materially distort a selected proposition. Order terms by conceptual dependency. Use the minimum sufficient set.
+Use the alpha standard. Keep an idea only when it is non-obvious or unusually useful, consequential, supported by the supplied material, transferable beyond its example, and bounded by conditions or countercases. Merge repetitions. Do not pad the prose with every memorable line.
 
-Use this format when useful:
+Distinguish these statuses internally and label the last three when visible:
 
-- TERM: Define the term in one or two precise sentences.
-  - Analogy: Include only when it clarifies the mechanism without distorting it.
-  - Why it matters: Explain the term's role in the selected propositions.
-  - Common confusion: State a likely misunderstanding or boundary.
+- Author claim: a general argument the author explicitly advances.
+- Author observation: a concrete pattern, event, example, or behaviour the author reports.
+- Extractor inference: a conclusion reasonably derived from the supplied material but not explicitly stated.
+- Possible application: a decision use suggested by the material but not claimed by the author.
+- Reader judgment: the reader's independently stated assessment.
 
-Do not create entries merely because a term sounds technical.
+Do not invent context, evidence, causality, or certainty. Use external context only when the user explicitly requests it, label it, and keep it separate from the supplied material.
 
-### Propositions
+## Reader position record
 
-Include only the highest-alpha propositions. Do not pad to a fixed count.
+Keep a structured record privately so the long-form prose remains honest. Record only what the reader supplied or confirmed:
 
-Give each proposition a stable identifier such as P1 or P2. Use a complete claim as the title, not a topic label.
+- assessment date;
+- current stance toward each material claim or tension;
+- meaningful reader wording;
+- experience that supports or weakens the position;
+- failure conditions and neglected variables;
+- problem examined and potential benefit;
+- risk or cost of over-application;
+- evidence or experience that could change the view; and
+- open or deferred questions.
 
-Write a compact mini-essay. Most propositions should require 180 to 320 words. Use the shortest length that completes the reasoning. Exceed the range only when compression would remove a necessary distinction, example, or countercase.
+Do not force an assessment for every claim. Do not convert absence into agreement. If the structured record is requested, expose it as a separate appendix or use the optional extraction format; otherwise let the long-form prose carry it naturally.
 
-Let each proposition move naturally through:
+## Optional reference format
 
-1. The claim or puzzle.
-2. The mechanism and supporting evidence.
-3. The strongest credible boundary, countercase, cost, or failure mode.
-4. The judgment or behaviour the proposition could change.
-
-Do not expose this sequence as a mechanical set of subheadings unless the material is unusually technical. Mark extractor inference explicitly.
-
-End every proposition with:
-
-Recall when: State a specific situation in which the idea should come to mind.
-
-Memory line: Include only when the proposition can be compressed without losing its governing condition or qualification. Otherwise omit it.
-
-Source: Give page, chapter, location, section, or highlight references when available.
-
-### Observations
-
-Include only concrete patterns, events, experiences, examples, or behaviours reported by the author. Keep each observation to one or two sentences. Do not restate a proposition. Add a source reference when available.
-
-### Tensions and limits
-
-Include only genuine contradictions, trade-offs, scope conditions, or unresolved tensions.
-
-For each:
-
-1. State both sides fairly.
-2. Explain why both may be credible.
-3. Identify the conditions under which each side is more likely to hold.
-4. Leave the tension unresolved when the source does not resolve it.
-
-Omit the section when no meaningful tension exists.
-
-### Rules
-
-Extract up to ten decision rules, operating principles, practices, experiments, or prohibitions. Fewer is better.
-
-Preserve four logical elements: condition, action, mechanism, and exception. Express them in one to three natural sentences. Do not force every rule through identical syntax.
-
-Do not mechanically convert every proposition into a rule. Do not claim universal applicability unless the source supports it.
-
-## Reader position
-
-Keep this section independent from the author record. Do not insert reader judgments into `Argument in View`, propositions, observations, tensions, or rules.
-
-For each material proposition or tension discussed with the reader, record only fields supported by the reader's answers:
-
-### [Proposition or tension reference]
-
-Assessment date: [date]
-
-Current stance: Agree / lean agree / uncertain / lean disagree / disagree / unanswered
-
-Reader's own words: [Preserve meaningful wording when available.]
-
-AI summary: [Optional concise paraphrase. Label it.]
-
-Where it may fail: [Reader-identified conditions or countercases.]
-
-Problem it helps examine: [The practical or intellectual problem it clarifies.]
-
-Potential benefit: [What may become possible or easier if the idea holds.]
-
-Risk or cost: [What may go wrong through acceptance or over-application.]
-
-What could change the view: [Evidence, experience, or conditions that could cause revision.]
-
-Open questions: [Unanswered issues.]
-
-Do not force all fields. Do not convert absence into agreement.
-
-## Memo-preparation questions
-
-After recording the reader position, retain only unanswered questions that remain material to a later Book Memo. Questions must diagnose a condition, test a proposition, search for disconfirming evidence, expose a trade-off, or clarify what could revise the reader's view.
-
-Do not answer personal questions on the reader's behalf.
-
-## Prose standard
-
-Read `references/memo-grade-prose.md` when drafting `Argument in View`, propositions, or a Book Memo.
-
-Apply the supplied style guide. When none is supplied:
-
-- Use concrete nouns and active verbs.
-- Prefer ordinary words to technical or inflated language.
-- Use short, complete sentences and classic prose.
-- Build cumulative reasoning rather than a sequence of disconnected summaries.
-- Let examples carry evidential weight; do not use anecdotes merely for colour.
-- Give the strongest credible countercase rather than attaching a token limitation.
-- Preserve accurate unresolved tension instead of forcing a satisfying synthesis.
-- Remove stock phrases, praise, throat-clearing, and repetition.
-- Make no claim stronger than the source permits.
-- Use analogies only to explain, never as evidence.
-- Preserve uncertainty when uncertainty matters.
-- Use valid Markdown without bold or italic formatting in the completed document.
-- Use headings only when they improve retrieval.
-- Ensure every paragraph explains a mechanism, preserves evidence, establishes a boundary, advances the argument, or changes a decision.
+Use the old structured format only when explicitly requested for retrieval or extraction. In that mode, preserve the author-first/reader-second separation and the source locations. The available sections are `Argument in View`, `Minimal Glossary`, `Propositions`, `Observations`, `Tensions and Limits`, `Rules`, and `Reader Position`; omit any section that does not earn its place. Read the two reference documents before using it.
 
 ## Quality gate
 
-Before returning any completed document, verify:
+Before returning a completed final document, verify:
 
-1. The author record is complete before the reader record begins.
-2. The reader's view has not altered the author reconstruction.
-3. Every proposition satisfies the alpha standard.
-4. Every extractor inference, application, AI paraphrase, and reader judgment is labelled.
-5. Every available source location is preserved.
-6. No idea is needlessly repeated across sections.
-7. Tensions are not falsely reconciled.
-8. Rules remain conditional and bounded.
-9. Unanswered reader questions remain visible rather than being resolved by the AI.
-10. Every sentence adds information.
-11. A reader can understand the document later without reopening the highlights.
-12. The document remains useful even if the reader later changes position or rejects the author's conclusion.
+1. The private source map was completed before the interview.
+2. The interview happened even when reader notes were absent.
+3. The interview followed a frontier-and-rounds design tree and reached a confirmed checkpoint.
+4. The reader's view did not alter the author reconstruction.
+5. Author terms and meaningful supplied phrases were preserved where they carry meaning.
+6. Reader wording was preserved where it carries judgment or experience.
+7. No quotation, belief, evidence, causality, or certainty was invented.
+8. Every inference, application, and reader judgment is attributable or labelled.
+9. The default output is long-form prose rather than the old fixed template.
+10. Disagreement, uncertainty, boundaries, and unanswered questions remain visible.
+11. Source locations and coverage limits are preserved.
+12. Every paragraph advances the argument, explains a mechanism, preserves evidence, establishes a boundary, changes a judgment, or carries a real uncertainty.
+13. The final voice contains no generic AI padding or imitation of a named author.
 
 ## Response contracts
 
-### Initial extraction with no reader answers yet
+### Before reader answers
 
-Return:
+Return the interview round only: four or five numbered questions grounded in the supplied material, with short source phrases or locations where useful. Do not return the final document, a polished author summary, recommendations, or suggested answers.
 
-# [Book Title] - Reference Document
+### During the interview
 
-Coverage note: [Supplied material and limitations.]
+Ask the current frontier in numbered rounds. Ask follow-ups only when they resolve a material ambiguity, contradiction, unstated condition, unsupported confidence, or missing countercase. Recompute the frontier after each answer. Do not draft prose on the reader's behalf.
 
-## Author Record
+### At the checkpoint
 
-### The Highlight Set in One Sentence
+Return the compact shared-understanding checkpoint and ask for confirmation or correction. Wait for that response before drafting.
 
-### Argument in View
+### After confirmation
 
-Label: Extractor synthesis
+Return the complete long-form document. Include the coverage note, author argument, reader response, and only the comparison, application, source notes, or unresolved questions that the material and confirmed interview support.
 
-### Minimal Glossary
+### If the user explicitly requests the old structured record
 
-### Propositions
-
-### Observations
-
-### Tensions and Limits
-
-Omit when no meaningful tension exists.
-
-### Rules
-
-## Reader Position Interrogation - Round 1
-
-Ask four or five numbered questions only. Do not add recommendations, interpretations, suggested answers, or encouragement after the questions.
-
-### After partial reader answers
-
-Ask up to three tailored follow-up questions only when materially necessary. Otherwise proceed to the updated document. Allow the reader to defer any question.
-
-### Updated reference document
-
-Return the complete author record unchanged, followed by:
-
-## Reader Position
-
-[Independent dated assessments.]
-
-## Open Questions for the Book Memo
-
-[Only unresolved material questions.]
-
-### Book Memo, only when explicitly requested
-
-Use this default structure:
-
-# [Book Title] - Book Memo
-
-## The Author's Case
-
-[Source-faithful memo-grade reconstruction.]
-
-## My Independent Assessment
-
-[Dated reader position, clearly separate from the author record. Use `AI summary` labels for paraphrase.]
-
-## What Remains Unresolved
-
-[Material disagreement, uncertainty, and unanswered questions.]
-
-Do not blend these sections into a single consensus argument.
+Return the complete author record followed by the separately dated reader record, using the optional reference format. The interview and confirmation gate still apply.

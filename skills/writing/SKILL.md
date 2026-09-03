@@ -10,7 +10,7 @@ Read this file when `SKILLS.md` identifies writing as the relevant category. Sel
 ## Available skills
 
 - [`content-fence`](content-fence/SKILL.md): The core, phase-gated workflow for Kiran's private thinking, Thinking Essay development, Reader Reconstruction, Reader-Response Audit, and final Prose Linter work.
-- [`book-reference-extractor`](book-reference-extractor/SKILL.md): Build source-faithful book reference records and independent reader assessments from supplied book material.
+- [`book-reference-extractor`](book-reference-extractor/SKILL.md): Build source-faithful long-form book documents after a confirmed grilling-style reader interview.
 - [`cognitive-editor`](cognitive-editor/SKILL.md): Audit essays and other writing for foundations, bias, evidence, replicability, style, and series fit without rewriting.
 - [`musings-reviewer`](musings-reviewer/SKILL.md): Audit one short daily musing for atomicity, argument structure, definitions, fallacies, prose, and the final word cap.
 - [`unslop`](unslop/SKILL.md): Perform a final, meaning-preserving pass that removes AI-writing patterns and unnecessary cognitive load.
@@ -26,7 +26,7 @@ Route focused requests as follows:
 - Dated Thinking Essay snapshot that needs one reader-centred essay design: `content-fence`, Reader Reconstruction.
 - Completed Reader Essay plus its architecture: `content-fence`, Reader-Response Audit.
 - Finished prose that needs the canonical style audit: `content-fence`, Prose Linter.
-- Book highlights or notes requiring an author record, propositions, reader interrogation, or Book Memo: `book-reference-extractor`.
+- Book highlights, excerpts, or notes requiring an author reconstruction, long-form book document, reader interview, or Book Memo: `book-reference-extractor`.
 - One short daily musing: `musings-reviewer`. Do not use it for essays or other long-form writing.
 - General developmental audit or a request to run the Cognitive Editor: `cognitive-editor`.
 - A final readability or anti-AI editing pass after the content is settled: `unslop`. It is an editing pass, not a substitute for argument or reader-response review.

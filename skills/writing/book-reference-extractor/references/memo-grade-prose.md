@@ -1,39 +1,39 @@
-# Memo-Grade Prose
+# Long-Form Book Prose
 
-Use classic argumentative prose for the author record and any explicitly requested Book Memo. Aim for cumulative reasoning, plain language, calibrated confidence, concrete evidence, and serious counterargument. Do not imitate any named writer's distinctive voice, verbal habits, or mannerisms.
+Use this standard for the default book document and for an explicitly requested Book Memo. Write a coherent, source-faithful account in the author's established vocabulary and the reader's confirmed words. The prose may be polished for structure and readability, but its ideas, judgments, evidence, and uncertainty must come from the supplied source material or the confirmed interview.
+
+## Voice and attribution
+
+Use the author's important terms and meaningful phrases instead of substituting generic AI language. Preserve short exact phrases when the wording itself carries the idea, and give their source location. Use the reader's own wording for experience and judgment, with first person only where the reader stated or confirmed it.
+
+Keep speakers visible through attribution and structure. The author's case comes first. The reader's response follows. A comparison or application can braid the two only when the prose makes clear which voice or status is speaking. Never make a reader judgment, extractor inference, or possible application sound like the author's claim.
+
+Source fidelity is not voice imitation. Do not reproduce a named author's mannerisms, cadence, verbal fingerprints, or decorative style beyond the concepts and wording present in the supplied material.
 
 ## Argument movement
 
-Let a section move through four functions without exposing them as a checklist:
+Let each section move through the reasoning naturally:
 
-1. Open with a supported claim, puzzle, contrast, or consequence.
+1. Open with a supported claim, puzzle, contrast, phrase, or consequence.
 2. Develop the mechanism and evidence.
 3. Turn toward the strongest credible qualification, countercase, or cost.
-4. Land on the judgment, implication, or unresolved tension.
+4. Land on the judgment, implication, or unresolved tension that the source and reader support.
 
-Vary the order when the source requires it. Do not make every paragraph follow the same rhythm.
+Vary the order when the material requires it. Do not make every paragraph follow a visible formula.
 
 ## Paragraph standard
 
-Give each paragraph one main movement in the reasoning. Use transitions to show cause, contrast, qualification, sequence, or consequence. Do not use transitions merely to make prose sound smooth.
+Give each paragraph one main movement. Use transitions to show cause, contrast, qualification, sequence, or consequence. Each paragraph should advance the argument, explain a mechanism, preserve evidence, establish a boundary, test a countercase, change a judgment, or preserve a genuine uncertainty.
 
-Require each paragraph to do at least one of the following:
-
-- advance the argument;
-- explain a mechanism;
-- preserve evidence;
-- establish a boundary;
-- test a countercase;
-- change the reader's judgment;
-- preserve a genuine uncertainty.
+Write connected prose rather than a sequence of extracted cards. Use headings as landmarks, not as a fixed template. Do not add a glossary, proposition number, memory line, or decision rule unless the user asks for a structured reference.
 
 ## Evidence and examples
 
-Use examples as evidence, not decoration. Explain what an example establishes and what it does not establish. Do not generalise from an anecdote beyond the source's warrant.
+Use examples as evidence, not decoration. Explain what an example establishes and what it does not establish. Do not generalise from an anecdote beyond the source's warrant. Preserve the author's distinction between an observation and the claim drawn from it.
 
-## Counterargument
+## Counterargument and boundaries
 
-Give the strongest credible form of the opposing case. Do not attach a token limitation at the end of an otherwise absolute claim. Allow a tension to remain unresolved when the supplied material cannot resolve it.
+Give the strongest credible form of the opposing case. Do not attach a token limitation to an otherwise absolute claim. State the conditions under which the argument is more or less likely to hold. Let a tension remain unresolved when the supplied material and reader interview cannot resolve it.
 
 ## Calibration
 
@@ -42,31 +42,11 @@ Match the strength of the language to the strength of the source. Distinguish:
 - shows from suggests;
 - causes from accompanies;
 - generally from sometimes;
-- necessary from sufficient;
+- necessary from sufficient; and
 - durable principle from context-bound observation.
 
-Preserve uncertainty introduced by the author. Label uncertainty introduced by the extractor.
+Preserve uncertainty introduced by the author. Label uncertainty introduced by the extractor. Carry the reader's uncertainty forward rather than smoothing it into a conclusion.
 
-## Titles and retrieval
+## Final anti-AI pass
 
-Use proposition titles that state a complete, contestable claim. Avoid broad topic labels such as `Leadership`, `Risk`, or `Incentives`.
-
-Prefer:
-
-- Forecasts become least reliable when the system matters most.
-- Local knowledge helps only when local actors bear consequences.
-
-Avoid:
-
-- Forecasting.
-- Decentralisation.
-
-## Style limits
-
-- Prefer ordinary words and exact nouns.
-- Use active verbs.
-- Use short and medium sentences, with longer sentences only when the reasoning requires qualification.
-- Remove throat-clearing, praise, ornamental metaphors, false drama, and repeated conclusions.
-- Do not use aphorisms when they flatten conditions.
-- Do not use rhetorical questions as a substitute for argument.
-- Do not present polish as proof.
+Remove stock openings, generic praise, throat-clearing, false drama, ornamental metaphors, repeated conclusions, empty transitions, and polished abstractions that conceal a missing source or boundary. Prefer concrete nouns, active verbs, ordinary words, and exact terms from the author and reader. Do not present polish as proof.
