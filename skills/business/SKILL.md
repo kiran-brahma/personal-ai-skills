@@ -9,23 +9,23 @@ Use this category for business ideas, customer value propositions, strategic cho
 
 ## Workflows
 
-- [`business-idea-review`](business-idea-review/SKILL.md): Test whether a new business, product, service, or strategic bet solves a real problem and can survive its constraints.
-- [`customer-value-proposition`](customer-value-proposition/SKILL.md): Define the specific buyer, problem, alternative, promised outcome, and smallest validation test.
-- [`decision-navigator`](decision-navigator/SKILL.md): Make a consequential business decision by separating beliefs from evidence, expanding options, protecting the downside, and naming the next action.
-- [`business-problem-solving`](business-problem-solving/SKILL.md): Structure a complex business problem with an issue or hypothesis tree, prioritise the work, and produce an analysis plan.
-- [`business-blog-post-generator`](business-blog-post-generator/SKILL.md): Generate an evidence-led company blog post after auditing the existing site, identifying a content gap, grilling the owner, and applying technical-writing and unslop passes.
+- [`business-idea-review`](../business-idea-review/SKILL.md): Test whether a new business, product, service, or strategic bet solves a real problem and can survive its constraints.
+- [`customer-value-proposition`](../customer-value-proposition/SKILL.md): Define the specific buyer, problem, alternative, promised outcome, and smallest validation test.
+- [`decision-navigator`](../decision-navigator/SKILL.md): Make a consequential business decision by separating beliefs from evidence, expanding options, protecting the downside, and naming the next action.
+- [`business-problem-solving`](../business-problem-solving/SKILL.md): Structure a complex business problem with an issue or hypothesis tree, prioritise the work, and produce an analysis plan.
+- [`business-blog-post-generator`](../business-blog-post-generator/SKILL.md): Generate an evidence-led company blog post after auditing the existing site, identifying a content gap, grilling the owner, and applying technical-writing and unslop passes.
 
 ## Cross-category supporting skills
 
 These are existing skills, not copies. Use them only when their narrower workflow is genuinely needed:
 
-- [`grilling`](../misc/matt/productivity/grilling/SKILL.md) or [`grill-me`](../misc/matt/productivity/grill-me/SKILL.md): generic questioning when the business workflow does not provide the right interview shape.
-- [`research`](../coding/matt/engineering/research/SKILL.md): research against primary sources when an external factual question must be answered.
-- [`why`](../coding/pstack/why/SKILL.md): recover the rationale behind an existing technical or operational decision.
-- [`interrogate`](../coding/pstack/interrogate/SKILL.md): adversarial review when the proposal has a material blind spot or competing model.
-- [`goldilocks-review`](../coding/goldilocks-review/SKILL.md): review the resulting software architecture after a business decision becomes a non-trivial implementation plan.
-- [`to-spec`](../coding/matt/engineering/to-spec/SKILL.md) and [`to-tickets`](../coding/matt/engineering/to-tickets/SKILL.md): convert an approved business decision into buildable engineering work.
-- [`cognitive-editor`](../writing/cognitive-editor/SKILL.md) or [`content-fence`](../writing/content-fence/SKILL.md): handle publication or essay development separately from the underlying business analysis.
+- [`grilling`](../grilling/SKILL.md) or [`grill-me`](../grill-me/SKILL.md): generic questioning when the business workflow does not provide the right interview shape.
+- [`research`](../research/SKILL.md): research against primary sources when an external factual question must be answered.
+- [`why`](../why/SKILL.md): recover the rationale behind an existing technical or operational decision.
+- [`interrogate`](../interrogate/SKILL.md): adversarial review when the proposal has a material blind spot or competing model.
+- [`goldilocks-review`](../goldilocks-review/SKILL.md): review the resulting software architecture after a business decision becomes a non-trivial implementation plan.
+- [`to-spec`](../to-spec/SKILL.md) and [`to-tickets`](../to-tickets/SKILL.md): convert an approved business decision into buildable engineering work.
+- [`cognitive-editor`](../cognitive-editor/SKILL.md) or [`content-fence`](../content-fence/SKILL.md): handle publication or essay development separately from the underlying business analysis.
 
 ## Shared routing rules
 

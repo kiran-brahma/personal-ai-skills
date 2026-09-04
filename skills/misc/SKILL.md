@@ -9,4 +9,4 @@ Read this file when `SKILLS.md` identifies miscellaneous work as the relevant ca
 
 ## Available skills
 
-Matt’s productivity skills are available under [`matt/productivity`](matt/productivity/README.md): use `grilling`, `grill-me`, `handoff`, `teach`, `to-questionnaire`, `wait-what`, and `writing-for-agents` for their focused workflows.
+Matt’s productivity skills are available under [`matt/productivity`](../../packages/matt-pocock-productivity/README.md): use `grilling`, `grill-me`, `handoff`, `teach`, `to-questionnaire`, `wait-what`, and `writing-for-agents` for their focused workflows.

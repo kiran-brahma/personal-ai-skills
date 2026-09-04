@@ -59,7 +59,7 @@ Present the gap diagnosis before asking for drafting inputs. If the owner reject
 
 ## Phase 3: Grill the owner before drafting
 
-Use the existing [grilling skill](../../misc/matt/productivity/grilling/SKILL.md) for the interview shape. Ask the current decision frontier in rounds, then wait for the owner's answers. Do not ask the owner for facts that the agent can inspect. Do not draft while material branches remain unsettled.
+Use the existing [grilling skill](../grilling/SKILL.md) for the interview shape. Ask the current decision frontier in rounds, then wait for the owner's answers. Do not ask the owner for facts that the agent can inspect. Do not draft while material branches remain unsettled.
 
 The interview must establish:
 
@@ -88,7 +88,7 @@ Draft only after the content brief is confirmed. Choose one article mode:
 
 Keep the article's argument narrower than the topic. Use the business's actual terms, mechanisms, limitations, and evidence. Do not add invented statistics, customer outcomes, quotations, case studies, regulatory claims, or product capabilities. Put unsupported claims in the unresolved section or remove them.
 
-Use the existing [technical-writing skill](../../coding/pstack/technical-writing/SKILL.md) as the first editorial pass. Apply its mode, reader, sentence, working-memory, heading, and ambiguity rules to the post. Use the existing [unslop skill](../../writing/unslop/SKILL.md) as the final pass, including its pattern catalogue. Preserve facts, attribution, quotations, uncertainty, business terms, and the owner's intended voice. Unslop is not permission to flatten a real point of view into generic marketing prose.
+Use the existing [technical-writing skill](../technical-writing/SKILL.md) as the first editorial pass. Apply its mode, reader, sentence, working-memory, heading, and ambiguity rules to the post. Use the existing [unslop skill](../unslop/SKILL.md) as the final pass, including its pattern catalogue. Preserve facts, attribution, quotations, uncertainty, business terms, and the owner's intended voice. Unslop is not permission to flatten a real point of view into generic marketing prose.
 
 Return the article package described in [output-contract.md](references/output-contract.md). Include a brief verification note that lists unsupported claims removed, source conflicts left unresolved, and any owner approval still needed. Do not publish, edit the website, or send the article to a third party unless the user separately asks for that action.
 

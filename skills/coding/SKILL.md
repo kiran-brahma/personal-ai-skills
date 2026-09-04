@@ -17,9 +17,9 @@ For a major change, run `thermos` after implementation, fix its findings, and th
 
 The Matt skills are deliberately kept as separate, focused skills. Select the narrowest one rather than loading the whole set.
 
-Engineering skills live under [`matt/engineering`](matt/engineering/README.md), including `ask-matt`, `grill-with-docs`, `to-spec`, `to-tickets`, `implement`, `code-review`, `tdd`, `domain-modeling`, `codebase-design`, `diagnosing-bugs`, `triage`, `wayfinder`, `prototype`, `research`, `wizard`, and merge-conflict handling.
+Engineering skills live under [`matt/engineering`](../../packages/matt-pocock-skills/README.md), including `ask-matt`, `grill-with-docs`, `to-spec`, `to-tickets`, `implement`, `code-review`, `tdd`, `domain-modeling`, `codebase-design`, `diagnosing-bugs`, `triage`, `wayfinder`, `prototype`, `research`, `wizard`, and merge-conflict handling.
 
-The supporting productivity skills live under [`../misc/matt/productivity`](../misc/matt/productivity/README.md), including `grilling`, `grill-me`, `handoff`, `teach`, `to-questionnaire`, `wait-what`, and `writing-for-agents`.
+The supporting productivity skills live under [`../misc/matt/productivity`](../../packages/matt-pocock-productivity/README.md), including `grilling`, `grill-me`, `handoff`, `teach`, `to-questionnaire`, `wait-what`, and `writing-for-agents`.
 
 ## Supporting skills: pstack
 

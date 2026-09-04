@@ -78,28 +78,24 @@ packages:
   - id: matt-pocock-skills
     source: matt-pocock-skills
     status: trial
-    path_prefix: skills/coding/matt/engineering
     upstream_prefix: skills/engineering
     skills: [ask-matt, code-review, codebase-design, diagnosing-bugs, domain-modeling, grill-with-docs, implement, improve-codebase-architecture, prototype, research, resolving-merge-conflicts, setup-matt-pocock-skills, tdd, to-spec, to-tickets, triage, wayfinder, wizard]
     adaptations: [portable-paths, local-goldilocks-gate, thermos-before-code-review]
   - id: matt-pocock-productivity
     source: matt-pocock-skills
     status: trial
-    path_prefix: skills/misc/matt/productivity
     upstream_prefix: skills/productivity
     skills: [grill-me, grilling, handoff, teach, to-questionnaire, wait-what, writing-for-agents]
     adaptations: [portable-paths]
   - id: pstack-supporting
     source: cursor-pstack
     status: trial
-    path_prefix: skills/coding/pstack
     upstream_prefix: skills
     skills: [architect, arena, blast-radius, create-verification-skill, how, interrogate, maintain-verification-skill, recall, reflect, show-me-your-work, swarm, technical-writing, typescript-best-practices, why]
     adaptations: [portable-paths, selective-adoption, matt-workflow-routing]
   - id: thermos
     source: cursor-thermos
     status: trial
-    path_prefix: skills/coding/thermos
     upstream_prefix: skills
     skills: [thermos, thermo-nuclear-review, thermo-nuclear-code-quality-review]
     adaptations: [major-change-gate, portable-orchestration]
@@ -111,20 +107,17 @@ packages:
   - id: owner-writing-workflows
     source: repository-owner
     status: trial
-    path_prefix: skills/writing
     skills: [content-fence, book-reference-extractor, cognitive-editor, musings-reviewer, unslop]
     adaptations: [portable-import, content-fence-primary-router, git-tracked-workflow-documents, economist-style-source, book-reader-interview-gate, book-author-vocabulary, book-long-form-prose]
   - id: business-workflows
     source: gstack
     status: trial
-    path_prefix: skills/business
     upstream_prefix: [office-hours, plan-ceo-review]
     skills: [business-idea-review, customer-value-proposition, decision-navigator, business-problem-solving]
     adaptations: [portable-workflows, owner-prompts, India-context, cash-flow-over-SaaS-metrics, evidence-first, explicit-falsifiers, cross-category-routing, no-private-context]
   - id: owner-business-content-workflows
     source: repository-owner
     status: trial
-    path_prefix: skills/business
     skills: [business-blog-post-generator]
     adaptations: [website-gap-audit, delegated-independent-review, owner-interview-gate, evidence-ledger, technical-writing-first, unslop-final-pass, no-autonomous-publication]
 

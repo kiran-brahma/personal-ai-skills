@@ -9,11 +9,11 @@ Read this file when `SKILLS.md` identifies writing as the relevant category. Sel
 
 ## Available skills
 
-- [`content-fence`](content-fence/SKILL.md): The core, phase-gated workflow for Kiran's private thinking, Thinking Essay development, Reader Reconstruction, Reader-Response Audit, and final Prose Linter work.
-- [`book-reference-extractor`](book-reference-extractor/SKILL.md): Build source-faithful long-form book documents after a confirmed grilling-style reader interview.
-- [`cognitive-editor`](cognitive-editor/SKILL.md): Audit essays and other writing for foundations, bias, evidence, replicability, style, and series fit without rewriting.
-- [`musings-reviewer`](musings-reviewer/SKILL.md): Audit one short daily musing for atomicity, argument structure, definitions, fallacies, prose, and the final word cap.
-- [`unslop`](unslop/SKILL.md): Perform a final, meaning-preserving pass that removes AI-writing patterns and unnecessary cognitive load.
+- [`content-fence`](../content-fence/SKILL.md): The core, phase-gated workflow for Kiran's private thinking, Thinking Essay development, Reader Reconstruction, Reader-Response Audit, and final Prose Linter work.
+- [`book-reference-extractor`](../book-reference-extractor/SKILL.md): Build source-faithful long-form book documents after a confirmed grilling-style reader interview.
+- [`cognitive-editor`](../cognitive-editor/SKILL.md): Audit essays and other writing for foundations, bias, evidence, replicability, style, and series fit without rewriting.
+- [`musings-reviewer`](../musings-reviewer/SKILL.md): Audit one short daily musing for atomicity, argument structure, definitions, fallacies, prose, and the final word cap.
+- [`unslop`](../unslop/SKILL.md): Perform a final, meaning-preserving pass that removes AI-writing patterns and unnecessary cognitive load.
 
 ## Route the workflow
 
@@ -42,6 +42,6 @@ Before substantive work, inspect the selected skill for a `references/workflow-d
 3. Use the tracked content as authoritative over memory, prior chat versions, and general writing advice.
 4. Treat edits to these documents as ordinary Git changes. Do not fetch Google Drive or require a connector for the tracked workflow.
 
-If a future skill instead declares an external live-document manifest, follow that skill's connector instructions. For the current writing package, the canonical workflow documents are tracked locally in [`content-fence/references/workflow-docs.md`](content-fence/references/workflow-docs.md). Google Drive is optional only when the user supplies an external document, such as an essay ledger, as task context.
+If a future skill instead declares an external live-document manifest, follow that skill's connector instructions. For the current writing package, the canonical workflow documents are tracked locally in [`content-fence/references/workflow-docs.md`](../content-fence/references/workflow-docs.md). Google Drive is optional only when the user supplies an external document, such as an essay ledger, as task context.
 
 When a skill is added, list it here with its path and a concise description of when it applies. Keep this catalogue focused on routing; detailed instructions belong in the specific skill.
