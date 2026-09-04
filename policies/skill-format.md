@@ -16,11 +16,22 @@ Skill names use lowercase letters, numbers, and hyphens.
 Every concrete skill is a directory directly under `skills/`, named for the skill:
 `skills/code-review/SKILL.md`. The layout is flat, one level, with no exceptions.
 
-This is not a stylistic preference. Claude Code and Codex only discover
-`skills/<name>/SKILL.md` and ignore anything deeper. Pi recurses, but stops at the
-first `SKILL.md` it finds, so a skill nested under another skill is invisible to it.
-Codex additionally copies plugins into a cache and silently drops symlinks, so a
-symlinked skill directory cannot substitute for a real one.
+This is not a stylistic preference, and it is worth being exact about which agent
+forces it:
+
+- **Claude Code** discovers `skills/<name>/SKILL.md` and ignores anything deeper.
+  One level is its whole search.
+- **Pi** recurses, but stops at the first `SKILL.md` it finds and does not look
+  beneath it, so a skill nested under another skill is invisible to it. A category
+  router with its own `SKILL.md` would hide every skill under it.
+- **Codex** recurses to any depth and does not stop at a parent `SKILL.md`, so the
+  flat layout is not for its benefit. It has a different constraint: it copies
+  plugins into a cache and silently drops symlinks, so a symlinked skill directory
+  cannot substitute for a real one, and it truncates skill descriptions past a
+  fixed budget.
+
+So the flat layout is required by Claude Code and Pi. Codex tolerates nesting but
+cannot tolerate symlinks.
 
 Category routing files stay at `skills/<category>/SKILL.md`. Because every concrete
 skill is a sibling, nothing is nested beneath a router and the discovery order in

@@ -117,12 +117,13 @@ def check_structure(root, skill_files, findings):
         relpath = rel(root, sf)
         depth = len(os.path.relpath(sdir, skills_root).split(os.sep))
 
-        # S1 — Claude and Codex only scan skills/<name>/SKILL.md, one level deep.
+        # S1 — Claude Code scans skills/<name>/SKILL.md and nothing deeper.
+        # Codex recurses to any depth, so this rule is not for its benefit.
         if depth != 1:
             findings.append(Finding(
                 ERROR, "S1-depth", relpath,
                 f"skill is {depth} levels below skills/, must be exactly 1",
-                "Claude Code and Codex only discover skills/<name>/SKILL.md"))
+                "Claude Code discovers skills/<name>/SKILL.md and nothing deeper"))
 
         # S6 — Codex copies plugins into a cache and silently drops symlinks.
         if os.path.islink(sdir):
@@ -703,44 +704,44 @@ def refresh_pi(root, skills, dry_run):
     return home, actions, conflicts
 
 
+def codex_plugin_installed(root):
+    """True when this library is also installed as a Codex plugin. Both routes at
+    once give Codex every skill twice, once namespaced and once bare."""
+    mk = os.path.join(root, ".claude-plugin/marketplace.json")
+    pj = os.path.join(root, ".codex-plugin/plugin.json")
+    if not (os.path.exists(mk) and os.path.exists(pj)):
+        return None
+    try:
+        m = json.load(open(mk, encoding="utf-8"))["name"]
+        pl = json.load(open(pj, encoding="utf-8"))["name"]
+    except Exception:
+        return None
+    base = os.path.expanduser(f"~/.codex/plugins/cache/{m}/{pl}")
+    return f"{pl}@{m}" if os.path.isdir(base) else None
+
+
 def refresh_codex(root, skills, dry_run):
-    """Codex installs from a marketplace, so it needs the packaging manifests
-    before anything can be refreshed."""
+    """Codex loads skills from ~/.agents/skills, the cross-harness Agent Skills
+    location, and follows symlinks there.
+
+    That is a live path: an edit is visible to the next Codex session with no
+    reinstall, no cache copy, and no version bump. The plugin route remains for
+    consumer machines, where tracking published releases is the point, but the two
+    must not be combined.
+
+    Pi reads this directory as well as its own agent directory, and deduplicates by
+    real path, so the overlap is harmless.
+    """
     import shutil
     if not shutil.which("codex"):
-        return None, [], "codex is not on PATH"
-    missing = [p for p in (".claude-plugin/marketplace.json", ".codex-plugin/plugin.json")
-               if not os.path.exists(os.path.join(root, p))]
-    if missing:
-        return None, [], f"not packaged yet, missing {', '.join(missing)}"
-    import subprocess
-    version, _, _ = derived_version(root)
-    marketplace = json.load(open(os.path.join(root, ".claude-plugin/marketplace.json"),
-                                 encoding="utf-8"))
-    plugin = json.load(open(os.path.join(root, ".codex-plugin/plugin.json"),
-                            encoding="utf-8"))["name"]
-    selector = f"{plugin}@{marketplace['name']}"
-    cache = os.path.expanduser(
-        f"~/.codex/plugins/cache/{marketplace['name']}/{plugin}/{version}")
-
-    # Existence is not enough: a cache directory can carry stale contents from a
-    # version that was later rewritten, and Codex reads that copy, not the repo.
-    cached = (set(os.listdir(os.path.join(cache, "skills")))
-              if os.path.isdir(os.path.join(cache, "skills")) else None)
-    if cached == set(skills):
-        return "codex", [], None
-    why = (f"cache missing for {version}" if cached is None
-           else f"cache has {len(cached)} skills, repo has {len(skills)}")
-    if dry_run:
-        return "codex", [("install", selector, why)], None
-    # `marketplace upgrade` only refreshes Git marketplaces, so it is a no-op for a
-    # local checkout. `plugin add` re-reads the marketplace and installs the version
-    # in the manifest, replacing the previous cache entry.
-    subprocess.run(["codex", "plugin", "marketplace", "upgrade"],
-                   capture_output=True, text=True)
-    r = subprocess.run(["codex", "plugin", "add", selector], capture_output=True, text=True)
-    note = "installed" if r.returncode == 0 else (r.stderr.strip() or "failed")
-    return "codex", [("install", selector, f"{version} — {note}")], None
+        return None, [], [], "codex is not on PATH"
+    home = os.path.expanduser(os.environ.get("AGENTS_SKILLS_DIR", "~/.agents/skills"))
+    actions, conflicts = reconcile_links(root, home, skills, dry_run)
+    dup = codex_plugin_installed(root)
+    note = (f"also installed as plugin {dup}; Codex will carry every skill twice. "
+            f"Remove it with `codex plugin remove {dup.split('@')[0]} "
+            f"--marketplace {dup.split('@')[1]}`" if dup else None)
+    return home, actions, conflicts, note
 
 
 def cmd_refresh(args):
@@ -792,14 +793,21 @@ def cmd_refresh(args):
             print(f"         CONFLICT {name} exists and is not ours — left untouched")
         total += len(pi_actions)
 
-    _, cx_actions, cx_note = refresh_codex(root, skills, dry)
-    print("\ncodex    ", end="")
-    if cx_note:
-        print(f"skipped — {cx_note}")
+    cx_home, cx_actions, cx_conflicts, cx_note = refresh_codex(root, skills, dry)
+    if cx_home is None:
+        print(f"\ncodex    skipped — {cx_note}")
     else:
-        print("marketplace")
-        for kind, name, why in cx_actions:
+        print(f"\ncodex    {cx_home}")
+        for kind, name, why in cx_actions[:12]:
             print(f"         {kind:7} {name}  ({why})")
+        if len(cx_actions) > 12:
+            print(f"         … and {len(cx_actions) - 12} more")
+        if not cx_actions:
+            print("         already in sync")
+        for name in cx_conflicts:
+            print(f"         CONFLICT {name} exists and is not ours — left untouched")
+        if cx_note:
+            print(f"         WARNING {cx_note}")
         total += len(cx_actions)
 
     print(f"\n{total} change(s)" + (" — re-run without --dry-run to apply" if dry and total
@@ -1340,25 +1348,20 @@ def cmd_doctor(args):
         else:
             check("installs", label, "ok", f"{len(skills)} skills")
 
-    mk = os.path.join(root, ".claude-plugin/marketplace.json")
     if not tools["codex"]:
         check("installs", "codex", "warn", "codex is not on PATH")
-    elif not os.path.exists(mk):
-        check("installs", "codex", "fail", "marketplace manifest missing")
     else:
-        m = json.load(open(mk, encoding="utf-8"))["name"]
-        pl = json.load(open(os.path.join(root, ".codex-plugin/plugin.json"),
-                            encoding="utf-8"))["name"]
-        base = os.path.expanduser(f"~/.codex/plugins/cache/{m}/{pl}")
-        have = sorted(os.listdir(base)) if os.path.isdir(base) else []
-        if version in have:
-            cached = set(os.listdir(os.path.join(base, version, "skills")))
-            check("installs", "codex", "ok" if cached == set(skills) else "fail",
-                  f"{version}" if cached == set(skills) else
-                  f"{len(cached)} cached vs {len(skills)} in repo")
-        else:
+        home, actions, conflicts, note = refresh_codex(root, skills, True)
+        if conflicts:
+            check("installs", "codex", "fail",
+                  f"{len(conflicts)} name(s) shadowed: {', '.join(conflicts[:3])}")
+        elif actions:
             check("installs", "codex", "warn",
-                  f"cache has {have or 'nothing'}, repo is at {version} — run refresh")
+                  f"{len(actions)} out of sync — run refresh")
+        else:
+            check("installs", "codex", "ok", f"{len(skills)} skills")
+        if note:
+            check("installs", "codex-plugin", "warn", note)
 
     if args.json:
         print(json.dumps([{"section": s, "check": n, "level": l, "detail": d}
@@ -1447,7 +1450,7 @@ def cmd_bootstrap(args):
         if tools["pi"]:
             steps.append(("pi", f"link {len(skills)} skills into the agent skills dir"))
         if tools["codex"]:
-            steps.append(("codex", "add this checkout as a marketplace, install the plugin"))
+            steps.append(("codex", f"link {len(skills)} skills into ~/.agents/skills"))
     else:
         if tools["claude"]:
             steps.append(("claude", f"add marketplace {slug}, install the plugin"))
