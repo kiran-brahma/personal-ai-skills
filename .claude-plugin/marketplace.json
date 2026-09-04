@@ -1,0 +1,15 @@
+{
+  "name": "kb-skills",
+  "owner": {
+    "name": "Kiran Brahma",
+    "url": "https://github.com/kiran-brahma"
+  },
+  "plugins": [
+    {
+      "name": "kb",
+      "source": "./",
+      "description": "Kiran Brahma's canonical skill library: coding, writing, business, research, and governance workflows."
+    }
+  ],
+  "description": "One version-controlled library of portable skills, shared across Claude Code, Codex, and Pi."
+}

@@ -1,0 +1,11 @@
+{
+  "name": "kb",
+  "description": "Kiran Brahma's canonical skill library: coding, writing, business, research, and governance workflows.",
+  "version": "0.1.8",
+  "author": {
+    "name": "Kiran Brahma"
+  },
+  "homepage": "https://github.com/kiran-brahma/personal-ai-skills",
+  "repository": "https://github.com/kiran-brahma/personal-ai-skills",
+  "license": "MIT"
+}
