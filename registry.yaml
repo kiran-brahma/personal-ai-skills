@@ -121,6 +121,12 @@ packages:
     upstream_prefix: [office-hours, plan-ceo-review]
     skills: [business-idea-review, customer-value-proposition, decision-navigator, business-problem-solving]
     adaptations: [portable-workflows, owner-prompts, India-context, cash-flow-over-SaaS-metrics, evidence-first, explicit-falsifiers, cross-category-routing, no-private-context]
+  - id: owner-business-content-workflows
+    source: repository-owner
+    status: trial
+    path_prefix: skills/business
+    skills: [business-blog-post-generator]
+    adaptations: [website-gap-audit, delegated-independent-review, owner-interview-gate, evidence-ledger, technical-writing-first, unslop-final-pass, no-autonomous-publication]
 
 external_workflows:
   - id: codex-security

@@ -55,3 +55,49 @@ Expected behavior:
 - Hands the writing task to `content-fence` or `cognitive-editor`.
 - Does not conflate Knighthood, O9X, The Operator Stack, and kiranbrahma.com.
 
+## Case 6: Company blog gap audit
+
+Prompt: “Create a business blog post for Knighthood from the gaps in our current blog.”
+
+Expected behavior:
+
+- Routes to `business-blog-post-generator`.
+- Inspects the blog index and relevant home, about, service, industry, proof, location, and contact pages before asking the owner for facts.
+- Maps posts by topic, buyer, intent, service, industry, funnel stage, format, date, and evidence quality.
+- States candidate gaps as hypotheses tied to a reader decision and business priority.
+- Does not draft the post during the audit.
+
+## Case 7: Ambiguous gap and independent review
+
+Prompt: “The site has lots of topics, but I am not sure what the next Knighthood post should be.”
+
+Expected behavior:
+
+- Uses a separate bounded website-review sub-agent when the main evidence does not establish a clear gap.
+- Gives the reviewer the website-review brief and asks for page-level evidence, not an article draft.
+- Merges the report as an independent lens and verifies material claims against source pages.
+- Separates observed facts, inferences, estimates, and contradictions.
+- Does not select between conflicting public metrics without owner confirmation.
+
+## Case 8: Interview and content-brief gate
+
+Prompt: “After you find the gap, grill me for everything that belongs in the post.”
+
+Expected behavior:
+
+- Uses the existing `grilling` workflow in frontier-based rounds and waits for answers between rounds.
+- Covers the reader, decision, business objective, thesis, trade-offs, proof, examples, permissions, sources, constraints, CTA, and exclusions.
+- Treats anecdotes, estimates, memories, and owner assertions as bounded inputs rather than automatic proof.
+- Produces a content brief and waits for the owner to confirm or correct it before drafting.
+
+## Case 9: Draft, editorial passes, and publication boundary
+
+Prompt: “The brief is approved. Write the Knighthood post and run technical-writing and unslop.”
+
+Expected behavior:
+
+- Chooses one article mode and keeps the argument narrower than the topic.
+- Returns the article package with title, slug, metadata when relevant, body, CTA, and verification note.
+- Runs technical-writing first and unslop last as separate editorial passes.
+- Preserves attribution, uncertainty, approved business terms, and the owner's point of view.
+- Removes unsupported claims and does not publish or edit the website without separate authorization.

@@ -4,11 +4,11 @@ This file is an index. Detailed release notes live in one file per ISO month so 
 
 ## Latest release
 
-[0.3.1 — 2026-09-03](changelog/2026-09.md#031--2026-09-03)
+[0.4.0 — 2026-09-04](changelog/2026-09.md#040--2026-09-04)
 
 ## Monthly index
 
-- [2026-09](changelog/2026-09.md): versions `0.1.0`, `0.2.0`, `0.2.1`, `0.2.2`, `0.3.0`, and `0.3.1`, initial skill library, writing workflow adoption, business workflow adoption, and the book-extractor interview/prose update.
+- [2026-09](changelog/2026-09.md): versions `0.1.0`, `0.2.0`, `0.2.1`, `0.2.2`, `0.3.0`, `0.3.1`, and `0.4.0`, including the business blog post generator.
 
 ## Changelog format
 
