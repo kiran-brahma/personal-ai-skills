@@ -1,0 +1,648 @@
+#!/usr/bin/env python3
+"""Maintain the canonical skill library across Claude Code, Codex, and Pi.
+
+Subcommands:
+  validate    Check the library against the cross-agent contract. Exit 1 on error.
+
+Every rule here exists because at least one agent breaks without it. The `why`
+field on each finding names that agent, so a failure explains itself.
+
+Stdlib only: this runs from a git pre-commit hook, which cannot assume PyYAML.
+"""
+
+import argparse
+import json
+import os
+import re
+import sys
+
+SKILL_FILE = "SKILL.md"
+SKILLS_DIR = "skills"
+REGISTRY = "registry.yaml"
+
+# Directories inside a skill that hold supporting files rather than more skills.
+SUPPORT_DIRS = {"references", "scripts", "assets", "templates"}
+
+DEFAULT_MAX_DESC = 200
+DEFAULT_TOTAL_DESC = 9000
+
+ERROR, WARN = "error", "warning"
+
+
+class Finding:
+    def __init__(self, severity, check, path, message, why):
+        self.severity = severity
+        self.check = check
+        self.path = path
+        self.message = message
+        self.why = why
+
+    def as_dict(self):
+        return {
+            "severity": self.severity,
+            "check": self.check,
+            "path": self.path,
+            "message": self.message,
+            "why": self.why,
+        }
+
+
+def parse_frontmatter(text):
+    """Return (dict, error). Handles `key: value`, quoted scalars, and > / | blocks."""
+    m = re.match(r"^---\n(.*?)\n---\n", text, re.S)
+    if not m:
+        return None, "no YAML frontmatter delimited by ---"
+    body = m.group(1)
+    data, lines, i = {}, body.split("\n"), 0
+    while i < len(lines):
+        line = lines[i]
+        km = re.match(r"^([A-Za-z][A-Za-z0-9_-]*):\s*(.*)$", line)
+        if not km:
+            i += 1
+            continue
+        key, val = km.group(1), km.group(2).strip()
+        if val in (">", "|", ">-", "|-", ">+", "|+"):
+            i += 1
+            block = []
+            while i < len(lines) and (lines[i].startswith((" ", "\t")) or not lines[i].strip()):
+                block.append(lines[i].strip())
+                i += 1
+            data[key] = " ".join(x for x in block if x)
+            continue
+        # An unquoted scalar may wrap onto following indented lines.
+        i += 1
+        cont = []
+        while i < len(lines) and lines[i].startswith((" ", "\t")) and lines[i].strip():
+            cont.append(lines[i].strip())
+            i += 1
+        if cont:
+            val = " ".join([val] + cont).strip()
+        if len(val) >= 2 and val[0] == val[-1] and val[0] in "\"'":
+            quote = val[0]
+            val = val[1:-1]
+            if quote == '"':
+                val = val.replace('\\"', '"').replace("\\\\", "\\")
+        data[key] = val
+    return data, None
+
+
+def find_skill_files(root):
+    """Every SKILL.md under skills/, including ones reached through a symlinked
+    directory. os.walk does not follow symlinks, so those must be collected
+    explicitly — otherwise a symlinked skill is invisible here and then silently
+    dropped by Codex, which is the exact failure S6 exists to catch."""
+    skills_root = os.path.join(root, SKILLS_DIR)
+    out = set()
+    for dirpath, dirnames, filenames in os.walk(skills_root):
+        dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+        if SKILL_FILE in filenames:
+            out.add(os.path.join(dirpath, SKILL_FILE))
+        for d in dirnames:
+            candidate = os.path.join(dirpath, d)
+            if os.path.islink(candidate) and os.path.isfile(os.path.join(candidate, SKILL_FILE)):
+                out.add(os.path.join(candidate, SKILL_FILE))
+    return sorted(out)
+
+
+def rel(root, path):
+    return os.path.relpath(path, root)
+
+
+def check_structure(root, skill_files, findings):
+    skills_root = os.path.join(root, SKILLS_DIR)
+    by_name = {}
+
+    for sf in skill_files:
+        sdir = os.path.dirname(sf)
+        relpath = rel(root, sf)
+        depth = len(os.path.relpath(sdir, skills_root).split(os.sep))
+
+        # S1 — Claude and Codex only scan skills/<name>/SKILL.md, one level deep.
+        if depth != 1:
+            findings.append(Finding(
+                ERROR, "S1-depth", relpath,
+                f"skill is {depth} levels below skills/, must be exactly 1",
+                "Claude Code and Codex only discover skills/<name>/SKILL.md"))
+
+        # S6 — Codex copies plugins into a cache and silently drops symlinks.
+        if os.path.islink(sdir):
+            findings.append(Finding(
+                ERROR, "S6-symlink", relpath,
+                "skill directory is a symlink",
+                "Codex drops symlinks when copying a plugin into its cache"))
+
+        # S2 — Pi stops recursing at the first SKILL.md it finds.
+        buried = []
+        for dp, dn, fn in os.walk(sdir):
+            dn[:] = [d for d in dn if not d.startswith(".")]
+            if dp == sdir:
+                continue
+            if SKILL_FILE in fn:
+                buried.append(rel(root, os.path.join(dp, SKILL_FILE)))
+        if buried:
+            findings.append(Finding(
+                ERROR, "S2-nested", relpath,
+                f"has {len(buried)} SKILL.md beneath it, first: {buried[0]}",
+                "Pi stops recursing at the first SKILL.md, hiding everything below"))
+
+        text = open(sf, encoding="utf-8", errors="replace").read()
+        fm, err = parse_frontmatter(text)
+
+        # S5 — every agent needs a parseable name and description.
+        if err:
+            findings.append(Finding(ERROR, "S5-frontmatter", relpath, err,
+                                    "all agents read name and description from frontmatter"))
+            continue
+        name, desc = fm.get("name", "").strip(), fm.get("description", "").strip()
+        if not name:
+            findings.append(Finding(ERROR, "S5-frontmatter", relpath, "missing name:",
+                                    "all agents read name and description from frontmatter"))
+        if not desc:
+            findings.append(Finding(ERROR, "S5-frontmatter", relpath, "missing description:",
+                                    "all agents read name and description from frontmatter"))
+        if not name:
+            continue
+
+        # S3 — the directory name is the invocation name in every agent.
+        dirname = os.path.basename(sdir)
+        if name != dirname:
+            findings.append(Finding(
+                ERROR, "S3-name", relpath,
+                f"name '{name}' does not match directory '{dirname}'",
+                "the directory name is what each agent exposes as the skill name"))
+
+        by_name.setdefault(name, []).append(relpath)
+
+    # S4 — a duplicate name silently shadows one of the two.
+    for name, paths in sorted(by_name.items()):
+        if len(paths) > 1:
+            findings.append(Finding(
+                ERROR, "S4-unique", paths[0],
+                f"name '{name}' also declared in {', '.join(paths[1:])}",
+                "duplicate names shadow each other with no error"))
+
+    return by_name
+
+
+def check_budget(root, skill_files, findings, max_desc, total_desc):
+    total = 0
+    for sf in skill_files:
+        fm, err = parse_frontmatter(open(sf, encoding="utf-8", errors="replace").read())
+        if err:
+            continue
+        desc = " ".join((fm.get("description") or "").split())
+        total += len(desc)
+        # B1 — Codex truncates descriptions to fit a fixed skills budget.
+        if len(desc) > max_desc:
+            findings.append(Finding(
+                ERROR, "B1-desc-length", rel(root, sf),
+                f"description is {len(desc)} bytes, limit {max_desc}",
+                "Codex silently shortens descriptions past its skills budget"))
+    # B2 — the whole library shares that budget.
+    if total > total_desc:
+        findings.append(Finding(
+            ERROR, "B2-desc-total", SKILLS_DIR,
+            f"descriptions total {total} bytes, limit {total_desc}",
+            "Codex truncates once the combined skills budget is exceeded"))
+    return total
+
+
+LINK_RE = re.compile(r"\]\(([^)#][^)]*)\)")
+# Only treat a link target as a file path when it looks like one. Skill bodies
+# contain template placeholders such as [<ticket title>](link) in example output.
+FILE_LIKE = re.compile(r"(/|\.(md|sh|py|tsv|json|ya?ml|txt|toml))$|/", re.I)
+FENCE_RE = re.compile(r"^\s*(```+|~~~+)")
+
+
+def strip_fences(text):
+    """Blank out fenced code blocks. A link inside a fence is sample content the
+    skill is teaching the agent to write, not a path it will ever follow."""
+    out, fence = [], None
+    for line in text.split("\n"):
+        m = FENCE_RE.match(line)
+        if m:
+            marker = m.group(1)[:3]
+            if fence is None:
+                fence = marker
+            elif marker == fence:
+                fence = None
+            out.append("")
+            continue
+        out.append("" if fence else line)
+    return "\n".join(out)
+
+
+def link_targets(text):
+    """Yield (raw, path, anchor) for each link that names a real file path."""
+    for raw in LINK_RE.findall(strip_fences(text)):
+        raw = raw.split()[0].strip()
+        path, _, anchor = raw.partition("#")
+        if not path:
+            continue
+        if re.match(r"^[a-z]+://", path) or path.startswith("mailto:"):
+            continue
+        if "<" in path or ">" in path or not FILE_LIKE.search(path):
+            continue
+        yield raw, path, ("#" + anchor if anchor else "")
+
+
+def skill_docs(skill_dir):
+    """Every Markdown file a skill ships, not just its entrypoint."""
+    for dp, dn, fn in os.walk(skill_dir):
+        dn[:] = [d for d in dn if not d.startswith(".")]
+        for f in sorted(fn):
+            if f.endswith(".md"):
+                yield os.path.join(dp, f)
+
+
+def check_integrity(root, skill_files, by_name, findings):
+    # I1 — every Markdown file a skill ships, not just SKILL.md: the entrypoint
+    # sends the agent into references/, and a broken link there fails mid-run.
+    for sf in skill_files:
+        sdir = os.path.dirname(sf)
+        for doc in skill_docs(sdir):
+            text = open(doc, encoding="utf-8", errors="replace").read()
+            for _raw, target, _anchor in link_targets(text):
+                resolved = os.path.normpath(os.path.join(os.path.dirname(doc), target))
+                if os.path.exists(resolved):
+                    continue
+                inside = os.path.commonpath(
+                    [resolved, os.path.abspath(sdir)]) == os.path.abspath(sdir)
+                findings.append(Finding(
+                    ERROR if inside else WARN, "I1-refs", rel(root, doc),
+                    f"link target does not exist: {target}",
+                    "the agent reads these paths at run time and fails when they are missing"))
+
+    # I2 — registry.yaml is the inventory; drift means a skill is untracked.
+    reg_path = os.path.join(root, REGISTRY)
+    if not os.path.exists(reg_path):
+        findings.append(Finding(WARN, "I2-registry", REGISTRY, "registry.yaml not found",
+                                "the registry is the inventory of record for the library"))
+        return
+    reg = open(reg_path, encoding="utf-8", errors="replace").read()
+    listed = set()
+    for m in re.finditer(r"^\s*skills:\s*\[(.*?)\]", reg, re.M | re.S):
+        listed.update(s.strip() for s in m.group(1).split(",") if s.strip())
+    # Category routers are recorded under `categories:` with a path, not in a
+    # package's skills list. They are still inventoried, so count them as listed.
+    for m in re.finditer(r"^\s*-\s+id:\s*(\S+)\s*\n\s*path:\s*skills/", reg, re.M):
+        listed.add(m.group(1))
+    for name in sorted(by_name):
+        if name not in listed:
+            findings.append(Finding(WARN, "I2-registry", by_name[name][0],
+                                    f"'{name}' is not listed in registry.yaml",
+                                    "the registry is the inventory of record for the library"))
+    on_disk = set(by_name)
+    for name in sorted(listed - on_disk):
+        findings.append(Finding(WARN, "I2-registry", REGISTRY,
+                                f"'{name}' is listed but has no skill directory",
+                                "the registry is the inventory of record for the library"))
+
+
+def skill_name_of(path):
+    fm, err = parse_frontmatter(open(path, encoding="utf-8", errors="replace").read())
+    if err or not fm:
+        return None
+    return (fm.get("name") or "").strip() or None
+
+
+def package_prefixes(root):
+    """Map path_prefix -> package id from registry.yaml, for relocating package READMEs."""
+    reg = os.path.join(root, REGISTRY)
+    if not os.path.exists(reg):
+        return {}
+    out, current = {}, None
+    for line in open(reg, encoding="utf-8", errors="replace"):
+        m = re.match(r"^\s*-\s+id:\s*(\S+)", line)
+        if m:
+            current = m.group(1)
+            continue
+        m = re.match(r"^\s*path_prefix:\s*(\S+)", line)
+        if m and current:
+            out[m.group(1).rstrip("/")] = current
+    return out
+
+
+def build_move_map(root, skill_files):
+    """Return (dir_moves, file_moves, collisions), all absolute paths.
+
+    Leaf skills flatten to skills/<name>. Category routers already sit at depth 1
+    and stay put: once the leaves move out they have nothing beneath them, so the
+    routing order in AGENTS.md survives untouched.
+    """
+    skills_root = os.path.join(root, SKILLS_DIR)
+    dir_moves, collisions, claimed = {}, [], {}
+
+    for sf in sorted(skill_files):
+        sdir = os.path.dirname(sf)
+        parts = os.path.relpath(sdir, skills_root).split(os.sep)
+        if len(parts) == 1:
+            claimed[parts[0]] = sdir  # router keeps its directory name
+            continue
+        name = skill_name_of(sf)
+        if not name:
+            continue
+        target = os.path.join(skills_root, name)
+        if name in claimed:
+            collisions.append((rel(root, sdir), name, rel(root, claimed[name])))
+            continue
+        claimed[name] = sdir
+        dir_moves[sdir] = target
+
+    # Package READMEs are provenance, not skills; park them outside skills/.
+    # A README only counts as one when its directory is a grouping directory —
+    # it directly contains skill directories that are moving out. That excludes
+    # fixture READMEs living inside a skill's own references/.
+    file_moves = {}
+    prefixes = package_prefixes(root)
+    for dirpath, dirnames, filenames in os.walk(skills_root):
+        dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+        if "README.md" not in filenames or SKILL_FILE in filenames:
+            continue
+        if not any(os.path.join(dirpath, d) in dir_moves for d in dirnames):
+            continue
+        src = os.path.join(dirpath, "README.md")
+        pkg = prefixes.get(rel(root, dirpath))
+        if not pkg:
+            pkg = "-".join(os.path.relpath(dirpath, skills_root).split(os.sep))
+        file_moves[src] = os.path.join(root, "packages", pkg, "README.md")
+
+    return dir_moves, file_moves, collisions
+
+
+def remap(path, dir_moves, file_moves):
+    if path in file_moves:
+        return file_moves[path]
+    for old, new in dir_moves.items():
+        if path == old:
+            return new
+        if path.startswith(old + os.sep):
+            return os.path.join(new, os.path.relpath(path, old))
+    return path
+
+
+def plan_link_rewrites(root, dir_moves, file_moves):
+    """Every relative markdown link, resolved from its file's old home and
+    recomputed from its new one. Returns {file: [(old_target, new_target)]}."""
+    plan = {}
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if not d.startswith(".") and d != "node_modules"]
+        for fn in filenames:
+            if not fn.endswith(".md"):
+                continue
+            src = os.path.join(dirpath, fn)
+            new_src = remap(src, dir_moves, file_moves)
+            text = open(src, encoding="utf-8", errors="replace").read()
+            changes = []
+            for raw, target, anchor in link_targets(text):
+                old_abs = os.path.normpath(os.path.join(dirpath, target))
+                new_abs = remap(old_abs, dir_moves, file_moves)
+                new_target = os.path.relpath(new_abs, os.path.dirname(new_src))
+                # Compare against the *resolved* old target, so "./x" and a
+                # trailing slash don't register as changes when nothing moved.
+                if new_target != os.path.relpath(old_abs, dirpath):
+                    changes.append((raw, new_target + anchor))
+            if changes:
+                plan[src] = changes
+    return plan
+
+
+def cmd_migrate(args):
+    root = os.path.abspath(args.root)
+    skill_files = find_skill_files(root)
+    dir_moves, file_moves, collisions = build_move_map(root, skill_files)
+
+    if collisions:
+        print("BLOCKED — name collisions must be resolved first:\n")
+        for src, name, holder in collisions:
+            print(f"  {src}: name '{name}' is already used by {holder}")
+        return 1
+
+    link_plan = plan_link_rewrites(root, dir_moves, file_moves)
+    reg_path = os.path.join(root, REGISTRY)
+    reg_drops = []
+    if os.path.exists(reg_path):
+        for i, line in enumerate(open(reg_path, encoding="utf-8", errors="replace"), 1):
+            if re.match(r"^\s*path_prefix:", line):
+                reg_drops.append((i, line.rstrip()))
+
+    mode = "APPLYING" if args.apply else "DRY RUN — nothing will move"
+    print(f"skills-sync migrate — {mode}\n")
+
+    print(f"MOVE {len(dir_moves)} skill directories to skills/<name>/")
+    for old in sorted(dir_moves):
+        print(f"  {rel(root, old)}  ->  {rel(root, dir_moves[old])}")
+    print()
+
+    if file_moves:
+        print(f"MOVE {len(file_moves)} package README(s) out of skills/")
+        for old in sorted(file_moves):
+            print(f"  {rel(root, old)}  ->  {rel(root, file_moves[old])}")
+        print()
+
+    total_links = sum(len(v) for v in link_plan.values())
+    print(f"REWRITE {total_links} link(s) across {len(link_plan)} file(s)")
+    for f in sorted(link_plan):
+        print(f"  {rel(root, f)}")
+        for old, new in link_plan[f][:args.limit]:
+            print(f"      {old}  ->  {new}")
+        if len(link_plan[f]) > args.limit:
+            print(f"      … and {len(link_plan[f]) - args.limit} more")
+    print()
+
+    if reg_drops:
+        print(f"EDIT {REGISTRY} — remove {len(reg_drops)} obsolete path_prefix line(s)")
+        for ln, txt in reg_drops:
+            print(f"  line {ln}: {txt.strip()}")
+        print()
+
+    routers = [rel(root, os.path.dirname(sf)) for sf in skill_files
+               if len(os.path.relpath(os.path.dirname(sf),
+                                      os.path.join(root, SKILLS_DIR)).split(os.sep)) == 1]
+    print(f"KEEP {len(routers)} category router(s) in place: {', '.join(sorted(os.path.basename(r) for r in routers))}")
+    print("  they sit at depth 1 already; once the leaves move out nothing is nested beneath them\n")
+
+    if not args.apply:
+        print("Re-run with --apply to perform the migration.")
+        return 0
+
+    import subprocess
+
+    def git(*a):
+        return subprocess.run(["git", "-C", root] + list(a),
+                              capture_output=True, text=True)
+
+    for old in sorted(dir_moves, key=len, reverse=True):
+        new = dir_moves[old]
+        os.makedirs(os.path.dirname(new), exist_ok=True)
+        r = git("mv", rel(root, old), rel(root, new))
+        if r.returncode != 0:
+            print(f"git mv failed for {rel(root, old)}: {r.stderr.strip()}")
+            return 1
+    for old, new in file_moves.items():
+        os.makedirs(os.path.dirname(new), exist_ok=True)
+        r = git("mv", rel(root, old), rel(root, new))
+        if r.returncode != 0:
+            print(f"git mv failed for {rel(root, old)}: {r.stderr.strip()}")
+            return 1
+
+    for src, changes in link_plan.items():
+        new_src = remap(src, dir_moves, file_moves)
+        text = open(new_src, encoding="utf-8", errors="replace").read()
+        for old, new in changes:
+            text = text.replace(f"]({old})", f"]({new})")
+        open(new_src, "w", encoding="utf-8").write(text)
+
+    if reg_drops:
+        lines = open(reg_path, encoding="utf-8", errors="replace").read().split("\n")
+        lines = [l for l in lines if not re.match(r"^\s*path_prefix:", l)]
+        open(reg_path, "w", encoding="utf-8").write("\n".join(lines))
+
+    print("Migration applied. Re-running validate:\n")
+    args.json = args.strict = False
+    args.max_desc, args.total_desc = DEFAULT_MAX_DESC, DEFAULT_TOTAL_DESC
+    return cmd_validate(args)
+
+
+SKILL_TEMPLATE = '''---
+name: {name}
+description: "{description}"
+---
+
+# {title}
+
+<!-- One paragraph: what this skill does and the outcome it produces. -->
+
+## When to use
+
+<!-- Concrete triggers. Mirror the phrasing a user would actually type. -->
+
+## When not to use
+
+<!-- The neighbouring skill that should handle those cases instead. -->
+
+## Workflow
+
+<!-- The steps. Detail belongs here, never in the description. -->
+'''
+
+
+def cmd_new(args):
+    root = os.path.abspath(args.root)
+    name = args.name.strip()
+    if not re.match(r"^[a-z0-9][a-z0-9-]*$", name):
+        print(f"invalid name '{name}': use lowercase letters, digits, and hyphens")
+        return 1
+    target = os.path.join(root, SKILLS_DIR, name)
+    if os.path.exists(target):
+        print(f"{rel(root, target)} already exists")
+        return 1
+    desc = (args.description or "").strip()
+    if not desc:
+        print("a description is required; see policies/skill-format.md for the rule")
+        return 1
+    if len(desc) > args.max_desc:
+        print(f"description is {len(desc)} bytes, limit {args.max_desc} "
+              f"(see policies/skill-format.md)")
+        return 1
+    os.makedirs(target)
+    title = name.replace("-", " ").capitalize()
+    with open(os.path.join(target, SKILL_FILE), "w", encoding="utf-8") as fh:
+        fh.write(SKILL_TEMPLATE.format(
+            name=name, description=desc.replace('"', '\\"'), title=title))
+    print(f"created {rel(root, os.path.join(target, SKILL_FILE))}")
+    print("next: write the body, add the skill to registry.yaml, then run "
+          "`bin/skills-sync validate`")
+    return 0
+
+
+def cmd_validate(args):
+    root = os.path.abspath(args.root)
+    skill_files = find_skill_files(root)
+    findings = []
+
+    by_name = check_structure(root, skill_files, findings)
+    total = check_budget(root, skill_files, findings, args.max_desc, args.total_desc)
+    check_integrity(root, skill_files, by_name, findings)
+
+    if args.strict:
+        for f in findings:
+            f.severity = ERROR
+
+    errors = [f for f in findings if f.severity == ERROR]
+    warns = [f for f in findings if f.severity == WARN]
+
+    if args.json:
+        print(json.dumps({
+            "skills": len(skill_files),
+            "unique_names": len(by_name),
+            "description_bytes": total,
+            "errors": len(errors),
+            "warnings": len(warns),
+            "findings": [f.as_dict() for f in findings],
+        }, indent=2))
+        return 1 if errors else 0
+
+    print(f"skills-sync validate — {len(skill_files)} SKILL.md, "
+          f"{len(by_name)} unique names, {total} description bytes\n")
+
+    for group in (errors, warns):
+        if not group:
+            continue
+        by_check = {}
+        for f in group:
+            by_check.setdefault(f.check, []).append(f)
+        for check in sorted(by_check):
+            items = by_check[check]
+            label = "ERROR" if items[0].severity == ERROR else "warn "
+            print(f"{label} {check}  ({len(items)})")
+            print(f"      why: {items[0].why}")
+            for f in items[:args.limit]:
+                print(f"      - {f.path}: {f.message}")
+            if len(items) > args.limit:
+                print(f"      … and {len(items) - args.limit} more (--limit to show)")
+            print()
+
+    if errors:
+        print(f"FAILED — {len(errors)} error(s), {len(warns)} warning(s)")
+        return 1
+    print(f"PASSED — 0 errors, {len(warns)} warning(s)")
+    return 0
+
+
+def main():
+    p = argparse.ArgumentParser(prog="skills-sync", description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--root", default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                   help="repository root (default: the repo containing this script)")
+    sub = p.add_subparsers(dest="cmd", required=True)
+
+    v = sub.add_parser("validate", help="check the library against the cross-agent contract")
+    v.add_argument("--json", action="store_true", help="machine-readable output")
+    v.add_argument("--strict", action="store_true", help="treat warnings as errors")
+    v.add_argument("--max-desc", type=int, default=DEFAULT_MAX_DESC,
+                   help=f"per-skill description byte limit (default {DEFAULT_MAX_DESC})")
+    v.add_argument("--total-desc", type=int, default=DEFAULT_TOTAL_DESC,
+                   help=f"library-wide description byte limit (default {DEFAULT_TOTAL_DESC})")
+    v.add_argument("--limit", type=int, default=8, help="max items shown per check")
+    v.set_defaults(func=cmd_validate)
+
+    m = sub.add_parser("migrate", help="flatten skills/ to the cross-agent layout")
+    m.add_argument("--apply", action="store_true",
+                   help="perform the migration (default is a dry run)")
+    m.add_argument("--limit", type=int, default=8, help="max link rewrites shown per file")
+    m.set_defaults(func=cmd_migrate)
+
+    n = sub.add_parser("new", help="scaffold a conformant skill")
+    n.add_argument("name", help="skill name (lowercase, hyphens)")
+    n.add_argument("-d", "--description", required=True,
+                   help="trigger contract; see policies/skill-format.md")
+    n.add_argument("--max-desc", type=int, default=DEFAULT_MAX_DESC)
+    n.set_defaults(func=cmd_new)
+
+    args = p.parse_args()
+    sys.exit(args.func(args))
+
+
+if __name__ == "__main__":
+    main()
