@@ -828,6 +828,253 @@ def relevant_evals(root, names):
     return out
 
 
+def parse_registry(path):
+    """Minimal reader for registry.yaml's shape: top-level keys holding a block
+    sequence of flat mappings, with inline [a, b] lists. Enough for sources and
+    packages, and it keeps the stdlib-only rule that lets hooks run anywhere."""
+    out, section, item = {}, None, None
+    for raw in open(path, encoding="utf-8", errors="replace").read().split("\n"):
+        line = raw.split(" #")[0].rstrip()
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        top = re.match(r"^([a-z_]+):\s*$", line)
+        if top:
+            section = top.group(1)
+            out[section] = []
+            item = None
+            continue
+        if section is None:
+            continue
+        m = re.match(r"^\s*-\s+([a-z_]+):\s*(.*)$", line)
+        if m:
+            item = {}
+            out[section].append(item)
+            key, val = m.group(1), m.group(2)
+        else:
+            m = re.match(r"^\s+([a-z_]+):\s*(.*)$", line)
+            if not m or item is None:
+                continue
+            key, val = m.group(1), m.group(2)
+        val = val.strip()
+        if val.startswith("[") and val.endswith("]"):
+            item[key] = [v.strip() for v in val[1:-1].split(",") if v.strip()]
+        else:
+            item[key] = val.strip('"\'')
+    return out
+
+
+def split_repo_url(url):
+    """GitHub tree URLs point at a subdirectory of a monorepo. Return
+    (clone url, subdirectory)."""
+    m = re.match(r"^(https://[^/]+/[^/]+/[^/]+?)(?:\.git)?/tree/[^/]+/(.+)$", url)
+    if m:
+        return m.group(1), m.group(2).rstrip("/")
+    return re.sub(r"\.git$", "", url), ""
+
+
+def upstream_clone(source_id, url, offline):
+    """A blobless mirror in the cache: enough history to diff, little to download."""
+    import subprocess
+    base = os.environ.get("XDG_CACHE_HOME") or os.path.expanduser("~/.cache")
+    path = os.path.join(base, "skills-sync", source_id)
+    if not os.path.isdir(os.path.join(path, ".git")):
+        if offline:
+            return None, "no cached clone and --offline was given"
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        r = subprocess.run(["git", "clone", "--filter=blob:none", "--no-checkout",
+                            "-q", url, path], capture_output=True, text=True)
+        if r.returncode != 0:
+            return None, f"clone failed: {r.stderr.strip()[:160]}"
+        return path, None
+    if not offline:
+        r = subprocess.run(["git", "-C", path, "fetch", "-q", "--filter=blob:none",
+                            "origin"], capture_output=True, text=True)
+        if r.returncode != 0:
+            return path, f"fetch failed, using cached copy: {r.stderr.strip()[:120]}"
+    return path, None
+
+
+def upstream_head(repo):
+    for ref in ("origin/HEAD", "origin/main", "origin/master"):
+        r = git(repo, "rev-parse", "-q", "--verify", ref)
+        if r.returncode == 0:
+            return r.stdout.strip()
+    return None
+
+
+def local_differences(root, name, repo, pinned, upath):
+    """Files under a vendored skill that differ from the upstream commit we
+    pinned. These are the local adaptations that an upstream change may collide
+    with, which is the thing worth knowing before adopting anything."""
+    listing = git(repo, "ls-tree", "-r", "--name-only", pinned, "--", upath)
+    if listing.returncode != 0:
+        return None
+    edited, omitted = [], []
+    for f in [x for x in listing.stdout.split("\n") if x.strip()]:
+        relp = os.path.relpath(f, upath)
+        localp = os.path.join(root, SKILLS_DIR, name, relp)
+        blob = git(repo, "show", f"{pinned}:{f}")
+        if blob.returncode != 0:
+            continue
+        if not os.path.exists(localp):
+            # A file we deliberately did not vendor, such as an agent-specific
+            # manifest. Different in kind from an edit, and much less interesting.
+            omitted.append(relp)
+        elif open(localp, encoding="utf-8", errors="replace").read() != blob.stdout:
+            edited.append(relp)
+    return edited, omitted
+
+
+def cmd_upstream(args):
+    """Report what changed in the skills we vendored, since the commit we pinned.
+
+    It never edits a skill. AGENTS.md requires that upstream changes be compared
+    against local intent and evaluations before adoption, so this produces the
+    comparison and stops.
+    """
+    root = os.path.abspath(args.root)
+    reg = parse_registry(os.path.join(root, REGISTRY))
+    sources = {s["id"]: s for s in reg.get("sources", []) if "id" in s}
+    packages = [p for p in reg.get("packages", []) if p.get("source") in sources]
+
+    wanted = args.source
+    report, any_changes = [], False
+
+    for src_id in sorted({p["source"] for p in packages}):
+        if wanted and src_id != wanted:
+            continue
+        src = sources[src_id]
+        url, subdir = split_repo_url(src.get("repository", ""))
+        pinned = src.get("reference", "")
+        print(f"\n{src_id}")
+        print(f"  repository {url}" + (f"  (subdirectory {subdir})" if subdir else ""))
+
+        repo, err = upstream_clone(src_id, url, args.offline)
+        if repo is None:
+            print(f"  SKIP  {err}")
+            continue
+        if err:
+            print(f"  note  {err}")
+        head = upstream_head(repo)
+        if not head:
+            print("  SKIP  could not resolve the upstream default branch")
+            continue
+        if git(repo, "cat-file", "-t", pinned).stdout.strip() != "commit":
+            print(f"  SKIP  pinned reference {pinned[:12]} is not in this repository")
+            continue
+
+        print(f"  pinned     {pinned[:12]}")
+        print(f"  upstream   {head[:12]}"
+              + ("  (same commit)" if head.startswith(pinned[:12]) else ""))
+
+        for pkg in [p for p in packages if p["source"] == src_id]:
+            # upstream_prefix may be a single path or several, when a package
+            # draws skills from more than one upstream directory.
+            prefixes = pkg.get("upstream_prefix", "")
+            if isinstance(prefixes, str):
+                prefixes = [prefixes]
+            prefix = ", ".join(prefixes) if prefixes else ""
+            names = pkg.get("skills", [])
+            changed, adapted, omitted, missing = {}, {}, {}, []
+            for name in names:
+                upath = None
+                for pfx in prefixes or [""]:
+                    cand = "/".join(x for x in (subdir, pfx, name) if x)
+                    if git(repo, "cat-file", "-t", f"{pinned}:{cand}").returncode == 0:
+                        upath = cand
+                        break
+                if upath is None:
+                    missing.append(name)
+                    continue
+                d = git(repo, "diff", "--name-only", f"{pinned}..{head}", "--", upath)
+                files = [f for f in d.stdout.split("\n") if f.strip()]
+                if files:
+                    changed[name] = [os.path.relpath(f, upath) for f in files]
+                local = local_differences(root, name, repo, pinned, upath)
+                if local and local[0]:
+                    adapted[name] = local[0]
+                if local and local[1]:
+                    omitted[name] = local[1]
+
+            print(f"\n  package {pkg['id']} — {len(names)} skill(s), "
+                  f"prefix {prefix or '(root)'}")
+            if changed:
+                any_changes = True
+                print(f"    changed upstream ({len(changed)}):")
+                for name in sorted(changed):
+                    overlap = sorted(set(changed[name]) & set(adapted.get(name, [])))
+                    flag = ("  CONFLICT: you also changed " + ", ".join(overlap)
+                            if overlap else
+                            "  (locally adapted elsewhere)" if name in adapted else "")
+                    print(f"      {name:32} {', '.join(changed[name][:3])}{flag}")
+            else:
+                print("    changed upstream: none")
+            if adapted and args.show_adaptations:
+                print(f"    locally edited ({len(adapted)}):")
+                for name in sorted(adapted):
+                    print(f"      {name:32} {', '.join(adapted[name][:3])}")
+            elif adapted:
+                print(f"    locally edited: {len(adapted)} skill(s) "
+                      f"(--show-adaptations to list)")
+            if omitted:
+                files = sorted({f for v in omitted.values() for f in v})
+                print(f"    not vendored by choice: {', '.join(files[:3])}"
+                      f" (in {len(omitted)} skill(s))")
+            if missing:
+                # A skill adapted from an upstream *method* rather than copied
+                # from an upstream directory has nothing to diff against. That is
+                # a legitimate provenance, not a fault, so say which it is.
+                kind = ("all of them" if len(missing) == len(names)
+                        else f"{len(missing)} of {len(names)}")
+                print(f"    no upstream directory ({kind}): {', '.join(missing[:4])}")
+                print(f"      derived from this source rather than vendored from it; "
+                      f"changes here need a human read of the upstream method")
+
+            # Upstream skills we never vendored, so a new one is visible.
+            avail = set()
+            for pfx in prefixes or [""]:
+                base = "/".join(x for x in (subdir, pfx) if x)
+                tree = git(repo, "ls-tree", "-d", "--name-only", f"{head}:{base}")
+                if tree.returncode != 0:
+                    continue
+                for x in [y.strip("/") for y in tree.stdout.split("\n") if y.strip()]:
+                    # A directory is a skill only when it carries a SKILL.md.
+                    if git(repo, "cat-file", "-t",
+                           f"{head}:{base}/{x}/SKILL.md").returncode == 0:
+                        avail.add(x)
+            if avail:
+                new = sorted(avail - set(names))
+                if new:
+                    print(f"    upstream has {len(new)} not vendored: "
+                          f"{', '.join(new[:8])}{' …' if len(new) > 8 else ''}")
+
+        report.append((src_id, pinned, head))
+
+    if args.pin:
+        entry = next((r for r in report if r[0] == args.pin), None)
+        if not entry:
+            print(f"\nCannot pin {args.pin}: it was not compared in this run.")
+            return 1
+        _, old, new = entry
+        if old == new:
+            print(f"\n{args.pin} is already pinned to {new[:12]}.")
+            return 0
+        p = os.path.join(root, REGISTRY)
+        text = open(p, encoding="utf-8").read()
+        if old not in text:
+            print(f"\nCannot pin {args.pin}: reference {old[:12]} not found in registry.")
+            return 1
+        open(p, "w", encoding="utf-8").write(text.replace(old, new))
+        print(f"\nPinned {args.pin} to {new[:12]} in {REGISTRY}. "
+              f"Record the adoption in the changelog.")
+        return 0
+
+    print("\nNothing was modified. Adopt a change by editing the skill, then "
+          "`upstream --pin <source>`." if any_changes else
+          "\nEverything vendored is current with its pinned commit.")
+    return 0
+
+
 def cmd_doctor(args):
     """Report drift without touching anything.
 
@@ -1423,6 +1670,15 @@ def main():
     r.add_argument("--quiet", action="store_true",
                    help="print only when something changed")
     r.set_defaults(func=cmd_refresh)
+
+    u = sub.add_parser("upstream", help="compare vendored skills against their sources")
+    u.add_argument("--source", help="limit to one source id from registry.yaml")
+    u.add_argument("--offline", action="store_true", help="use the cached clone only")
+    u.add_argument("--show-adaptations", action="store_true",
+                   help="list the files that differ from the pinned commit")
+    u.add_argument("--pin", metavar="SOURCE",
+                   help="after adopting changes, record the new upstream commit")
+    u.set_defaults(func=cmd_upstream)
 
     d = sub.add_parser("doctor", help="report drift without changing anything")
     d.add_argument("--json", action="store_true", help="machine-readable output")
