@@ -687,7 +687,7 @@ def refresh_pi(root, skills, dry_run):
     return home, actions, conflicts
 
 
-def refresh_codex(root, dry_run):
+def refresh_codex(root, skills, dry_run):
     """Codex installs from a marketplace, so it needs the packaging manifests
     before anything can be refreshed."""
     import shutil
@@ -707,10 +707,16 @@ def refresh_codex(root, dry_run):
     cache = os.path.expanduser(
         f"~/.codex/plugins/cache/{marketplace['name']}/{plugin}/{version}")
 
-    if os.path.isdir(cache):
+    # Existence is not enough: a cache directory can carry stale contents from a
+    # version that was later rewritten, and Codex reads that copy, not the repo.
+    cached = (set(os.listdir(os.path.join(cache, "skills")))
+              if os.path.isdir(os.path.join(cache, "skills")) else None)
+    if cached == set(skills):
         return "codex", [], None
+    why = (f"cache missing for {version}" if cached is None
+           else f"cache has {len(cached)} skills, repo has {len(skills)}")
     if dry_run:
-        return "codex", [("install", selector, f"cache missing for {version}")], None
+        return "codex", [("install", selector, why)], None
     # `marketplace upgrade` only refreshes Git marketplaces, so it is a no-op for a
     # local checkout. `plugin add` re-reads the marketplace and installs the version
     # in the manifest, replacing the previous cache entry.
@@ -770,7 +776,7 @@ def cmd_refresh(args):
             print(f"         CONFLICT {name} exists and is not ours — left untouched")
         total += len(pi_actions)
 
-    _, cx_actions, cx_note = refresh_codex(root, dry)
+    _, cx_actions, cx_note = refresh_codex(root, skills, dry)
     print("\ncodex    ", end="")
     if cx_note:
         print(f"skipped — {cx_note}")
@@ -820,6 +826,148 @@ def relevant_evals(root, names):
         if hit:
             out[f] = hit
     return out
+
+
+def cmd_doctor(args):
+    """Report drift without touching anything.
+
+    Every check here corresponds to a way this setup has actually broken: a move
+    that dangled the installed links, a version that never shipped, hooks that
+    were never wired on a fresh clone, a foreign directory shadowing a skill.
+    doctor never repairs — that is refresh's job — so it stays safe to run
+    anywhere, including from a script.
+    """
+    root = os.path.abspath(args.root)
+    rows = []
+
+    def check(section, name, level, detail=""):
+        rows.append((section, name, level, detail))
+
+    tools = detect_tools()
+    for name, path in tools.items():
+        check("tools", name, "ok" if path else "warn",
+              path or "not on PATH")
+
+    # Repository
+    import io, contextlib
+    vargs = argparse.Namespace(root=root, json=False, strict=False,
+                               max_desc=DEFAULT_MAX_DESC,
+                               total_desc=DEFAULT_TOTAL_DESC, limit=3)
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        vrc = cmd_validate(vargs)
+    summary = buf.getvalue().strip().splitlines()
+    check("repo", "validate", "ok" if vrc == 0 else "fail",
+          summary[-1] if summary else "")
+
+    dirty = git(root, "status", "--porcelain").stdout.strip()
+    check("repo", "working tree", "ok" if not dirty else "warn",
+          "clean" if not dirty else f"{len(dirty.splitlines())} uncommitted change(s)")
+
+    branch = git(root, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
+    counts = git(root, "rev-list", "--left-right", "--count",
+                 f"{branch}...origin/{branch}").stdout.split()
+    if len(counts) == 2:
+        ahead, behind = counts
+        level = "ok" if ahead == "0" and behind == "0" else "warn"
+        state = "in sync with origin" if level == "ok" else f"{ahead} ahead, {behind} behind"
+        check("repo", "branch", level, f"{branch}, {state}")
+    else:
+        check("repo", "branch", "warn", f"{branch}, no upstream")
+
+    # Release
+    version, _, _ = derived_version(root)
+    current = manifest_versions(root)
+    stale = [m for m, v in current.items() if v != version]
+    check("release", "manifests", "ok" if not stale else "fail",
+          f"at {version}" if not stale else
+          f"derived {version}, manifests {sorted(set(map(str, current.values())))}")
+
+    tag = f"{TAG_PREFIX}{version}"
+    tagged = git(root, "rev-parse", "-q", "--verify", f"refs/tags/{tag}").returncode == 0
+    if tagged:
+        unreleased = git(root, "rev-list", "--count", f"{tag}..HEAD",
+                         "--", SKILLS_DIR).stdout.strip()
+        check("release", "published", "ok" if unreleased == "0" else "warn",
+              f"{tag} is current" if unreleased == "0" else
+              f"{unreleased} skill commit(s) since {tag} — run release")
+    else:
+        check("release", "published", "warn", f"{tag} not tagged yet — run release")
+
+    # Hooks
+    hooks_dir = os.path.join(root, HOOKS_DIR)
+    path_set = git(root, "config", "--get", "core.hooksPath").stdout.strip()
+    present = sorted(os.listdir(hooks_dir)) if os.path.isdir(hooks_dir) else []
+    nonexec = [f for f in present if not os.access(os.path.join(hooks_dir, f), os.X_OK)]
+    if path_set != HOOKS_DIR:
+        check("hooks", "core.hooksPath", "fail",
+              f"{path_set or 'unset'} — run `skills-sync hooks --install`")
+    elif nonexec:
+        check("hooks", "core.hooksPath", "fail",
+              f"not executable: {', '.join(nonexec)}")
+    else:
+        check("hooks", "core.hooksPath", "ok", f"{HOOKS_DIR} ({len(present)} hooks)")
+
+    # Installs — ask refresh what it would change, but change nothing.
+    skills = repo_skill_names(root)
+    for label, fn in (("claude", refresh_claude), ("pi", refresh_pi)):
+        home, actions, conflicts = fn(root, skills, True)
+        if home is None:
+            check("installs", label, "warn", "not installed on this machine")
+            continue
+        if conflicts:
+            # Report drift too: a conflict must not mask an out-of-date install.
+            extra = f", and {len(actions)} other change(s) pending" if actions else ""
+            check("installs", label, "fail",
+                  f"{len(conflicts)} name(s) shadowed by foreign entries: "
+                  f"{', '.join(conflicts[:3])}{extra}")
+        elif actions:
+            kinds = {}
+            for kind, _, _ in actions:
+                kinds[kind] = kinds.get(kind, 0) + 1
+            check("installs", label, "warn",
+                  f"{len(actions)} out of sync ({', '.join(f'{v} {k}' for k, v in sorted(kinds.items()))}) — run refresh")
+        else:
+            check("installs", label, "ok", f"{len(skills)} skills")
+
+    mk = os.path.join(root, ".claude-plugin/marketplace.json")
+    if not tools["codex"]:
+        check("installs", "codex", "warn", "codex is not on PATH")
+    elif not os.path.exists(mk):
+        check("installs", "codex", "fail", "marketplace manifest missing")
+    else:
+        m = json.load(open(mk, encoding="utf-8"))["name"]
+        pl = json.load(open(os.path.join(root, ".codex-plugin/plugin.json"),
+                            encoding="utf-8"))["name"]
+        base = os.path.expanduser(f"~/.codex/plugins/cache/{m}/{pl}")
+        have = sorted(os.listdir(base)) if os.path.isdir(base) else []
+        if version in have:
+            cached = set(os.listdir(os.path.join(base, version, "skills")))
+            check("installs", "codex", "ok" if cached == set(skills) else "fail",
+                  f"{version}" if cached == set(skills) else
+                  f"{len(cached)} cached vs {len(skills)} in repo")
+        else:
+            check("installs", "codex", "warn",
+                  f"cache has {have or 'nothing'}, repo is at {version} — run refresh")
+
+    if args.json:
+        print(json.dumps([{"section": s, "check": n, "level": l, "detail": d}
+                          for s, n, l, d in rows], indent=2))
+    else:
+        print("skills-sync doctor\n")
+        last = None
+        for section, name, level, detail in rows:
+            if section != last:
+                print(f"{section}")
+                last = section
+            print(f"  {level.upper():4}  {name:14} {detail}")
+        fails = [r for r in rows if r[2] == "fail"]
+        warns = [r for r in rows if r[2] == "warn"]
+        print(f"\n{len(fails)} failing, {len(warns)} warning(s)")
+
+    fails = sum(1 for r in rows if r[2] == "fail")
+    warns = sum(1 for r in rows if r[2] == "warn")
+    return 1 if fails or (args.strict and warns) else 0
 
 
 def origin_slug(root):
@@ -1275,6 +1423,11 @@ def main():
     r.add_argument("--quiet", action="store_true",
                    help="print only when something changed")
     r.set_defaults(func=cmd_refresh)
+
+    d = sub.add_parser("doctor", help="report drift without changing anything")
+    d.add_argument("--json", action="store_true", help="machine-readable output")
+    d.add_argument("--strict", action="store_true", help="fail on warnings too")
+    d.set_defaults(func=cmd_doctor)
 
     b = sub.add_parser("bootstrap", help="set up this machine from a fresh clone")
     b.add_argument("--role", choices=("author", "consumer"),
