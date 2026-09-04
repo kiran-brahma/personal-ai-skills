@@ -1,0 +1,6 @@
+#!/bin/sh
+# A pull can add, move, or remove skills. Reconcile the install afterwards.
+root=$(git rev-parse --show-toplevel)
+[ -x "$root/bin/skills-sync" ] || exit 0
+"$root/bin/skills-sync" refresh --quiet || true
+exit 0

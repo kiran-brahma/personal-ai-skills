@@ -1,0 +1,21 @@
+#!/bin/sh
+# Enforce the cross-agent layout contract at the moment of change.
+#
+# validate runs in about a tenth of a second, so it runs on every commit rather
+# than only when skills/ is touched: registry drift and a broken reference are
+# just as breaking as a misplaced directory.
+#
+# It checks the working tree, not the index. For a partially staged commit that
+# is an approximation, and a deliberate one: the alternative is a temporary
+# checkout on every commit, which costs more than it catches here.
+#
+# Bypass with: git commit --no-verify
+set -e
+root=$(git rev-parse --show-toplevel)
+[ -x "$root/bin/skills-sync" ] || exit 0
+
+if ! out=$("$root/bin/skills-sync" validate 2>&1); then
+    printf '%s\n' "$out"
+    printf '\npre-commit: layout contract violated. Fix the errors above, or bypass with --no-verify.\n'
+    exit 1
+fi

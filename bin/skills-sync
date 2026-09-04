@@ -621,25 +621,19 @@ def under(path, parent):
     return path == parent or path.startswith(parent + os.sep)
 
 
-def refresh_claude(root, skills, dry_run):
-    """Reconcile ~/.claude/skills with the repo.
+def reconcile_links(root, install_dir, skills, dry_run):
+    """Make install_dir mirror the repo's skills, one symlink per skill.
 
     Only entries that are symlinks pointing into this repository are ours to
     manage. A real directory, or a link into some other library, belongs to
     someone else and is never touched — at most it is reported as a conflict.
     """
-    # Honour CLAUDE_CONFIG_DIR the same way Claude Code does, so a relocated
-    # config directory is still reconciled (and so this is testable).
-    config = os.path.expanduser(os.environ.get("CLAUDE_CONFIG_DIR", "~/.claude"))
-    home = os.path.join(config, "skills")
     actions, conflicts = [], []
-    if not os.path.isdir(config):
-        return None, [], []
-    os.makedirs(home, exist_ok=True)
+    os.makedirs(install_dir, exist_ok=True)
 
     managed = {}
-    for name in sorted(os.listdir(home)):
-        p = os.path.join(home, name)
+    for name in sorted(os.listdir(install_dir)):
+        p = os.path.join(install_dir, name)
         if os.path.islink(p) and under(link_target(p), os.path.join(root, SKILLS_DIR)):
             managed[name] = p
         elif name in skills:
@@ -650,15 +644,12 @@ def refresh_claude(root, skills, dry_run):
         if not dry_run:
             os.unlink(managed[name])
     for name, src in sorted(skills.items()):
-        p = os.path.join(home, name)
+        p = os.path.join(install_dir, name)
         if name in managed:
-            if link_target(p) != os.path.abspath(src):
-                actions.append(("relink", name, "target moved"))
-                if not dry_run:
-                    os.unlink(p)
-                    os.symlink(os.path.abspath(src), p)
-            elif not os.path.exists(p):
-                actions.append(("relink", name, "dangling link"))
+            reason = ("target moved" if link_target(p) != os.path.abspath(src)
+                      else "dangling link" if not os.path.exists(p) else None)
+            if reason:
+                actions.append(("relink", name, reason))
                 if not dry_run:
                     os.unlink(p)
                     os.symlink(os.path.abspath(src), p)
@@ -666,24 +657,34 @@ def refresh_claude(root, skills, dry_run):
             actions.append(("link", name, "new"))
             if not dry_run:
                 os.symlink(os.path.abspath(src), p)
+    return actions, conflicts
+
+
+def refresh_claude(root, skills, dry_run):
+    # Honour CLAUDE_CONFIG_DIR the same way Claude Code does, so a relocated
+    # config directory is still reconciled (and so this is testable).
+    config = os.path.expanduser(os.environ.get("CLAUDE_CONFIG_DIR", "~/.claude"))
+    if not os.path.isdir(config):
+        return None, [], []
+    home = os.path.join(config, "skills")
+    actions, conflicts = reconcile_links(root, home, skills, dry_run)
     return home, actions, conflicts
 
 
-def refresh_pi(root, dry_run):
-    """Pi discovers project skills through .agents/skills and follows symlinks,
-    so one link is the whole integration."""
-    link = os.path.join(root, ".agents", "skills")
-    if os.path.islink(link) and link_target(link) == os.path.abspath(
-            os.path.join(root, SKILLS_DIR)):
-        return link, []
-    if os.path.exists(link) and not os.path.islink(link):
-        return link, [("skip", ".agents/skills", "exists and is not a symlink")]
-    if not dry_run:
-        os.makedirs(os.path.dirname(link), exist_ok=True)
-        if os.path.islink(link):
-            os.unlink(link)
-        os.symlink(os.path.join("..", SKILLS_DIR), link)
-    return link, [("link", ".agents/skills", "-> ../skills")]
+def refresh_pi(root, skills, dry_run):
+    """Pi loads skills from <agent dir>/skills, where the agent dir is
+    ~/.pi/agent unless PI_AGENT_DIR overrides it. It follows symlinks, so the
+    same reconcile as Claude applies.
+
+    Note .agents/skills is *not* a Pi load path: it appears only in Pi's trust
+    logic, as a project resource that requires trust before it is honoured.
+    """
+    agent = os.path.expanduser(os.environ.get("PI_AGENT_DIR", "~/.pi/agent"))
+    if not os.path.isdir(agent):
+        return None, [], []
+    home = os.path.join(agent, "skills")
+    actions, conflicts = reconcile_links(root, home, skills, dry_run)
+    return home, actions, conflicts
 
 
 def refresh_codex(root, dry_run):
@@ -721,6 +722,19 @@ def refresh_codex(root, dry_run):
 
 
 def cmd_refresh(args):
+    # --quiet buffers everything and prints only when something actually changed,
+    # so a post-commit hook stays silent on a no-op commit.
+    if getattr(args, "quiet", False):
+        import io, contextlib
+        buf = io.StringIO()
+        args.quiet = False
+        with contextlib.redirect_stdout(buf):
+            rc = cmd_refresh(args)
+        out = buf.getvalue()
+        if "\n0 change(s)" not in out:
+            sys.stdout.write(out)
+        return rc
+
     root = os.path.abspath(args.root)
     skills = repo_skill_names(root)
     dry = args.dry_run
@@ -741,13 +755,20 @@ def cmd_refresh(args):
             print(f"         CONFLICT {name} exists and is not ours — left untouched")
         total += len(actions)
 
-    link, pi_actions = refresh_pi(root, dry)
-    print(f"\npi       {rel(root, link)}")
-    for kind, name, why in pi_actions:
-        print(f"         {kind:7} {name}  ({why})")
-    if not pi_actions:
-        print("         already in sync")
-    total += len(pi_actions)
+    pi_home, pi_actions, pi_conflicts = refresh_pi(root, skills, dry)
+    if pi_home is None:
+        print("\npi       skipped — ~/.pi/agent not found")
+    else:
+        print(f"\npi       {pi_home}")
+        for kind, name, why in pi_actions[:12]:
+            print(f"         {kind:7} {name}  ({why})")
+        if len(pi_actions) > 12:
+            print(f"         … and {len(pi_actions) - 12} more")
+        if not pi_actions:
+            print("         already in sync")
+        for name in pi_conflicts:
+            print(f"         CONFLICT {name} exists and is not ours — left untouched")
+        total += len(pi_actions)
 
     _, cx_actions, cx_note = refresh_codex(root, dry)
     print("\ncodex    ", end="")
@@ -799,6 +820,49 @@ def relevant_evals(root, names):
         if hit:
             out[f] = hit
     return out
+
+
+HOOKS_DIR = ".githooks"
+
+
+def cmd_hooks(args):
+    """Point git at the committed hooks.
+
+    Git never clones .git/hooks, so hooks in a repository are inert until each
+    clone sets core.hooksPath. That one command is the only manual step in the
+    whole setup; everything after it is automatic.
+    """
+    root = os.path.abspath(args.root)
+    hooks = os.path.join(root, HOOKS_DIR)
+    current = git(root, "config", "--get", "core.hooksPath").stdout.strip()
+    present = sorted(os.listdir(hooks)) if os.path.isdir(hooks) else []
+
+    if args.uninstall:
+        if not current:
+            print("core.hooksPath is not set; nothing to remove.")
+            return 0
+        git(root, "config", "--unset", "core.hooksPath")
+        print(f"Unset core.hooksPath (was {current}).")
+        return 0
+
+    print(f"hooks in {HOOKS_DIR}/: {', '.join(present) or 'none'}")
+    for f in present:
+        if not os.access(os.path.join(hooks, f), os.X_OK):
+            print(f"  WARNING {f} is not executable; git will ignore it")
+    print(f"core.hooksPath: {current or '(unset)'}")
+
+    if current == HOOKS_DIR:
+        print("\nInstalled.")
+        return 0
+    if not args.install:
+        print("\nNot installed. Run `bin/skills-sync hooks --install`.")
+        return 1
+    r = git(root, "config", "core.hooksPath", HOOKS_DIR)
+    if r.returncode != 0:
+        print(f"failed: {r.stderr.strip()}")
+        return 1
+    print(f"\nSet core.hooksPath to {HOOKS_DIR}.")
+    return 0
 
 
 def cmd_release(args):
@@ -1090,7 +1154,14 @@ def main():
     r = sub.add_parser("refresh", help="reconcile the local install with the repo")
     r.add_argument("--dry-run", action="store_true",
                    help="report what would change without touching anything")
+    r.add_argument("--quiet", action="store_true",
+                   help="print only when something changed")
     r.set_defaults(func=cmd_refresh)
+
+    h = sub.add_parser("hooks", help="report or install the committed git hooks")
+    h.add_argument("--install", action="store_true", help="set core.hooksPath")
+    h.add_argument("--uninstall", action="store_true", help="unset core.hooksPath")
+    h.set_defaults(func=cmd_hooks)
 
     n = sub.add_parser("new", help="scaffold a conformant skill")
     n.add_argument("name", help="skill name (lowercase, hyphens)")

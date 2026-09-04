@@ -1,0 +1,10 @@
+#!/bin/sh
+# Reconcile the local install once the commit exists, so a skill added or moved
+# in this commit reaches Claude Code, Codex, and Pi without anyone remembering.
+#
+# Never fails: the commit has already happened, and a refresh problem must not
+# leave the repository in a confusing state. Silent unless something changed.
+root=$(git rev-parse --show-toplevel)
+[ -x "$root/bin/skills-sync" ] || exit 0
+"$root/bin/skills-sync" refresh --quiet || true
+exit 0
