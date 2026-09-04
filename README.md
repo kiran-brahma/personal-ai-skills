@@ -55,7 +55,7 @@ codex plugin marketplace add kiran-brahma/personal-ai-skills
 codex plugin add kb@kb-skills
 ```
 
-Both were verified against this repository at version 0.5.0, installing all 59 skills. Restart the agent afterwards, and invoke a skill as `/kb:skill-name` in Claude Code. Update with `claude plugin update kb@kb-skills` or by re-running `codex plugin add kb@kb-skills`; Codex ships an update only when the version in the manifest changes.
+Both were verified against this repository at version 0.5.0, installing all 59 released skills. The working tree also contains an unreleased trial HyperFrames package. Restart the agent afterwards, and invoke a skill as `/kb:skill-name` in Claude Code. Update with `claude plugin update kb@kb-skills` or by re-running `codex plugin add kb@kb-skills`; Codex ships an update only when the version in the manifest changes.
 
 **Pi** has no marketplace. Clone the repository and link the skills into `~/.pi/agent/skills`, or run `bin/skills-sync bootstrap --role consumer --apply` from the clone.
 
@@ -136,6 +136,7 @@ A category router is a skill like any other, sitting beside the skills it routes
 - **Thermos:** deep review for major changes before Matt's final code review.
 - **Continual learning:** proposal-first updates to `AGENTS.md` and `CLAUDE.md` based on durable lessons.
 - **gstack:** selected product-discovery and founder-review methods, adapted into portable business workflows.
+- **HyperFrames:** selected open-source video-authoring workflows for approved writing explainers and product-launch videos, adapted for the repository's canonical layout and provider boundaries.
 - **Codex Security:** external-only workflow for detailed security audits.
 
 The source list and pinned references are in [`registry.yaml`](registry.yaml). Adapted-license notices are in [`THIRD_PARTY.md`](THIRD_PARTY.md). Upstream provenance documents that are not skills live in [`packages/`](packages/).

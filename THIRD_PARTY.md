@@ -1,6 +1,14 @@
 # Third-party skill notices
 
-This repository contains adapted skill instructions from the following MIT-licensed projects. The local copies are tracked in `registry.yaml` with their upstream commit, version, and adaptations.
+This repository contains adapted skill instructions from several third-party projects. The local copies are tracked in `registry.yaml` with their upstream commit, version, license, and adaptations.
+
+## HyperFrames
+
+Source: [heygen-com/hyperframes](https://github.com/heygen-com/hyperframes), commit `05b57f9204a963104f1f79ef88ffc24cd174fd68`, CLI version `0.8.27`.
+
+The adapted HyperFrames skills are distributed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0). Upstream credits and dependency notices are in the source repository. The bundled sound effects under `skills/media-use/audio/assets/sfx/` retain their [Pixabay Content License](https://pixabay.com/service/license-summary/), documented in `CREDITS.md`.
+
+The local adaptation keeps the two selected creation workflows and their shared domain skills, shortens trigger descriptions for this repository's routing budget, prevents network refreshes from bypassing provenance review, gates external media providers, and requires approved writing before adaptation into video.
 
 ## Matt Pocock skills
 
