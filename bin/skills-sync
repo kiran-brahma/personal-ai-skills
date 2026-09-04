@@ -429,6 +429,11 @@ def cmd_migrate(args):
     mode = "APPLYING" if args.apply else "DRY RUN — nothing will move"
     print(f"skills-sync migrate — {mode}\n")
 
+    if not (dir_moves or file_moves or link_plan or reg_drops):
+        print(f"Nothing to migrate: all {len(skill_files)} skills are already at "
+              f"skills/<name>/.")
+        return 0
+
     print(f"MOVE {len(dir_moves)} skill directories to skills/<name>/")
     for old in sorted(dir_moves):
         print(f"  {rel(root, old)}  ->  {rel(root, dir_moves[old])}")
@@ -501,7 +506,167 @@ def cmd_migrate(args):
     print("Migration applied. Re-running validate:\n")
     args.json = args.strict = False
     args.max_desc, args.total_desc = DEFAULT_MAX_DESC, DEFAULT_TOTAL_DESC
-    return cmd_validate(args)
+    rc = cmd_validate(args)
+    if rc != 0:
+        return rc
+    # Moving the directories invalidates every installed link. Reconcile now, or
+    # the local install silently points at paths that no longer exist.
+    print()
+    args.dry_run = False
+    return cmd_refresh(args)
+
+
+def repo_skill_names(root):
+    skills_root = os.path.join(root, SKILLS_DIR)
+    if not os.path.isdir(skills_root):
+        return {}
+    out = {}
+    for name in sorted(os.listdir(skills_root)):
+        d = os.path.join(skills_root, name)
+        if os.path.isfile(os.path.join(d, SKILL_FILE)):
+            out[name] = d
+    return out
+
+
+def link_target(path):
+    """Absolute target of a symlink, even when it dangles."""
+    t = os.readlink(path)
+    return os.path.normpath(t if os.path.isabs(t)
+                            else os.path.join(os.path.dirname(path), t))
+
+
+def under(path, parent):
+    path, parent = os.path.abspath(path), os.path.abspath(parent)
+    return path == parent or path.startswith(parent + os.sep)
+
+
+def refresh_claude(root, skills, dry_run):
+    """Reconcile ~/.claude/skills with the repo.
+
+    Only entries that are symlinks pointing into this repository are ours to
+    manage. A real directory, or a link into some other library, belongs to
+    someone else and is never touched — at most it is reported as a conflict.
+    """
+    # Honour CLAUDE_CONFIG_DIR the same way Claude Code does, so a relocated
+    # config directory is still reconciled (and so this is testable).
+    config = os.path.expanduser(os.environ.get("CLAUDE_CONFIG_DIR", "~/.claude"))
+    home = os.path.join(config, "skills")
+    actions, conflicts = [], []
+    if not os.path.isdir(config):
+        return None, [], []
+    os.makedirs(home, exist_ok=True)
+
+    managed = {}
+    for name in sorted(os.listdir(home)):
+        p = os.path.join(home, name)
+        if os.path.islink(p) and under(link_target(p), os.path.join(root, SKILLS_DIR)):
+            managed[name] = p
+        elif name in skills:
+            conflicts.append(name)
+
+    for name in sorted(set(managed) - set(skills)):
+        actions.append(("unlink", name, "skill no longer in the repo"))
+        if not dry_run:
+            os.unlink(managed[name])
+    for name, src in sorted(skills.items()):
+        p = os.path.join(home, name)
+        if name in managed:
+            if link_target(p) != os.path.abspath(src):
+                actions.append(("relink", name, "target moved"))
+                if not dry_run:
+                    os.unlink(p)
+                    os.symlink(os.path.abspath(src), p)
+            elif not os.path.exists(p):
+                actions.append(("relink", name, "dangling link"))
+                if not dry_run:
+                    os.unlink(p)
+                    os.symlink(os.path.abspath(src), p)
+        elif name not in conflicts:
+            actions.append(("link", name, "new"))
+            if not dry_run:
+                os.symlink(os.path.abspath(src), p)
+    return home, actions, conflicts
+
+
+def refresh_pi(root, dry_run):
+    """Pi discovers project skills through .agents/skills and follows symlinks,
+    so one link is the whole integration."""
+    link = os.path.join(root, ".agents", "skills")
+    if os.path.islink(link) and link_target(link) == os.path.abspath(
+            os.path.join(root, SKILLS_DIR)):
+        return link, []
+    if os.path.exists(link) and not os.path.islink(link):
+        return link, [("skip", ".agents/skills", "exists and is not a symlink")]
+    if not dry_run:
+        os.makedirs(os.path.dirname(link), exist_ok=True)
+        if os.path.islink(link):
+            os.unlink(link)
+        os.symlink(os.path.join("..", SKILLS_DIR), link)
+    return link, [("link", ".agents/skills", "-> ../skills")]
+
+
+def refresh_codex(root, dry_run):
+    """Codex installs from a marketplace, so it needs the packaging manifests
+    before anything can be refreshed."""
+    import shutil
+    if not shutil.which("codex"):
+        return None, [], "codex is not on PATH"
+    missing = [p for p in (".claude-plugin/marketplace.json", ".codex-plugin/plugin.json")
+               if not os.path.exists(os.path.join(root, p))]
+    if missing:
+        return None, [], f"not packaged yet, missing {', '.join(missing)}"
+    import subprocess
+    if dry_run:
+        return "codex", [("upgrade", "marketplace", "codex plugin marketplace upgrade")], None
+    r = subprocess.run(["codex", "plugin", "marketplace", "upgrade"],
+                       capture_output=True, text=True)
+    return "codex", [("upgrade", "marketplace", r.stdout.strip() or r.stderr.strip())], None
+
+
+def cmd_refresh(args):
+    root = os.path.abspath(args.root)
+    skills = repo_skill_names(root)
+    dry = args.dry_run
+    print(f"skills-sync refresh — {len(skills)} skills in the repo"
+          f"{' (DRY RUN)' if dry else ''}\n")
+
+    total = 0
+    home, actions, conflicts = refresh_claude(root, skills, dry)
+    if home is None:
+        print("claude   skipped — ~/.claude not found")
+    else:
+        print(f"claude   {home}")
+        for kind, name, why in actions:
+            print(f"         {kind:7} {name}  ({why})")
+        if not actions:
+            print("         already in sync")
+        for name in conflicts:
+            print(f"         CONFLICT {name} exists and is not ours — left untouched")
+        total += len(actions)
+
+    link, pi_actions = refresh_pi(root, dry)
+    print(f"\npi       {rel(root, link)}")
+    for kind, name, why in pi_actions:
+        print(f"         {kind:7} {name}  ({why})")
+    if not pi_actions:
+        print("         already in sync")
+    total += len(pi_actions)
+
+    _, cx_actions, cx_note = refresh_codex(root, dry)
+    print("\ncodex    ", end="")
+    if cx_note:
+        print(f"skipped — {cx_note}")
+    else:
+        print("marketplace")
+        for kind, name, why in cx_actions:
+            print(f"         {kind:7} {name}  ({why})")
+        total += len(cx_actions)
+
+    print(f"\n{total} change(s)" + (" — re-run without --dry-run to apply" if dry and total
+                                    else ""))
+    if total and not dry:
+        print("Claude Code and Codex load skills at startup: restart or /reload-plugins.")
+    return 0
 
 
 SKILL_TEMPLATE = '''---
@@ -632,6 +797,11 @@ def main():
                    help="perform the migration (default is a dry run)")
     m.add_argument("--limit", type=int, default=8, help="max link rewrites shown per file")
     m.set_defaults(func=cmd_migrate)
+
+    r = sub.add_parser("refresh", help="reconcile the local install with the repo")
+    r.add_argument("--dry-run", action="store_true",
+                   help="report what would change without touching anything")
+    r.set_defaults(func=cmd_refresh)
 
     n = sub.add_parser("new", help="scaffold a conformant skill")
     n.add_argument("name", help="skill name (lowercase, hyphens)")
