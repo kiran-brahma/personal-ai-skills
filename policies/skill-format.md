@@ -48,16 +48,16 @@ should this skill fire for the request in front of the agent? Everything else be
 in the body, where it costs nothing until the skill is actually invoked.
 
 Budget: **200 bytes per description, 9000 bytes across the library.** Codex loads every
-description into a fixed skills budget and silently truncates once that is exceeded —
-truncation degrades routing with no error, so the limit is a correctness constraint,
-not a cost optimisation. `disable-model-invocation` does not exempt a skill: Codex
+description into a fixed skills budget and silently truncates once that is exceeded.
+Truncation degrades routing with no error, so the limit is a correctness constraint
+rather than a cost optimisation. `disable-model-invocation` does not exempt a skill: Codex
 ignores that field and charges the description regardless.
 
 Write it in three parts, in this order:
 
-1. **What it does** — one clause, concrete, naming the artifact or outcome.
-2. **When it fires** — the phrasing a user would actually type.
-3. **When it does not** — the neighbouring skill that should handle those cases.
+1. **What it does**: one clause, concrete, naming the artifact or outcome.
+2. **When it fires**: the phrasing a user would actually type.
+3. **When it does not**: the neighbouring skill that should handle those cases.
 
 Rules:
 

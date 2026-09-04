@@ -20,10 +20,10 @@ bin/skills-sync upstream
 
 This compares every vendored skill against the commit `registry.yaml` pins for its source, and reports four things:
 
-- **changed upstream** — what the original author has altered since the pin.
-- **CONFLICT** — an upstream change to a file you have also edited locally. These are the ones that need a decision rather than a copy: adopting upstream wholesale would discard a local adaptation.
-- **locally edited** / **not vendored by choice** — your existing divergence, separating deliberate edits from files never taken (an agent-specific manifest, say). Knowing which is which is what makes the conflict list readable.
-- **upstream has N not vendored** — skills the author has added that this library does not carry. Selective adoption is a recorded adaptation for some packages, so a long list here is expected, not a backlog.
+- **changed upstream**: what the original author has altered since the pin.
+- **CONFLICT**: an upstream change to a file you have also edited locally. These are the ones that need a decision rather than a copy: adopting upstream wholesale would discard a local adaptation.
+- **locally edited** and **not vendored by choice**: your existing divergence, separating deliberate edits from files never taken (an agent-specific manifest, say). Knowing which is which is what makes the conflict list readable.
+- **upstream has N not vendored**: skills the author has added that this library does not carry. Selective adoption is a recorded adaptation for some packages, so a long list here is expected, not a backlog.
 
 A skill derived from an upstream *method* rather than copied from an upstream directory has nothing to diff, and is reported as such. Those need a human read of the source.
 
