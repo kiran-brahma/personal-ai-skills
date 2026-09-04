@@ -273,6 +273,22 @@ def check_integrity(root, skill_files, by_name, findings):
                     f"link target does not exist: {target}",
                     "the agent reads these paths at run time and fails when they are missing"))
 
+    # S7 — an unresolved three-way merge from `adopt` must never reach a commit
+    # or a release. Fenced blocks are stripped first, so a skill that documents
+    # merge markers as example output is not flagged for teaching them.
+    for sf in skill_files:
+        sdir = os.path.dirname(sf)
+        for doc in skill_docs(sdir):
+            body = strip_fences(open(doc, encoding="utf-8", errors="replace").read())
+            hits = [i + 1 for i, line in enumerate(body.split("\n"))
+                    if line.startswith(CONFLICT_MARKERS)]
+            if hits:
+                findings.append(Finding(
+                    ERROR, "S7-unresolved", rel(root, doc),
+                    f"merge conflict markers at line(s) "
+                    f"{', '.join(map(str, hits[:5]))}",
+                    "an unresolved adopt merge would ship half of someone else's edit"))
+
     # I2 — registry.yaml is the inventory; drift means a skill is untracked.
     reg_path = os.path.join(root, REGISTRY)
     if not os.path.exists(reg_path):
@@ -1075,6 +1091,153 @@ def cmd_upstream(args):
     return 0
 
 
+CONFLICT_MARKERS = ("<<<<<<<", "=======", ">>>>>>>")
+
+
+def cmd_adopt(args):
+    """Merge upstream changes into the local skills, preserving adaptations.
+
+    A three-way merge, not a copy: the pinned commit is the base, the local file
+    is ours, the upstream head is theirs. Where only the author changed a region
+    the change lands cleanly; where both changed it, the file is left with
+    conflict markers for a human to resolve. validate refuses to pass while any
+    marker remains, so an unreviewed merge cannot reach a commit or a release.
+    """
+    import subprocess, tempfile
+    root = os.path.abspath(args.root)
+    reg = parse_registry(os.path.join(root, REGISTRY))
+    sources = {s["id"]: s for s in reg.get("sources", []) if "id" in s}
+    packages = [p for p in reg.get("packages", []) if p.get("source") in sources]
+
+    if args.apply and git(root, "status", "--porcelain").stdout.strip():
+        print("The working tree must be clean before adopting, so the merge is "
+              "reviewable with git diff and revertible with git checkout.")
+        return 1
+
+    clean, conflicted, skipped, added, removed = [], [], [], [], []
+
+    for src_id in sorted({p["source"] for p in packages}):
+        if args.source and src_id != args.source:
+            continue
+        src = sources[src_id]
+        url, subdir = split_repo_url(src.get("repository", ""))
+        pinned = src.get("reference", "")
+        repo, err = upstream_clone(src_id, url, args.offline)
+        if repo is None:
+            print(f"{src_id}: SKIP — {err}")
+            continue
+        head = upstream_head(repo)
+        if not head or git(repo, "cat-file", "-t", pinned).stdout.strip() != "commit":
+            print(f"{src_id}: SKIP — cannot resolve pinned or upstream commit")
+            continue
+
+        for pkg in [p for p in packages if p["source"] == src_id]:
+            prefixes = pkg.get("upstream_prefix", "")
+            if isinstance(prefixes, str):
+                prefixes = [prefixes]
+            for name in pkg.get("skills", []):
+                if args.skill and name != args.skill:
+                    continue
+                upath = None
+                for pfx in prefixes or [""]:
+                    cand = "/".join(x for x in (subdir, pfx, name) if x)
+                    if git(repo, "cat-file", "-t", f"{pinned}:{cand}").returncode == 0:
+                        upath = cand
+                        break
+                if upath is None:
+                    continue
+                d = git(repo, "diff", "--name-status", f"{pinned}..{head}", "--", upath)
+                for line in [x for x in d.stdout.split("\n") if x.strip()]:
+                    parts = line.split("\t")
+                    status, path = parts[0][:1], parts[-1]
+                    relp = os.path.relpath(path, upath)
+                    localp = os.path.join(root, SKILLS_DIR, name, relp)
+                    label = f"{name}/{relp}"
+
+                    if status == "A":
+                        added.append(label)
+                        continue
+                    if status == "D":
+                        removed.append(label)
+                        continue
+                    if not os.path.exists(localp):
+                        skipped.append(f"{label} (not vendored locally)")
+                        continue
+
+                    base = git(repo, "show", f"{pinned}:{path}")
+                    theirs = git(repo, "show", f"{head}:{path}")
+                    if base.returncode != 0 or theirs.returncode != 0:
+                        skipped.append(f"{label} (could not read upstream blobs)")
+                        continue
+                    ours = open(localp, encoding="utf-8", errors="replace").read()
+                    if ours == theirs.stdout:
+                        continue  # already matches upstream
+
+                    if not args.apply:
+                        # Predict the outcome without writing to the working tree.
+                        with tempfile.TemporaryDirectory() as td:
+                            f = {}
+                            for tag, content in (("ours", ours), ("base", base.stdout),
+                                                 ("theirs", theirs.stdout)):
+                                f[tag] = os.path.join(td, tag)
+                                open(f[tag], "w", encoding="utf-8").write(content)
+                            rc = subprocess.run(
+                                ["git", "merge-file", "-q", "-p",
+                                 f["ours"], f["base"], f["theirs"]],
+                                capture_output=True, text=True).returncode
+                        (conflicted if rc > 0 else clean).append(label)
+                        continue
+
+                    with tempfile.TemporaryDirectory() as td:
+                        bp = os.path.join(td, "base")
+                        tp = os.path.join(td, "theirs")
+                        open(bp, "w", encoding="utf-8").write(base.stdout)
+                        open(tp, "w", encoding="utf-8").write(theirs.stdout)
+                        rc = subprocess.run(
+                            ["git", "merge-file",
+                             "-L", f"local ({name})", "-L", f"upstream @ {pinned[:8]}",
+                             "-L", f"upstream @ {head[:8]}", localp, bp, tp],
+                            capture_output=True, text=True).returncode
+                    (conflicted if rc > 0 else clean).append(label)
+
+    verb = "Merged" if args.apply else "Would merge"
+    print(f"skills-sync adopt — {'APPLYING' if args.apply else 'DRY RUN'}\n")
+    print(f"{verb} cleanly ({len(clean)}):")
+    for x in clean[:20]:
+        print(f"  {x}")
+    if len(clean) > 20:
+        print(f"  … and {len(clean) - 20} more")
+    print(f"\nNeeds your decision ({len(conflicted)}) — "
+          f"upstream and local changed the same lines:")
+    for x in conflicted[:20]:
+        print(f"  {x}")
+    if len(conflicted) > 20:
+        print(f"  … and {len(conflicted) - 20} more")
+    for label, items in (("New upstream files, not added", added),
+                         ("Deleted upstream, kept locally", removed),
+                         ("Skipped", skipped)):
+        if items:
+            print(f"\n{label} ({len(items)}):")
+            for x in items[:10]:
+                print(f"  {x}")
+            if len(items) > 10:
+                print(f"  … and {len(items) - 10} more")
+
+    if not args.apply:
+        print("\nNothing was written. Re-run with --apply to merge into the "
+              "working tree.")
+        return 0
+
+    print("\nThe working tree now holds the merge. Next:")
+    print("  1. resolve every conflict — `bin/skills-sync validate` fails while "
+          "markers remain")
+    print("  2. re-read the affected evaluation cases in evals/")
+    print("  3. record the behavioural change in the changelog")
+    print("  4. commit, then `bin/skills-sync upstream --pin <source>`")
+    print("\nTo undo: git checkout -- skills/")
+    return 1 if conflicted else 0
+
+
 def cmd_doctor(args):
     """Report drift without touching anything.
 
@@ -1670,6 +1833,14 @@ def main():
     r.add_argument("--quiet", action="store_true",
                    help="print only when something changed")
     r.set_defaults(func=cmd_refresh)
+
+    ad = sub.add_parser("adopt", help="three-way merge upstream changes into local skills")
+    ad.add_argument("--source", help="limit to one source id")
+    ad.add_argument("--skill", help="limit to one skill")
+    ad.add_argument("--offline", action="store_true", help="use the cached clone only")
+    ad.add_argument("--apply", action="store_true",
+                    help="write the merge into the working tree (default is a dry run)")
+    ad.set_defaults(func=cmd_adopt)
 
     u = sub.add_parser("upstream", help="compare vendored skills against their sources")
     u.add_argument("--source", help="limit to one source id from registry.yaml")
