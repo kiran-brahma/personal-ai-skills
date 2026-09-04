@@ -520,20 +520,34 @@ MANIFESTS = (".claude-plugin/plugin.json", ".codex-plugin/plugin.json")
 VERSION_FILE = "VERSION"
 
 
-def derived_version(root):
-    """MAJOR.MINOR from VERSION, PATCH from the number of commits touching skills/.
+TAG_PREFIX = "V"  # matches the tags already in this repository (V0.1 … V0.4.0)
 
-    Claude Code only ships an update when the manifest version changes, so the
-    patch is counted rather than remembered: it cannot fail to move when the
-    library does, and it needs no judgment at release time.
+
+def derived_version(root):
+    """MAJOR.MINOR from VERSION; the patch advances only when skills change.
+
+    Claude Code and Codex ship an update only when the manifest version changes,
+    so the patch is computed rather than remembered: it cannot fail to move when
+    the library does. It advances at most one per release, which keeps the
+    sequence readable next to the existing V0.1 … V0.4.0 tags.
     """
-    import subprocess
     vf = os.path.join(root, VERSION_FILE)
     base = open(vf, encoding="utf-8").read().strip() if os.path.exists(vf) else "0.1"
-    r = subprocess.run(["git", "-C", root, "rev-list", "--count", "HEAD", "--", SKILLS_DIR],
-                       capture_output=True, text=True)
-    patch = r.stdout.strip() if r.returncode == 0 and r.stdout.strip() else "0"
-    return f"{base}.{patch}", base, patch
+
+    pat = re.compile(rf"^{re.escape(TAG_PREFIX)}?{re.escape(base)}\.(\d+)$")
+    tags = []
+    for line in git(root, "tag", "--list").stdout.split("\n"):
+        m = pat.match(line.strip())
+        if m:
+            tags.append((int(m.group(1)), line.strip()))
+    if not tags:
+        return f"{base}.0", base, "0"
+
+    patch, tag = max(tags)
+    changed = git(root, "rev-list", "--count", f"{tag}..HEAD", "--", SKILLS_DIR)
+    moved = changed.returncode == 0 and changed.stdout.strip() not in ("", "0")
+    patch += 1 if moved else 0
+    return f"{base}.{patch}", base, str(patch)
 
 
 def manifest_versions(root):
@@ -752,6 +766,186 @@ def cmd_refresh(args):
     return 0
 
 
+def git(root, *a):
+    import subprocess
+    return subprocess.run(["git", "-C", root] + list(a), capture_output=True, text=True)
+
+
+def changed_skills(root, since):
+    """Skill names touched since a ref, for pointing at the eval cases that cover them."""
+    if not since:
+        return None
+    r = git(root, "diff", "--name-only", f"{since}..HEAD", "--", SKILLS_DIR)
+    if r.returncode != 0:
+        return None
+    names = set()
+    for line in r.stdout.split("\n"):
+        parts = line.strip().split("/")
+        if len(parts) >= 2 and parts[0] == SKILLS_DIR:
+            names.add(parts[1])
+    return names
+
+
+def relevant_evals(root, names):
+    out = {}
+    evdir = os.path.join(root, "evals")
+    if not os.path.isdir(evdir) or not names:
+        return out
+    for f in sorted(os.listdir(evdir)):
+        if not f.endswith(".md"):
+            continue
+        text = open(os.path.join(evdir, f), encoding="utf-8", errors="replace").read()
+        hit = sorted(n for n in names if n in text)
+        if hit:
+            out[f] = hit
+    return out
+
+
+def cmd_release(args):
+    """Gate a release: prove the library is sound, publish it, then prove the local
+    install actually moved. Each gate blocks; cheap ones run first."""
+    import shutil
+    root = os.path.abspath(args.root)
+    apply = args.apply
+    print(f"skills-sync release — {'APPLYING' if apply else 'PREFLIGHT (dry run)'}\n")
+
+    failures = []
+
+    def gate(name, ok, detail=""):
+        print(f"  {'PASS' if ok else 'FAIL'}  {name}" + (f"  — {detail}" if detail else ""))
+        if not ok:
+            failures.append(name)
+        return ok
+
+    print("Preflight")
+
+    r = git(root, "status", "--porcelain")
+    gate("working tree is clean", r.stdout.strip() == "",
+         f"{len(r.stdout.strip().splitlines())} uncommitted change(s)"
+         if r.stdout.strip() else "")
+
+    branch = git(root, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
+    gate("on a named branch", branch != "HEAD", branch)
+
+    vargs = argparse.Namespace(root=root, json=False, strict=False,
+                               max_desc=DEFAULT_MAX_DESC,
+                               total_desc=DEFAULT_TOTAL_DESC, limit=3)
+    import io, contextlib
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        vrc = cmd_validate(vargs)
+    gate("validate", vrc == 0, buf.getvalue().strip().splitlines()[-1] if vrc else "")
+    if vrc != 0:
+        print("\n" + buf.getvalue())
+
+    if shutil.which("claude"):
+        import subprocess
+        pv = subprocess.run(["claude", "plugin", "validate", root],
+                            capture_output=True, text=True)
+        gate("plugin manifests validate", pv.returncode == 0,
+             (pv.stdout + pv.stderr).strip().splitlines()[-1] if pv.returncode else "")
+    else:
+        print("  SKIP  plugin manifests validate — claude is not on PATH")
+
+    version, _, _ = derived_version(root)
+    tag = f"{TAG_PREFIX}{version}"
+    exists = git(root, "rev-parse", "-q", "--verify", f"refs/tags/{tag}").returncode == 0
+    gate(f"tag {tag} is free", not exists, "already exists" if exists else "")
+
+    # The repository's own convention: every release gets a dated changelog entry.
+    # Enforced here because a release that skips it is invisible to future readers.
+    cl = os.path.join(root, "changelog")
+    entry = any(version in open(os.path.join(cl, f), encoding="utf-8",
+                                errors="replace").read()
+                for f in os.listdir(cl) if f.endswith(".md")) if os.path.isdir(cl) else False
+    gate(f"changelog entry for {version}", entry,
+         "add one under changelog/ before releasing" if not entry else "")
+
+    last = git(root, "describe", "--tags", "--abbrev=0").stdout.strip() or None
+    names = changed_skills(root, last)
+    evals = relevant_evals(root, names) if names else {}
+
+    print(f"\nRelease {version}" + (f" (previous tag {last})" if last else ""))
+    if names is not None:
+        print(f"  {len(names)} skill(s) changed since {last or 'the beginning'}")
+    if evals:
+        print("  eval cases covering those skills — these are prose, review them by hand:")
+        for f, hit in evals.items():
+            print(f"    evals/{f}: {', '.join(hit[:6])}"
+                  + (f" (+{len(hit) - 6})" if len(hit) > 6 else ""))
+
+    if failures:
+        print(f"\nBLOCKED — {len(failures)} gate(s) failed: {', '.join(failures)}")
+        return 1
+
+    stale = [m for m, v in manifest_versions(root).items() if v != version]
+    print("\nWould do:" if not apply else "\nDoing:")
+    print(f"  write {version} to {len(stale)} manifest(s)" if stale
+          else "  manifests already at this version")
+    if stale:
+        print(f"  commit the manifest bump")
+    print(f"  tag {tag}")
+    print(f"  push {branch} and {tag}" if args.push else "  (push skipped)")
+    print("  refresh the local install, then verify it moved")
+
+    if not apply:
+        print("\nAll gates passed. Re-run with --apply to release.")
+        return 0
+
+    if stale:
+        vw = argparse.Namespace(root=root, write=True)
+        with contextlib.redirect_stdout(io.StringIO()):
+            cmd_version(vw)
+        git(root, "add", *MANIFESTS)
+        c = git(root, "commit", "-m", f"Release {version}")
+        if c.returncode != 0:
+            print(f"commit failed: {c.stderr.strip()}")
+            return 1
+
+    t = git(root, "tag", "-a", tag, "-m", args.message or f"Release {version}")
+    if t.returncode != 0:
+        print(f"tag failed: {t.stderr.strip()}")
+        return 1
+
+    if args.push:
+        p = git(root, "push", "origin", branch, tag)
+        if p.returncode != 0:
+            print(f"push failed: {p.stderr.strip()}")
+            return 1
+        print(f"  pushed {branch} and {tag}")
+
+    print()
+    args.dry_run = False
+    cmd_refresh(args)
+
+    # Prove the install actually moved, rather than trusting refresh's report.
+    print("\nPost-release verification")
+    skills = repo_skill_names(root)
+    config = os.path.expanduser(os.environ.get("CLAUDE_CONFIG_DIR", "~/.claude"))
+    home = os.path.join(config, "skills")
+    if os.path.isdir(home):
+        live = {n for n in os.listdir(home)
+                if os.path.isfile(os.path.join(home, n, SKILL_FILE))}
+        gate("claude install resolves every skill", set(skills) <= live,
+             f"missing {sorted(set(skills) - live)[:3]}" if not set(skills) <= live else
+             f"{len(skills)} skills")
+    mk = os.path.join(root, ".claude-plugin/marketplace.json")
+    if shutil.which("codex") and os.path.exists(mk):
+        m = json.load(open(mk, encoding="utf-8"))["name"]
+        pl = json.load(open(os.path.join(root, ".codex-plugin/plugin.json"),
+                            encoding="utf-8"))["name"]
+        cache = os.path.expanduser(f"~/.codex/plugins/cache/{m}/{pl}/{version}/skills")
+        cached = set(os.listdir(cache)) if os.path.isdir(cache) else set()
+        gate("codex cache matches the repo", cached == set(skills),
+             f"{len(cached)} cached vs {len(skills)} in repo")
+
+    if failures:
+        print(f"\nRELEASED {version}, but {len(failures)} verification(s) failed.")
+        return 1
+    print(f"\nReleased {version}.")
+    return 0
+
+
 SKILL_TEMPLATE = '''---
 name: {name}
 description: "{description}"
@@ -880,6 +1074,14 @@ def main():
                    help="perform the migration (default is a dry run)")
     m.add_argument("--limit", type=int, default=8, help="max link rewrites shown per file")
     m.set_defaults(func=cmd_migrate)
+
+    rel_p = sub.add_parser("release", help="gate, publish, and verify a release")
+    rel_p.add_argument("--apply", action="store_true",
+                       help="perform the release (default is preflight only)")
+    rel_p.add_argument("--no-push", dest="push", action="store_false",
+                       help="tag locally without pushing")
+    rel_p.add_argument("-m", "--message", help="annotation for the tag")
+    rel_p.set_defaults(func=cmd_release, push=True)
 
     ver = sub.add_parser("version", help="derive the plugin version and check the manifests")
     ver.add_argument("--write", action="store_true", help="write the derived version")
