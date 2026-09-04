@@ -516,6 +516,73 @@ def cmd_migrate(args):
     return cmd_refresh(args)
 
 
+MANIFESTS = (".claude-plugin/plugin.json", ".codex-plugin/plugin.json")
+VERSION_FILE = "VERSION"
+
+
+def derived_version(root):
+    """MAJOR.MINOR from VERSION, PATCH from the number of commits touching skills/.
+
+    Claude Code only ships an update when the manifest version changes, so the
+    patch is counted rather than remembered: it cannot fail to move when the
+    library does, and it needs no judgment at release time.
+    """
+    import subprocess
+    vf = os.path.join(root, VERSION_FILE)
+    base = open(vf, encoding="utf-8").read().strip() if os.path.exists(vf) else "0.1"
+    r = subprocess.run(["git", "-C", root, "rev-list", "--count", "HEAD", "--", SKILLS_DIR],
+                       capture_output=True, text=True)
+    patch = r.stdout.strip() if r.returncode == 0 and r.stdout.strip() else "0"
+    return f"{base}.{patch}", base, patch
+
+
+def manifest_versions(root):
+    out = {}
+    for m in MANIFESTS:
+        p = os.path.join(root, m)
+        if not os.path.exists(p):
+            out[m] = None
+            continue
+        try:
+            out[m] = json.load(open(p, encoding="utf-8")).get("version")
+        except Exception as e:
+            out[m] = f"<unreadable: {e}>"
+    return out
+
+
+def cmd_version(args):
+    root = os.path.abspath(args.root)
+    version, base, patch = derived_version(root)
+    current = manifest_versions(root)
+    print(f"derived version: {version}   ({VERSION_FILE}={base}, "
+          f"{patch} commit(s) touching {SKILLS_DIR}/)\n")
+
+    stale = [m for m, v in current.items() if v != version]
+    for m, v in current.items():
+        state = "ok" if v == version else ("missing" if v is None else f"stale ({v})")
+        print(f"  {m:34} {state}")
+
+    if not stale:
+        print("\nManifests are up to date.")
+        return 0
+    if not args.write:
+        print(f"\n{len(stale)} manifest(s) out of date — re-run with --write to update.")
+        return 1
+
+    for m in stale:
+        p = os.path.join(root, m)
+        if not os.path.exists(p):
+            print(f"\ncannot write {m}: file does not exist")
+            return 1
+        d = json.load(open(p, encoding="utf-8"))
+        d["version"] = version
+        with open(p, "w", encoding="utf-8") as fh:
+            json.dump(d, fh, indent=2)
+            fh.write("\n")
+    print(f"\nWrote {version} to {len(stale)} manifest(s).")
+    return 0
+
+
 def repo_skill_names(root):
     skills_root = os.path.join(root, SKILLS_DIR)
     if not os.path.isdir(skills_root):
@@ -616,11 +683,27 @@ def refresh_codex(root, dry_run):
     if missing:
         return None, [], f"not packaged yet, missing {', '.join(missing)}"
     import subprocess
+    version, _, _ = derived_version(root)
+    marketplace = json.load(open(os.path.join(root, ".claude-plugin/marketplace.json"),
+                                 encoding="utf-8"))
+    plugin = json.load(open(os.path.join(root, ".codex-plugin/plugin.json"),
+                            encoding="utf-8"))["name"]
+    selector = f"{plugin}@{marketplace['name']}"
+    cache = os.path.expanduser(
+        f"~/.codex/plugins/cache/{marketplace['name']}/{plugin}/{version}")
+
+    if os.path.isdir(cache):
+        return "codex", [], None
     if dry_run:
-        return "codex", [("upgrade", "marketplace", "codex plugin marketplace upgrade")], None
-    r = subprocess.run(["codex", "plugin", "marketplace", "upgrade"],
-                       capture_output=True, text=True)
-    return "codex", [("upgrade", "marketplace", r.stdout.strip() or r.stderr.strip())], None
+        return "codex", [("install", selector, f"cache missing for {version}")], None
+    # `marketplace upgrade` only refreshes Git marketplaces, so it is a no-op for a
+    # local checkout. `plugin add` re-reads the marketplace and installs the version
+    # in the manifest, replacing the previous cache entry.
+    subprocess.run(["codex", "plugin", "marketplace", "upgrade"],
+                   capture_output=True, text=True)
+    r = subprocess.run(["codex", "plugin", "add", selector], capture_output=True, text=True)
+    note = "installed" if r.returncode == 0 else (r.stderr.strip() or "failed")
+    return "codex", [("install", selector, f"{version} — {note}")], None
 
 
 def cmd_refresh(args):
@@ -797,6 +880,10 @@ def main():
                    help="perform the migration (default is a dry run)")
     m.add_argument("--limit", type=int, default=8, help="max link rewrites shown per file")
     m.set_defaults(func=cmd_migrate)
+
+    ver = sub.add_parser("version", help="derive the plugin version and check the manifests")
+    ver.add_argument("--write", action="store_true", help="write the derived version")
+    ver.set_defaults(func=cmd_version)
 
     r = sub.add_parser("refresh", help="reconcile the local install with the repo")
     r.add_argument("--dry-run", action="store_true",
