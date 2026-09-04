@@ -822,6 +822,124 @@ def relevant_evals(root, names):
     return out
 
 
+def origin_slug(root):
+    """owner/repo from the origin remote, for marketplace sources."""
+    url = git(root, "config", "--get", "remote.origin.url").stdout.strip()
+    if not url:
+        return None, None
+    m = re.search(r"[:/]([^/:]+/[^/]+?)(?:\.git)?$", url)
+    return (m.group(1) if m else None), url
+
+
+def detect_tools():
+    import shutil
+    return {name: shutil.which(name) for name in ("git", "claude", "codex", "pi")}
+
+
+def cmd_bootstrap(args):
+    """Set a machine up from a fresh clone.
+
+    Two roles, because they want opposite things. An authoring machine should
+    see its own edits immediately, so it installs from the working tree and runs
+    the hooks. A consuming machine should track published releases, so it
+    installs from the remote and never has its install moved by a stray edit.
+    """
+    root = os.path.abspath(args.root)
+    tools = detect_tools()
+    slug, url = origin_slug(root)
+    skills = repo_skill_names(root)
+
+    role = args.role
+    if not role:
+        if sys.stdin.isatty():
+            print("This machine will be:\n"
+                  "  1. author   — you edit skills here; installs from this working tree,\n"
+                  "                git hooks validate and reconcile on every commit\n"
+                  "  2. consumer — you only use skills here; installs from the remote and\n"
+                  "                tracks published releases\n")
+            choice = input("Choose 1 or 2: ").strip()
+            role = {"1": "author", "2": "consumer"}.get(choice)
+        if not role:
+            print("Pass --role author or --role consumer.")
+            return 1
+
+    print(f"\nskills-sync bootstrap — role: {role}"
+          f"{'' if args.apply else '  (DRY RUN)'}\n")
+
+    print("Detected")
+    for name, path in tools.items():
+        print(f"  {'ok  ' if path else 'MISS'} {name:7} {path or 'not on PATH'}")
+    print(f"  ok   repo    {root}")
+    print(f"  {'ok  ' if slug else 'MISS'} origin  {url or 'no origin remote'}")
+    print(f"  ok   skills  {len(skills)}")
+
+    if not tools["git"]:
+        print("\ngit is required.")
+        return 1
+    if role == "consumer" and not slug:
+        print("\nA consumer install needs an origin remote to track. "
+              "Add one, or use --role author.")
+        return 1
+
+    steps = []
+    if role == "author":
+        steps.append(("git hooks", f"set core.hooksPath to {HOOKS_DIR}"))
+        if tools["claude"]:
+            steps.append(("claude", f"link {len(skills)} skills into the user skills dir"))
+        if tools["pi"]:
+            steps.append(("pi", f"link {len(skills)} skills into the agent skills dir"))
+        if tools["codex"]:
+            steps.append(("codex", "add this checkout as a marketplace, install the plugin"))
+    else:
+        if tools["claude"]:
+            steps.append(("claude", f"add marketplace {slug}, install the plugin"))
+        if tools["codex"]:
+            steps.append(("codex", f"add marketplace {slug}, install the plugin"))
+        if tools["pi"]:
+            steps.append(("pi", "no marketplace; link from this clone and git pull to update"))
+
+    print("\nWould do:" if not args.apply else "\nDoing:")
+    for who, what in steps:
+        print(f"  {who:8} {what}")
+
+    if role == "author" and slug:
+        print(f"\n  Note: this checkout pushes to {slug}. To work from your own fork,"
+              f"\n  repoint it first: git remote set-url origin <your fork>")
+
+    if not args.apply:
+        print("\nRe-run with --apply.")
+        return 0
+
+    import subprocess
+    print()
+    if role == "author":
+        hargs = argparse.Namespace(root=root, install=True, uninstall=False)
+        cmd_hooks(hargs)
+        print()
+        rargs = argparse.Namespace(root=root, dry_run=False, quiet=False)
+        cmd_refresh(rargs)
+    else:
+        for tool in ("claude", "codex"):
+            if not tools[tool]:
+                continue
+            a = subprocess.run([tool, "plugin", "marketplace", "add", slug],
+                               capture_output=True, text=True)
+            print(f"  {tool}: marketplace {'added' if a.returncode == 0 else 'failed'}"
+                  f"{'' if a.returncode == 0 else ' — ' + (a.stderr.strip()[:120])}")
+            mk = os.path.join(root, ".claude-plugin/marketplace.json")
+            name = json.load(open(mk, encoding="utf-8"))["name"]
+            plugin = json.load(open(os.path.join(root, ".codex-plugin/plugin.json"),
+                                    encoding="utf-8"))["name"]
+            verb = "install" if tool == "claude" else "add"
+            b = subprocess.run([tool, "plugin", verb, f"{plugin}@{name}"],
+                               capture_output=True, text=True)
+            print(f"  {tool}: plugin {'installed' if b.returncode == 0 else 'failed'}"
+                  f"{'' if b.returncode == 0 else ' — ' + (b.stderr.strip()[:120])}")
+
+    print("\nDone. Claude Code, Codex, and Pi read skills at startup — restart them.")
+    return 0
+
+
 HOOKS_DIR = ".githooks"
 
 
@@ -1157,6 +1275,13 @@ def main():
     r.add_argument("--quiet", action="store_true",
                    help="print only when something changed")
     r.set_defaults(func=cmd_refresh)
+
+    b = sub.add_parser("bootstrap", help="set up this machine from a fresh clone")
+    b.add_argument("--role", choices=("author", "consumer"),
+                   help="author edits skills here; consumer only uses them")
+    b.add_argument("--apply", action="store_true",
+                   help="perform the setup (default is a dry run)")
+    b.set_defaults(func=cmd_bootstrap)
 
     h = sub.add_parser("hooks", help="report or install the committed git hooks")
     h.add_argument("--install", action="store_true", help="set core.hooksPath")
