@@ -37,6 +37,36 @@ Agents read skills at startup, so restart them after installing.
 
 Codex and Pi both read `~/.agents/skills`, the cross-harness Agent Skills location. Pi deduplicates by real path, so the overlap costs nothing.
 
+## Installing this library yourself
+
+The sections above are for my own machines. If you want to use these skills, install the published plugin instead. You do not need to clone anything.
+
+**Claude Code**
+
+```bash
+claude plugin marketplace add kiran-brahma/personal-ai-skills
+claude plugin install kb@kb-skills
+```
+
+**Codex**
+
+```bash
+codex plugin marketplace add kiran-brahma/personal-ai-skills
+codex plugin add kb@kb-skills
+```
+
+Both were verified against this repository at version 0.5.0, installing all 59 skills. Restart the agent afterwards, and invoke a skill as `/kb:skill-name` in Claude Code. Update with `claude plugin update kb@kb-skills` or by re-running `codex plugin add kb@kb-skills`; Codex ships an update only when the version in the manifest changes.
+
+**Pi** has no marketplace. Clone the repository and link the skills into `~/.pi/agent/skills`, or run `bin/skills-sync bootstrap --role consumer --apply` from the clone.
+
+Do not install both the plugin and the symlinks on the same machine. Each agent would carry every skill twice, once namespaced and once bare.
+
+### Two things worth knowing first
+
+**These are personal skills, not a neutral toolkit.** They encode how I want an agent to work with me. Four of them name me directly and are tuned to my writing and my blogs: `cognitive-editor`, `content-fence`, `musings-reviewer`, and the `writing` router. Most of the engineering skills are portable, but if you want a library shaped around your own judgment, fork this and adapt it rather than installing it as-is. That is what I did with the sources below.
+
+**Much of the value is not mine.** The engineering and productivity workflows are adapted from [Matt Pocock's skills](https://github.com/mattpocock/skills), the supporting lenses from [pstack and thermos](https://github.com/cursor/plugins), and the business methods from [gstack](https://github.com/garrytan/gstack). Those authors distribute their own work, kept current by them, and you may prefer to take it from the source. Licences and attribution are in [`THIRD_PARTY.md`](THIRD_PARTY.md); local adaptations and pinned upstream commits are recorded in [`registry.yaml`](registry.yaml).
+
 ## Keeping it current
 
 ```bash
