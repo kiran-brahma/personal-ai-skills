@@ -1,13 +1,6 @@
 ---
 name: musings-reviewer
-description: >
-  A constrained editorial-audit skill for KB's daily musing: a short, one-sitting piece
-  intended to carry one atomic idea or one final conclusion. Review drafts and finals for
-  atomicity, argument structure and fallacies when argumentative, definition quality when
-  observational, prose quality using the bundled Economist-style notes, and the 300-word
-  cap for finals. Use when KB shares a musing and asks for a review, says "review my
-  musing", or invokes Musings Reviewer. Do not use for essays, blog drafts, or other
-  long-form writing; use cognitive-editor or Content Fence's Prose Linter for those.
+description: "Review KB's daily musing (one atomic idea, 300-word cap) for atomicity, argument structure, and prose. Not for essays or blog drafts, use cognitive-editor."
 ---
 
 # Musings Reviewer

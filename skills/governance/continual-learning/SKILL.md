@@ -1,6 +1,6 @@
 ---
 name: continual-learning
-description: Review completed work for durable user preferences and workspace facts, then propose a small evidence-backed update to AGENTS.md or CLAUDE.md. Use for governance maintenance or when the user asks what the agents should learn from recent work.
+description: "Review completed work for durable preferences and workspace facts, then propose a small evidence-backed update to AGENTS.md or CLAUDE.md."
 disable-model-invocation: true
 ---
 

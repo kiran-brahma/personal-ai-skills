@@ -1,6 +1,6 @@
 ---
 name: content-fence
-description: "Run Kiran Brahma's canonical essay-development workflows without ghostwriting: private thinking grills, author-written Thinking Essay development, reader reconstruction, reader-response audits, and final Prose Linter checks. Use when Kiran starts or interrogates an idea, develops a living Thinking Essay, supplies a Thinking Essay for one reader-centred architecture, shares a completed Reader Essay for reader-response testing, asks for a prose audit, or invokes Content Fence. Load the relevant tracked workflow document before substantive work and treat it as authoritative."
+description: "KB's essay-development workflows without ghostwriting: thinking grills, Thinking Essay development, reader reconstruction, reader-response audits, prose linting."
 ---
 
 # Content Fence

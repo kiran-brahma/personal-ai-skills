@@ -1,6 +1,6 @@
 ---
 name: customer-value-proposition
-description: Frame and test a customer value proposition by identifying the real buyer, job, problem, current alternative, desired outcome, and adoption barrier. Use for a product, service, or offer; do not use as a substitute for evidence or a full business decision.
+description: "Frame and test a value proposition: real buyer, job, current alternative, desired outcome, adoption barrier. Not a substitute for evidence."
 ---
 
 # Customer value proposition

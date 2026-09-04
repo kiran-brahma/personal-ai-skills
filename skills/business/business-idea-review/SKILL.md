@@ -1,6 +1,6 @@
 ---
 name: business-idea-review
-description: Evaluate a new business idea, product, service, or strategic bet before material time or money is committed. Use evidence, business mechanics, downside protection, and explicit falsifiers; do not use for ordinary implementation planning or prose editing.
+description: "Test a new business idea, product, or strategic bet before committing time or money. Not for implementation planning."
 ---
 
 # Business idea review

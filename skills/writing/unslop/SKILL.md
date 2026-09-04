@@ -1,6 +1,6 @@
 ---
 name: unslop
-description: Edit prose to remove common AI-writing patterns and reduce cognitive load while preserving meaning, voice, factual content, source fidelity, quotations, defined terms, and task-specific constraints. Use as the final editorial pass on long-form documents, essays, memos, reports, reference documents, explanations, articles, and other substantive prose before presenting it to the user. Also use when writing sounds AI-generated, robotic, generic, over-polished, jargon-heavy, repetitive, dense, or needlessly hard to read.
+description: "Final editorial pass to remove AI-writing patterns from long-form prose while preserving meaning, voice, and quotations. Use when writing sounds AI-generated."
 ---
 
 # Unslop

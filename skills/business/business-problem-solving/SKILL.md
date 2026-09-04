@@ -1,6 +1,6 @@
 ---
 name: business-problem-solving
-description: Structure a complex business problem before analysis by defining the outcome, diagnosing the problem type, building an issue or hypothesis tree, prioritising questions, and planning the work. Use for multi-factor operating or strategic problems; do not use for simple factual questions.
+description: "Structure a multi-factor business problem before analysis: outcome, problem type, issue tree, priorities. Not for simple factual questions."
 ---
 
 # Business problem solving

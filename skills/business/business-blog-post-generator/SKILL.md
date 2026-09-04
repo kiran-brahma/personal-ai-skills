@@ -1,6 +1,6 @@
 ---
 name: business-blog-post-generator
-description: Generate evidence-led business blog posts for an existing company website by auditing its current content, finding decision-relevant topic gaps, interviewing the owner, and drafting a reviewed post. Use for company or product blogs; do not use for personal essays, generic copy, or autonomous publication.
+description: "Draft an evidence-led blog post for a company website: audit existing content, find topic gaps, interview the owner. Not for personal essays or autonomous publishing."
 ---
 
 # Business blog post generator

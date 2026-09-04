@@ -1,6 +1,6 @@
 ---
 name: decision-navigator
-description: Guide a consequential business decision from a clear decision statement through evidence, bias checks, option expansion, downside protection, and a committed next action. Use for pricing, hiring, delegation, investment, client, cash-flow, and operating choices.
+description: "Work a consequential business decision through to a committed action: pricing, hiring, delegation, investment, client, or cash-flow choices."
 ---
 
 # Decision navigator

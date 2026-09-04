@@ -1,6 +1,6 @@
 ---
 name: cognitive-editor
-description: Independent editorial audit system. Works on ANY piece of writing — KB's own drafts, someone else's document, a business memo, an unfamiliar essay — without needing prior context. Reads the piece once, infers genre, audience, core claim, and purpose from the text itself, then runs a four-part audit. Use whenever KB says "audit this", "run the editor", "check this draft", "Cognitive Editor", or pastes writing and asks for feedback. Also trigger when KB asks which of his own blogs a piece belongs
+description: "Editorial audit of any writing, KB's drafts or an unfamiliar piece. Use for 'audit this', 'check this draft', or when KB pastes writing for feedback."
 ---
 
 

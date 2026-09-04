@@ -1,6 +1,6 @@
 ---
 name: goldilocks-review
-description: Compare viable designs after a PRD or spec and before ticket creation, choosing the simplest architecture that preserves the required behavior and remains operationally understandable. Use as a mandatory gate for non-trivial work before to-tickets.
+description: "Compare viable designs after a spec and before tickets, choosing the simplest architecture that preserves required behavior. Mandatory gate before to-tickets."
 disable-model-invocation: true
 ---
 

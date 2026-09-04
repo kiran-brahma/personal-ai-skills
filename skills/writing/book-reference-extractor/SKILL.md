@@ -1,6 +1,6 @@
 ---
 name: book-reference-extractor
-description: Build source-faithful, long-form book documents from supplied highlights, excerpts, notes, or metadata. Use when the user wants an author reconstruction, durable book reference, reader response, or Book Memo. Preserve the author's supplied vocabulary and meaningful phrases, preserve the reader's own words, and complete a grilling-style reader interview with a confirmed shared understanding before drafting final prose.
+description: "Build source-faithful book documents from supplied highlights or notes: author reconstruction, durable reference, reader response, Book Memo. Interviews the reader first."
 ---
 
 # Book Reference Extractor
