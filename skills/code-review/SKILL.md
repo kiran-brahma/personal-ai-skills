@@ -55,19 +55,25 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 - **Middle Man**: a class or function that mostly just delegates onward. → cut it, call the real target direct.
 - **Refused Bequest**: a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
 
+On top of the smells, the Standards axis carries a **generated-code baseline**: failure modes that survive a clean typecheck and a passing test run, so no earlier gate catches them. These differ from the smells in one way that matters: they are not judgement calls. Each is checkable against the code or the lockfile, so report them as findings, not as heuristics.
+
+- **Phantom dependency**: an import naming a package that isn't installed, or isn't at the version the lockfile pins. → resolve it against the lockfile; a plausible name is not evidence the package exists.
+- **Silent catch**: a `catch` that neither handles the failure nor re-raises it. → the error is swallowed and the symptom surfaces somewhere unrelated.
+- **Lying comment**: a comment or docstring describing behaviour the code does not have. → trust the code; flag the comment.
+
 ### 4. Spawn both sub-agents in parallel
 
 **Standards sub-agent prompt** should include:
 
 - The full diff command and commit list.
-- The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full (the sub-agent has no other access to it).
-- The brief: "Report, per file/hunk where relevant, (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls: documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
+- The list of standards-source files you found in step 3, **plus the smell baseline and the generated-code baseline from step 3** pasted in full (the sub-agent has no other access to them).
+- The brief: "Report, per file/hunk where relevant, (a) every place the diff violates a documented standard: cite the standard (file + the rule); (b) any baseline smell you spot: name it and quote the hunk; and (c) any generated-code baseline hit: name it and quote the hunk. Distinguish hard violations from judgement calls: documented-standard breaches and generated-code baseline hits can be hard, but smells are always judgement calls, and a documented repo standard overrides both baselines. Skip anything tooling enforces. Under 400 words."
 
 **Spec sub-agent prompt** should include:
 
 - The diff command and commit list.
 - The path or fetched contents of the spec.
-- The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words."
+- The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong; (d) edge cases the spec names explicitly that the diff does not handle; (e) tests that pass by construction, where the assertion recomputes the expected value the way the code does, so the test can never disagree with the code and the requirement only looks covered. Quote the spec line for each finding. Under 400 words."
 
 If the spec is missing, skip the Spec sub-agent and note this in the final report.
 

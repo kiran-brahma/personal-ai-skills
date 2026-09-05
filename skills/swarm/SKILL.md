@@ -10,6 +10,27 @@ disable-model-invocation: true
 
 Fan out N parallel cloud workers. They may cover separate slices, race the same brief, or mix both. The parent waits, aggregates, and returns one report.
 
+## Before you fan out
+
+Fanning out is not free, and it is paid for in the budget a rate-limited window makes scarce. Measured across 260 controlled configurations (Kim et al., *Towards a Science of Scaling Agent Systems*, arXiv 2512.08296):
+
+| Shape | Work per 1K tokens | Error amplification |
+|---|---|---|
+| One agent | 67.7 | 1.0x |
+| Fan out, results concatenated | 42.4 | 17.2x |
+| Fan out, peer cross-check | 23.9 | 7.8x |
+| Fan out, orchestrator cross-check | 21.5 | 4.4x |
+| Orchestrator plus peer messaging | 13.6 | 5.1x |
+
+Two rules follow:
+
+- **Do not fan out to write code.** On software-engineering tasks every fan-out shape scored below a single agent. Coordination fragments the token budget, and tool-heavy sequential work is where that costs most. Use one agent.
+- **Do fan out to review, explore, or race.** Independent readings of one thing are what parallelism is genuinely good at, and different models find different faults. That is this skill's real use.
+
+**Aggregation is what earns the cost.** Concatenating worker output without cross-checking it amplified errors 17.2x, the worst of every shape measured, because nothing intercepts a mistake before it reaches the result. Phase C is not a formatting step; it is the check that makes the fan-out worth running.
+
+**Read the table as an ordering, not a prediction.** That study matched total token budget across shapes, so each worker in a fan-out held a fraction of what the single agent had. Workers here get their own budget, so the real penalty is smaller. The ranking holds; the figures do not transfer.
+
 ## Start
 
 Open a todolist with one entry per phase before launching anything.

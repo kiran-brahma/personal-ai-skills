@@ -17,7 +17,7 @@ Apply each criterion to every finding:
 - Existing-skill-first: propose `new skill via create-skill:` only when no existing skill is a real home, the pattern recurs, and the topic deserves its own skill.
 - Convergence: findings echoed by 2+ reviewers carry higher confidence. Singletons must clear a higher bar on the other criteria.
 - Decision-changing: a future agent does something different because of the edit, not just reads more text.
-- Structural-mechanism check: route to Backlog when a lint rule, script, metadata flag, or runtime check already enforces the rule or could enforce it cheaply. Skill prose is for things mechanisms cannot enforce.
+- Structural-mechanism check: a check is code that runs and answers the same way every time; a rule is prose a future agent may or may not follow. Prefer the check. When a lint rule, script, metadata flag, or runtime check *already* enforces the finding, reject it as `structural`. When one *could* enforce it, accept it as a proposed check with routing `check: <mechanism>`, not as skill prose, and not as Backlog: an item deferred to Backlog because a script would do it better is lost, because the script never gets written and the rule never gets added either. Skill prose is the fallback for what no mechanism can enforce.
 - Skill-was-used: only accept findings that route to a skill, tool, or MCP the parent actually invoked in the transcript. If the skill wasn't used but should have been, route to `tune description: <skill path>` so it triggers next time. If neither, reject as `skill-not-used`.
 - Already-covered: read the target skill before accepting any body-edit row. If the proposal duplicates clear, well-placed existing guidance, reject as `already-covered`. The issue is execution, not the skill. If the existing guidance is buried, weak, or easy to skip past, accept the row but reframe the proposal as a wording / placement improvement to make it fire (not a duplicate addition).
 
@@ -42,6 +42,7 @@ Output exactly the format below. No preamble, no narration. One sentence per cel
 | <failure mode in a skill the parent used> | <change to that skill's body> | <skill path + section> |
 | <skill existed but didn't trigger> | <tune the skill's description so it fires next time> | <tune description: <skill path>> |
 | <new pattern, no existing skill is a real home> | <draft a new skill via create-skill> | <new skill via create-skill: <kebab-name>> |
+| <failure a mechanism could catch every time> | <the check to add, and where it runs> | <check: <lint rule \| test \| git hook \| script \| schema>> |
 
 One row per finding. The user approves row by row.
 

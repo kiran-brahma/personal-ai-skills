@@ -1,0 +1,642 @@
+#!/usr/bin/env python3
+"""agent-gates - deterministic checks for the errors AI writes and a green build hides.
+
+Three failure modes survive a clean typecheck and a passing test run, so nothing
+in the coding chain catches them:
+
+  phantom-import   an import naming a package no manifest declares
+  lockfile-drift   a declared dependency missing from the lockfile
+  silent-catch     a catch/except that neither handles nor re-raises
+
+A model reading a rule about these may or may not follow it. This runs instead.
+
+Stdlib only, single file. `install` copies this file into the target project, so
+a project keeps working after the skill library moves or disappears.
+
+Usage:
+    agent-gates check [--staged] [DIR]   run the checks, exit 1 on any failure
+    agent-gates install [DIR]            copy self into DIR and wire a pre-commit hook
+    agent-gates self-test                prove each check fires on known-bad input
+"""
+
+import argparse
+import ast
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+JS_EXT = {".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs"}
+PY_EXT = {".py"}
+SKIP_DIRS = {
+    "node_modules", ".git", "dist", "build", "out", "coverage", ".next",
+    ".venv", "venv", "__pycache__", ".mypy_cache", ".pytest_cache", "vendor",
+    ".tox", "site-packages", ".eggs",
+    # Generated. Framework output imports the framework's own transitive deps,
+    # which no manifest declares, so scanning it is pure noise.
+    ".nuxt", ".output", ".svelte-kit", ".turbo", ".cache", ".parcel-cache",
+    ".astro", ".vercel", ".netlify", "target", "__generated__",
+}
+
+# Bare specifiers that resolve without any manifest entry.
+NODE_BUILTINS = {
+    "assert", "async_hooks", "buffer", "child_process", "cluster", "console",
+    "constants", "crypto", "dgram", "diagnostics_channel", "dns", "domain",
+    "events", "fs", "http", "http2", "https", "inspector", "module", "net",
+    "os", "path", "perf_hooks", "process", "punycode", "querystring",
+    "readline", "repl", "stream", "string_decoder", "sys", "timers", "tls",
+    "trace_events", "tty", "url", "util", "v8", "vm", "wasi", "worker_threads",
+    "zlib",
+}
+
+IMPORT_RE = re.compile(
+    r"""(?:^|[\s;{}()])(?:import|export)\s+(?:[^'"()]*?\sfrom\s+)?['"]([^'"]+)['"]"""
+    r"""|(?:^|[^.\w])require\s*\(\s*['"]([^'"]+)['"]\s*\)"""
+    r"""|(?:^|[^.\w])import\s*\(\s*['"]([^'"]+)['"]\s*\)""",
+    re.MULTILINE,
+)
+CATCH_RE = re.compile(r"\bcatch\b\s*(?:\([^)]*\)\s*)?\{")
+SCHEME_RE = re.compile(r"^[a-z][a-z0-9.+-]*:")
+
+
+class Finding:
+    def __init__(self, rule, path, line, detail):
+        self.rule, self.path, self.line, self.detail = rule, path, line, detail
+
+    def __str__(self):
+        where = f"{self.path}:{self.line}" if self.line else str(self.path)
+        return f"  {self.rule}  {where}\n      {self.detail}"
+
+
+class Result:
+    """A check reports PASSED, FAILED, or SKIPPED. It never passes silently."""
+
+    def __init__(self, name):
+        self.name, self.findings, self.skipped = name, [], None
+
+    def skip(self, why):
+        self.skipped = why
+        return self
+
+    def add(self, rule, path, line, detail):
+        self.findings.append(Finding(rule, path, line, detail))
+
+    @property
+    def state(self):
+        if self.skipped:
+            return "SKIPPED"
+        return "FAILED" if self.findings else "PASSED"
+
+
+# ---------------------------------------------------------------- file walking
+
+
+def source_files(root, exts, staged):
+    if staged:
+        try:
+            out = subprocess.run(
+                ["git", "diff", "--cached", "--name-only", "--diff-filter=ACM"],
+                cwd=root, capture_output=True, text=True, check=True,
+            ).stdout
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return []
+        names = [root / n for n in out.split("\n") if n.strip()]
+        return [p for p in names if p.suffix in exts and p.is_file()]
+
+    found = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+        for name in filenames:
+            if Path(name).suffix in exts:
+                found.append(Path(dirpath) / name)
+    return found
+
+
+def strip_js_comments(text):
+    """Blank out comments, keeping byte offsets so line numbers stay right.
+
+    String-aware, because it must be: a path alias "@/*" and a URL "https://x"
+    both contain comment openers. Treating those as comments blanks the rest of
+    the file and the scan goes quiet without saying so.
+
+    Regex literals are not tracked. A `//` inside one is rare enough to accept,
+    and the failure mode is a missed finding, not a false one.
+    """
+    out, i, n = [], 0, len(text)
+    while i < n:
+        char, two = text[i], text[i:i + 2]
+        if two == "//":
+            j = text.find("\n", i)
+            j = n if j < 0 else j
+            out.append(" " * (j - i))
+            i = j
+        elif two == "/*":
+            j = text.find("*/", i + 2)
+            j = n if j < 0 else j + 2
+            out.append("".join(c if c == "\n" else " " for c in text[i:j]))
+            i = j
+        elif char in "\"'`":
+            j = i + 1
+            while j < n and text[j] != char:
+                j += 2 if text[j] == "\\" else 1
+            j = min(j + 1, n)
+            out.append(text[i:j])
+            i = j
+        else:
+            out.append(char)
+            i += 1
+    return "".join(out)
+
+
+# ------------------------------------------------------------------- manifests
+
+
+def read_json(path):
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def read_jsonc(path):
+    """tsconfig.json is JSON with comments and trailing commas. json.loads is not."""
+    try:
+        text = strip_js_comments(path.read_text(encoding="utf-8", errors="replace"))
+    except OSError:
+        return None
+    try:
+        return json.loads(re.sub(r",(\s*[}\]])", r"\1", text))
+    except ValueError:
+        return None
+
+
+def path_alias_prefixes(root):
+    """Prefixes that tsconfig `paths` maps to local files, so they are not packages.
+
+    A project using `@/*` -> `./src/*` imports `@/components/x` on every screen.
+    Without this, every one of those reads as an undeclared scoped package.
+    """
+    # npm forbids a package name starting with `~`, and a scope cannot be empty,
+    # so `~/x`, `~~/x` and `@/x` are never packages. They are the near-universal
+    # local-alias conventions (Nuxt, Vite, Next), so they hold with no config.
+    prefixes = {"~", "@/"}
+    configs = [p for pattern in ("tsconfig*.json", "jsconfig*.json",
+                                 "*/tsconfig*.json", "*/jsconfig*.json",
+                                 ".nuxt/tsconfig*.json")
+               for p in root.glob(pattern)]
+    for config in configs:
+        data = read_jsonc(config)
+        if not isinstance(data, dict):
+            continue
+        paths = (data.get("compilerOptions") or {}).get("paths") or {}
+        for key in paths:
+            prefixes.add(key[:-2] if key.endswith("/*") else key)
+    return prefixes
+
+
+def node_manifests(root):
+    """Every package.json in the tree, root first, skipping node_modules."""
+    found = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+        if "package.json" in filenames:
+            found.append(Path(dirpath) / "package.json")
+    return found
+
+
+def node_declared(root):
+    """Package names any manifest in the tree declares, or None when there is none.
+
+    The union across manifests, not just the root one: workspaces put deps in
+    sub-packages under no fixed convention (`packages/`, `web/`, `apps/`), and a
+    dependency declared anywhere in the repo is by definition not hallucinated.
+    Attributing each import to its nearest manifest would be stricter, but the
+    cost of guessing wrong is a false finding, and a noisy gate gets bypassed.
+    """
+    manifests = node_manifests(root)
+    if not manifests:
+        return None
+    names = set()
+    for path in manifests:
+        data = read_json(path)
+        if not data:
+            continue
+        for field in ("dependencies", "devDependencies", "peerDependencies",
+                      "optionalDependencies"):
+            names.update(data.get(field, {}) or {})
+        if data.get("name"):
+            names.add(data["name"])
+    return names
+
+
+def python_declared(root):
+    """Distribution names the project declares, or None when none is found."""
+    names, found = set(), False
+    for req in list(root.glob("requirements*.txt")) + list(root.glob("*/requirements*.txt")):
+        found = True
+        for line in req.read_text(encoding="utf-8", errors="replace").splitlines():
+            line = line.split("#", 1)[0].strip()
+            if not line or line.startswith("-"):
+                continue
+            names.add(re.split(r"[<>=!~\[; ]", line, 1)[0].strip().lower())
+    pyproject = root / "pyproject.toml"
+    if pyproject.exists():
+        found = True
+        text = pyproject.read_text(encoding="utf-8", errors="replace")
+        for raw in re.findall(r"""['"]([A-Za-z0-9._-]+(?:\s*[<>=!~][^'"]*)?)['"]""", text):
+            names.add(re.split(r"[<>=!~\[; ]", raw, 1)[0].strip().lower())
+    return names if found else None
+
+
+def node_installed(root):
+    """Package names present in any node_modules beside a manifest.
+
+    A package that resolves is not a hallucination, whatever the manifest says.
+    Undeclared-but-installed is a real fragility (it breaks when a transitive
+    dependency moves) but it is a different finding, and folding it in here
+    would flag every framework project's own internals.
+    """
+    names = set()
+    for base in {root} | {m.parent for m in node_manifests(root)}:
+        modules = base / "node_modules"
+        if not modules.is_dir():
+            continue
+        try:
+            for entry in modules.iterdir():
+                if entry.name.startswith("@") and entry.is_dir():
+                    names.update(f"{entry.name}/{s.name}" for s in entry.iterdir())
+                elif not entry.name.startswith("."):
+                    names.add(entry.name)
+        except OSError:
+            continue
+    return names
+
+
+def module_to_dist(name):
+    """Import names that differ from the distribution that ships them."""
+    return {
+        "yaml": "pyyaml", "cv2": "opencv-python", "PIL": "pillow",
+        "sklearn": "scikit-learn", "bs4": "beautifulsoup4", "dotenv": "python-dotenv",
+        "jwt": "pyjwt", "dateutil": "python-dateutil", "attr": "attrs",
+        "OpenSSL": "pyopenssl", "serial": "pyserial", "usb": "pyusb",
+        "google": "google-api-python-client", "pkg_resources": "setuptools",
+    }.get(name, name)
+
+
+def package_of(spec):
+    """The installable package name behind a bare import specifier."""
+    parts = spec.split("/")
+    return "/".join(parts[:2]) if spec.startswith("@") else parts[0]
+
+
+# ---------------------------------------------------------------------- checks
+
+
+def check_phantom_import(root, staged):
+    r = Result("phantom-import")
+    declared_js, declared_py = node_declared(root), python_declared(root)
+    if declared_js is None and declared_py is None:
+        return r.skip("no package.json, requirements.txt, or pyproject.toml found")
+
+    aliases = path_alias_prefixes(root)
+    if declared_js is not None:
+        declared_js = declared_js | node_installed(root)
+        for path in source_files(root, JS_EXT, staged):
+            try:
+                text = strip_js_comments(path.read_text(encoding="utf-8", errors="replace"))
+            except OSError:
+                continue
+            for match in IMPORT_RE.finditer(text):
+                spec = next(g for g in match.groups() if g)
+                # Relative, absolute, subpath-imports, or a runtime scheme such as
+                # node:, bun:, cloudflare:, npm:, jsr:, https: — none is a manifest entry.
+                if spec.startswith((".", "/", "#")) or SCHEME_RE.match(spec):
+                    continue
+                if any(spec == a or spec.startswith(a) for a in aliases):
+                    continue
+                pkg = package_of(spec)
+                if pkg in NODE_BUILTINS or pkg in declared_js:
+                    continue
+                line = text.count("\n", 0, match.start()) + 1
+                r.add("phantom-import", path.relative_to(root), line,
+                      f"imports '{spec}' but package.json does not declare '{pkg}'")
+
+    if declared_py is not None:
+        local = {p.stem for p in root.glob("*.py")}
+        local |= {p.name for p in root.iterdir() if p.is_dir() and (p / "__init__.py").exists()}
+        for path in source_files(root, PY_EXT, staged):
+            try:
+                tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+            except (OSError, SyntaxError):
+                continue
+            for node in ast.walk(tree):
+                mods = []
+                if isinstance(node, ast.Import):
+                    mods = [a.name.split(".")[0] for a in node.names]
+                elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                    mods = [node.module.split(".")[0]]
+                for mod in mods:
+                    if mod in sys.stdlib_module_names or mod in local:
+                        continue
+                    dist = module_to_dist(mod)
+                    if dist.lower() in declared_py or dist.lower().replace("_", "-") in declared_py:
+                        continue
+                    r.add("phantom-import", path.relative_to(root), node.lineno,
+                          f"imports '{mod}' but no manifest declares '{dist}'")
+    return r
+
+
+LOCKFILES = ("package-lock.json", "yarn.lock", "pnpm-lock.yaml", "bun.lockb")
+
+
+def check_lockfile_drift(root, staged):
+    """Each manifest is checked against a lockfile beside it, never a distant one.
+
+    A workspace member's dependencies resolve into the root lockfile under a
+    layout this cannot know, so a member with no lockfile of its own is skipped
+    rather than guessed at.
+    """
+    r = Result("lockfile-drift")
+    manifests = node_manifests(root)
+    if not manifests:
+        return r.skip("no package.json found")
+
+    checked, skipped = 0, []
+    for manifest in manifests:
+        data = read_json(manifest)
+        if not data:
+            continue
+        deps = set()
+        for field in ("dependencies", "devDependencies", "peerDependencies"):
+            deps.update(data.get(field, {}) or {})
+        if not deps:
+            continue
+
+        lock = next((manifest.parent / n for n in LOCKFILES
+                     if (manifest.parent / n).exists()), None)
+        if lock is None:
+            skipped.append(str(manifest.parent.relative_to(root) or "."))
+            continue
+        if lock.name == "bun.lockb":
+            skipped.append(f"{lock.name} is binary")
+            continue
+
+        checked += 1
+        body = lock.read_text(encoding="utf-8", errors="replace")
+        for pkg in sorted(deps):
+            if pkg not in body:
+                r.add("lockfile-drift", lock.relative_to(root), None,
+                      f"{manifest.relative_to(root)} declares '{pkg}' "
+                      f"but {lock.name} never mentions it")
+
+    if not checked:
+        return r.skip("no manifest has a lockfile beside it"
+                      + (f" ({', '.join(skipped[:3])})" if skipped else ""))
+    return r
+
+
+def check_silent_catch(root, staged):
+    r = Result("silent-catch")
+    saw_any = False
+
+    for path in source_files(root, JS_EXT, staged):
+        saw_any = True
+        try:
+            raw = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        # Locate catches in the comment-stripped copy so a commented-out block is
+        # not matched. Offsets are preserved, so the body is sliced from the raw
+        # text: a comment inside the body is a written reason, and is allowed.
+        text = strip_js_comments(raw)
+        for match in CATCH_RE.finditer(text):
+            open_at = text.index("{", match.start())
+            depth, i = 1, open_at + 1
+            while i < len(text) and depth:
+                depth += (text[i] == "{") - (text[i] == "}")
+                i += 1
+            if raw[open_at + 1:i - 1].strip():
+                continue
+            r.add("silent-catch", path.relative_to(root),
+                  text.count("\n", 0, match.start()) + 1,
+                  "catch block is empty: it neither handles the failure, re-raises, "
+                  "nor states a reason for ignoring it")
+
+    for path in source_files(root, PY_EXT, staged):
+        saw_any = True
+        try:
+            raw = path.read_text(encoding="utf-8", errors="replace")
+            tree = ast.parse(raw)
+        except (OSError, SyntaxError):
+            continue
+        lines = raw.splitlines()
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.ExceptHandler):
+                continue
+            body = [n for n in node.body if not (isinstance(n, ast.Expr)
+                                                 and isinstance(n.value, ast.Constant)
+                                                 and isinstance(n.value.value, str))]
+            if not all(isinstance(n, ast.Pass) for n in body):
+                continue
+            end = getattr(node, "end_lineno", node.lineno) or node.lineno
+            if any("#" in line for line in lines[node.lineno - 1:end]):
+                continue
+            r.add("silent-catch", path.relative_to(root), node.lineno,
+                  "except block only passes: it neither handles the failure, re-raises, "
+                  "nor states a reason for ignoring it")
+
+    if not saw_any:
+        return r.skip("no JavaScript, TypeScript, or Python source files found")
+    return r
+
+
+CHECKS = (check_phantom_import, check_lockfile_drift, check_silent_catch)
+
+
+# ------------------------------------------------------------------- commands
+
+
+def cmd_check(root, staged):
+    root = root.resolve()
+    results = [fn(root, staged) for fn in CHECKS]
+    failed = 0
+
+    for res in results:
+        print(f"{res.state:<8} {res.name}"
+              + (f" — {res.skipped}" if res.skipped else ""))
+        for finding in res.findings:
+            print(finding)
+        failed += len(res.findings)
+
+    scope = "staged files" if staged else "the working tree"
+    print(f"\nagent-gates: {len(results)} checks over {scope}, {failed} finding(s)")
+    if failed:
+        print("\nEach finding above is a fact about the code, not a style opinion.\n"
+              "Fix it, or say plainly in the commit why it stands.")
+    return 1 if failed else 0
+
+
+HOOK = """#!/bin/sh
+# Deterministic checks for errors a typecheck and a green test run do not catch.
+# Installed by agent-gates. Static only: it reads code, it never runs the app,
+# so it stays fast enough that nobody reaches for --no-verify out of impatience.
+set -e
+root=$(git rev-parse --show-toplevel)
+[ -x "$root/scripts/agent-gates" ] || exit 0
+exec "$root/scripts/agent-gates" check --staged "$root"
+"""
+
+
+def cmd_install(root):
+    root = root.resolve()
+    if not (root / ".git").exists():
+        print(f"agent-gates: {root} is not a git repository", file=sys.stderr)
+        return 1
+
+    scripts = root / "scripts"
+    scripts.mkdir(exist_ok=True)
+    target = scripts / "agent-gates"
+    shutil.copyfile(Path(__file__).resolve(), target)
+    target.chmod(0o755)
+
+    hooks = root / ".githooks"
+    hooks.mkdir(exist_ok=True)
+    hook = hooks / "pre-commit"
+    if hook.exists() and "agent-gates" not in hook.read_text(encoding="utf-8"):
+        print(f"agent-gates: {hook} already exists and does not call agent-gates.\n"
+              f"             Left it alone. Add this line to it yourself:\n"
+              f'             "$root/scripts/agent-gates" check --staged "$root"',
+              file=sys.stderr)
+    else:
+        hook.write_text(HOOK, encoding="utf-8")
+        hook.chmod(0o755)
+
+    subprocess.run(["git", "config", "core.hooksPath", ".githooks"],
+                   cwd=root, check=True)
+
+    print(f"Installed into {root}:\n"
+          f"  scripts/agent-gates      the checker, self-contained\n"
+          f"  .githooks/pre-commit     runs it on staged files\n"
+          f"  core.hooksPath           set to .githooks\n\n"
+          f"Commit both files so the gate survives a fresh clone.\n"
+          f"Run `scripts/agent-gates self-test` to prove the checks still fire.\n\n"
+          f"Consider adding this line to the project's AGENTS.md:\n"
+          f"  Do not commit with --no-verify. A failing gate is a finding, not an obstacle.")
+    return 0
+
+
+BAD = {
+    "phantom-import": (
+        {"package.json": '{"name":"t","dependencies":{"react":"^18.0.0"}}',
+         "src/a.js": "import x from 'not-a-real-package';\nexport default x;\n"},
+        "an import of a package the manifest never declares",
+    ),
+    "lockfile-drift": (
+        {"package.json": '{"name":"t","dependencies":{"left-pad":"^1.0.0"}}',
+         "package-lock.json": '{"name":"t","lockfileVersion":3,"packages":{}}'},
+        "a dependency the lockfile never mentions",
+    ),
+    "silent-catch": (
+        {"package.json": '{"name":"t"}',
+         "src/b.js": "try {\n  risky();\n} catch (e) {}\n",
+         "c.py": "try:\n    risky()\nexcept ValueError:\n    pass\n"},
+        "a catch and an except that swallow the failure without a word",
+    ),
+}
+
+# Every construct here once produced a false positive against a real project.
+# A finding on this tree is a regression, so it fails the self-test.
+CLEAN = {
+    "package.json": '{"name":"t","dependencies":{"left-pad":"^1.0.0"}}',
+    "package-lock.json": '{"name":"t","packages":{"node_modules/left-pad":{}}}',
+    "tsconfig.json": ('{\n  // a comment, and a trailing comma below\n'
+                      '  "compilerOptions": { "paths": { "@/*": ["./src/*"], } }\n}\n'),
+    "src/a.js": ("import pad from 'left-pad';\n"
+                 "import fs from 'node:fs';\n"
+                 "import { env } from 'cloudflare:workers';\n"
+                 "import mailer from 'npm:nodemailer@6';\n"
+                 "import { Button } from '@/components/button';\n"
+                 "import { y } from './local.js';\n"
+                 "// import ghost from 'not-a-real-package';\n"
+                 "try { risky(); } catch (e) { console.error(e); }\n"
+                 "try { opt(); } catch { /* dropdown unavailable, ignore */ }\n"),
+    "src/local.js": "export const y = 1;\n",
+    "src/components/button.js": "export const Button = 1;\n",
+    # Installed but undeclared: resolves, so it is not a hallucination.
+    "node_modules/h3/index.js": "export default 1;\n",
+    "src/server.js": "import { h } from 'h3';\nexport default h;\n",
+    ".nuxt/generated.js": "import x from 'nitropack/runtime/internal/app';\nexport default x;\n",
+    "c.py": ("import json\n\ntry:\n    risky()\nexcept ValueError:\n    raise\n"
+             "try:\n    opt()\nexcept KeyError:\n    # optional, ignore\n    pass\n"),
+}
+
+
+def write_tree(root, files):
+    for name, body in files.items():
+        path = root / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(body, encoding="utf-8")
+
+
+def cmd_self_test():
+    """A check that never fails is worse than no check. Prove each one fires."""
+    passed = True
+
+    for rule, (files, description) in BAD.items():
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_tree(root, files)
+            fired = any(f.rule == rule
+                        for fn in CHECKS for f in fn(root, False).findings)
+            print(f"{'PASSED' if fired else 'FAILED':<8} {rule} catches {description}")
+            passed &= fired
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        write_tree(root, CLEAN)
+        results = [fn(root, False) for fn in CHECKS]
+        noise = [f for res in results for f in res.findings]
+        print(f"{'PASSED' if not noise else 'FAILED':<8} clean project produces no findings")
+        for finding in noise:
+            print(finding)
+        passed &= not noise
+
+        skipped = [r.name for r in results if r.skipped]
+        if skipped:
+            print(f"{'FAILED':<8} clean project unexpectedly skipped: {', '.join(skipped)}")
+            passed = False
+
+    print("\nagent-gates self-test:", "PASSED" if passed else "FAILED")
+    return 0 if passed else 1
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        prog="agent-gates", description=__doc__.split("\n")[0],
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p_check = sub.add_parser("check", help="run the checks, exit 1 on any failure")
+    p_check.add_argument("dir", nargs="?", default=".", type=Path)
+    p_check.add_argument("--staged", action="store_true",
+                         help="only scan files staged for commit")
+
+    p_install = sub.add_parser("install", help="copy self into DIR and wire a pre-commit hook")
+    p_install.add_argument("dir", nargs="?", default=".", type=Path)
+
+    sub.add_parser("self-test", help="prove each check fires on known-bad input")
+
+    args = parser.parse_args(argv)
+    if args.command == "check":
+        return cmd_check(args.dir, args.staged)
+    if args.command == "install":
+        return cmd_install(args.dir)
+    return cmd_self_test()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

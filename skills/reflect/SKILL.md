@@ -50,9 +50,15 @@ Pass each template verbatim, substituting the transcript path or digest where ma
 
 One `Task` call, `subagent_type: generalPurpose`, using your configured reflect-judgment model (default `a high-reasoning model`), agent mode (`readonly: false`). The synthesizer's quality check includes spot-verifying citations, which can require MCP access; readonly strips MCPs. Use `references/synthesizer.md` verbatim, with each reviewer's full output inlined where marked. The synthesizer returns a structured Accepted / Rejected / Backlog list.
 
-### 4. Structural enforcement check
+### 4. Prefer a check over a rule
 
-Sanity-check the synthesizer's Accepted list. For any item that would be enforced more reliably by a lint rule, script, metadata flag, or runtime check, move it from Accepted to Backlog. The synthesizer already applies this criterion; this is a final pass before edits land. See the **encode-lessons-in-structure** principle skill.
+A rule is text a future agent reads and may or may not follow. A check is code that runs and gives the same answer every time. A lesson worth keeping is worth encoding as the more reliable of the two, so this pass asks of every Accepted item: could this be a check instead?
+
+Walk the list and name what would enforce each item: a lint rule, a test, a git hook, a validation script, a metadata flag, a schema. Where something would, that is the deliverable, and the skill edit shrinks to a pointer at it.
+
+Carry such an item forward as a proposed check, presented to the user in step 5 alongside the edits. Do not drop it into Backlog on the grounds that a script would do it better: a lesson deferred that way is a lesson lost, because the script never gets written and the rule never gets added either.
+
+Only when no check is possible does the lesson stay as skill text.
 
 ### 5. Apply
 
@@ -66,6 +72,7 @@ For each approved Accepted item, follow the Routing field exactly:
 - Substantive existing-skill edit (a new section, a new pattern table, more than ~10 lines): hand to Cursor's built-in `create-skill` skill and run its draft / test / iterate loop.
 - `tune description: <skill path>` (the skill exists but didn't trigger when it should have): hand to `create-skill` and run its description-optimization loop.
 - `new skill via create-skill: <kebab-name>`: hand creation to `create-skill`. Do not invent the shape ad hoc.
+- `check: <mechanism>`: write the check, then prove it fails on the case that prompted it before declaring it done. A check that never fires is worse than none, because it manufactures confidence. Where the repo already has a home for such checks (a validation script, a pre-commit hook), add it there rather than starting a new one.
 
 If your environment ships a SKILL.md validator, run it on every touched skill before declaring done. Skip this step if it doesn't.
 
@@ -74,6 +81,7 @@ If your environment ships a SKILL.md validator, run it on every touched skill be
 Short list, no preamble:
 
 - Edits applied: `<skill path>`. What changed, one line each.
+- Checks added: `<path>`. What it catches, and the case it was proven against. One line each.
 - New skills created: `<skill path>`. One line each (rare).
 - Backlog filed to the devex tracker: `<issue title>` (`<tags>`). One line each.
 - Dropped: one line per rejected finding + reason from the synthesizer.
