@@ -1,6 +1,6 @@
 ---
 name: business
-description: Route business strategy, customer understanding, problem solving, and consequential decisions to the narrowest focused workflow, with explicit evidence, downside, and next-action checks.
+description: Route business strategy, customer understanding, problem solving, and consequential decisions to the narrowest focused workflow.
 ---
 
 # Business skill catalogue
@@ -11,7 +11,7 @@ Use this category for business ideas, customer value propositions, strategic cho
 
 - [`business-idea-review`](../business-idea-review/SKILL.md): Test whether a new business, product, service, or strategic bet solves a real problem and can survive its constraints.
 - [`customer-value-proposition`](../customer-value-proposition/SKILL.md): Define the specific buyer, problem, alternative, promised outcome, and smallest validation test.
-- [`decision-navigator`](../decision-navigator/SKILL.md): Make a consequential business decision by separating beliefs from evidence, expanding options, protecting the downside, and naming the next action.
+- [`decision-navigator`](../decision-navigator/SKILL.md): Make a consequential business decision by applying the hard gates, checking the biases that plausibly change it, separating beliefs from evidence, protecting the downside, and committing to one action with stop conditions and a review date.
 - [`business-problem-solving`](../business-problem-solving/SKILL.md): Structure a complex business problem with an issue or hypothesis tree, prioritise the work, and produce an analysis plan.
 - [`business-blog-post-generator`](../business-blog-post-generator/SKILL.md): Generate an evidence-led company blog post after auditing the existing site, identifying a content gap, grilling the owner, and applying technical-writing and unslop passes.
 

@@ -101,3 +101,70 @@ Expected behavior:
 - Runs technical-writing first and unslop last as separate editorial passes.
 - Preserves attribution, uncertainty, approved business terms, and the owner's point of view.
 - Removes unsupported claims and does not publish or edit the website without separate authorization.
+
+## Case 10: Survival gate before trade-offs
+
+Prompt: “A distributor will give us a big order if we buy ₹40 lakh of stock upfront. Our runway is four months. The margin looks great.”
+
+Expected behavior:
+
+- Routes to `decision-navigator` and applies the survival gate before comparing upside.
+- Rejects the uncapped version rather than weighing it against the expected margin, and looks for a staged, consignment, partially prepaid, or smaller-first-tranche version.
+- Names the working-capital requirement and the receivable exposure, not the headline margin.
+- Does not treat expected value as a justification for a plausible path to insolvency.
+
+## Case 11: Explicit bias check
+
+Prompt: “Check my thinking for biases before I sign this vendor contract.”
+
+Expected behavior:
+
+- Routes to `decision-navigator`, not to `grilling` or `interrogate`.
+- Names only the traps that plausibly change this decision, with the mechanism, and pairs each with a process correction rather than an instruction to be aware of it.
+- Does not recite the bias catalogue or produce a labelled inventory of every bias in `references/bias-map.md`.
+- Reads `references/bias-map.md` for the mapping and `references/business-playbooks.md` section 4 for the vendor checks.
+- Distinguishes the seller from the offer, and sets an independent range before quoting the vendor's number back.
+
+## Case 12: Continue-or-kill under sunk cost
+
+Prompt: “We are 14 months and ₹22 lakh into this build. Do we finish it?”
+
+Expected behavior:
+
+- Asks whether the project would be started today on the remaining terms.
+- Decides on future incremental cost, benefit, and opportunity cost. Past spend enters only where it changes future options.
+- Checks the owner default: whether actual loss has passed roughly 50% of any predefined bet, and says plainly that this is the owner's heuristic rather than an empirical law.
+- Ends on EXIT, SMALL BET, PROCEED, or another single named action, not on a discussion of considerations.
+
+## Case 13: Mandatory change is not a trade-off
+
+Prompt: “The new statutory requirement will cost us three weeks of work. Is it worth complying?”
+
+Expected behavior:
+
+- Applies the mandatory-action gate and does not analyse whether to comply.
+- Shifts the question to how to comply, how fast, the implementation risk, and the transition and communication plan.
+- Verifies the current requirement against a reliable current source rather than asserting it from memory.
+- Does not create false optionality by scoring compliance against convenience.
+
+## Case 14: Process quality separated from outcome
+
+Prompt: “That hire we made last year did not work out. The whole process was clearly wrong.”
+
+Expected behavior:
+
+- Judges whether the process was sound given what was knowable then, separately from the result.
+- Compares the outcome against the documented ex-ante reasoning if a decision log exists, and notes its absence if it does not.
+- Does not rewrite the original reasoning in light of the result, and does not call a sound process bad because an adverse outcome arrived.
+- Proposes a candidate if/then rule only when the evidence supports one, and tests it against prior cases.
+
+## Case 15: Routine decision stays routine
+
+Prompt: “Should we switch our team's note-taking app? Everyone is mildly annoyed with the current one.”
+
+Expected behavior:
+
+- Classifies the decision as Routine and runs the short check, not the full workflow.
+- Does not produce a decision memo, premortem, reference class, or decision log for a cheap reversible choice.
+- Ends on one named action with a specific next move.
+- Does not ask a long list of framing questions before answering.
