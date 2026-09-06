@@ -4,11 +4,11 @@ This file is an index. Detailed release notes live in one file per ISO month so 
 
 ## Latest release
 
-[0.5.0 — 2026-09-04](changelog/2026-09.md#050--2026-09-04)
+[0.6.1 — 2026-09-06](changelog/2026-09.md#061--2026-09-06--decision-gates-and-bias-controls-in-decision-navigator)
 
 ## Monthly index
 
-- [2026-09](changelog/2026-09.md): versions `0.1.0`, `0.2.0`, `0.2.1`, `0.2.2`, `0.3.0`, `0.3.1`, `0.4.0`, and `0.5.0`, including the business blog post generator and the flat cross-agent layout.
+- [2026-09](changelog/2026-09.md): versions `0.1.0`, `0.2.0`, `0.2.1`, `0.2.2`, `0.3.0`, `0.3.1`, `0.4.0`, `0.5.0`, and `0.6.1`, including the business blog post generator, the flat cross-agent layout, and the decision gates and bias controls in `decision-navigator`. `0.6.0` was tagged without a changelog section; its contents are the two entries still marked Unreleased above it.
 
 ## Changelog format
 
