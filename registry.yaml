@@ -28,7 +28,7 @@ categories:
     path: skills/business/SKILL.md
     purpose: Business strategy, customer understanding, decisions, and problem solving.
 
-last_reviewed: 2026-09-02
+last_reviewed: 2026-09-06
 
 sources:
   - id: matt-pocock-skills
@@ -121,7 +121,13 @@ packages:
     status: trial
     upstream_prefix: [office-hours, plan-ceo-review]
     skills: [business-idea-review, customer-value-proposition, decision-navigator, business-problem-solving]
-    adaptations: [portable-workflows, owner-prompts, India-context, cash-flow-over-SaaS-metrics, evidence-first, explicit-falsifiers, cross-category-routing, no-private-context]
+    adaptations: [portable-workflows, owner-prompts, India-context, cash-flow-over-SaaS-metrics, evidence-first, explicit-falsifiers, cross-category-routing, no-private-context, owner-decision-principles-merge]
+  - id: owner-decision-principles
+    source: repository-owner
+    status: trial
+    skills: [decision-navigator]
+    merged_into: decision-navigator
+    adaptations: [hard-gates, stage-branching, bias-to-control-map, premortem, seven-action-vocabulary, decision-log, process-vs-outcome-review, owner-bet-heuristics, evidence-corrections, no-separate-skill]
   - id: owner-business-content-workflows
     source: repository-owner
     status: trial
