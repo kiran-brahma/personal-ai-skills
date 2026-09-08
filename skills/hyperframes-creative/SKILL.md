@@ -1,6 +1,7 @@
 ---
 name: hyperframes-creative
 description: "Plan HyperFrames video direction: design, narration, pacing, and storyboards."
+disable-model-invocation: true
 ---
 
 # HyperFrames Creative

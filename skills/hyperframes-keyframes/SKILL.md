@@ -1,6 +1,7 @@
 ---
 name: hyperframes-keyframes
 description: "Add or audit HyperFrames keyframes, camera moves, zooms, masks, or SVG."
+disable-model-invocation: true
 ---
 
 # HyperFrames Keyframes
