@@ -1,6 +1,7 @@
 ---
 name: hyperframes-animation
 description: "Design seek-safe HyperFrames motion, transitions, and runtime adapters."
+disable-model-invocation: true
 ---
 
 # HyperFrames Animation

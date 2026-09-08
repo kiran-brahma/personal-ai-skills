@@ -71,6 +71,12 @@ library needs an upstream review; do not fetch or overwrite a replacement during
 
 ## 5. Load domain skills on demand
 
+The `hyperframes-*` domain skills below are router-owned: they set `disable-model-invocation`
+and are not model-invocable on their own. Load one by reading its file directly —
+`../hyperframes-core/SKILL.md` for `/hyperframes-core`, and so on for each row. A `/hyperframes-core`
+reference anywhere in this skill means that file, not a Skill call. Users can still invoke any of
+them as a slash command.
+
 | Need                                                                                                                | Skill                    |
 | ------------------------------------------------------------------------------------------------------------------- | ------------------------ |
 | Composition structure, timing attributes, tracks, variables, determinism                                            | `/hyperframes-core`      |

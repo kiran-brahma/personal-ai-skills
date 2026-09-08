@@ -1,6 +1,7 @@
 ---
 name: hyperframes-registry
 description: "Discover and wire reusable HyperFrames blocks and components."
+disable-model-invocation: true
 ---
 
 # HyperFrames Registry
