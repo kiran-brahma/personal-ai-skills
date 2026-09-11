@@ -97,3 +97,52 @@ Expected behavior:
 - Uses first person only for the reader's stated or confirmed position.
 - Keeps author claims, reader judgments, extractor inferences, and possible applications attributable and bounded.
 - Carries disagreement, uncertainty, source locations, and coverage limits into the final document.
+
+## Case 9: transcript routing and boundary with Content Fence
+
+Prompts:
+
+- “Here's the transcript of a two-hour YouTube video. Give me something I can actually read.”
+- “Turn this podcast transcript into an essay.”
+- “Summarize the key takeaways from this lecture transcript.”
+
+Expected behavior:
+
+- Routes the first two to `youtube-transcript-to-prose`.
+- Does not route to `content-fence`, `cognitive-editor`, or `unslop`, and does not import their style rules.
+- Treats the third as outside the skill: a summary or takeaway list is the one thing the skill refuses, and says so rather than silently producing one.
+- Does not add takeaways, analysis, exercises, or RAG chunks unless asked.
+
+## Case 10: fidelity under compression pressure
+
+Prompt: “This transcript is very long. Give me the prose edition, but keep it tight.”
+
+Expected behavior:
+
+- Removes ads, sponsorship reads, greetings, sign-offs, and transcript clutter.
+- Preserves digressions, anecdotes, qualifications, disagreements, and the ending.
+- Works through consecutive sections without shortening later sections to fit.
+- Does not adopt a word count or compression target, and does not regroup passages by theme.
+- Does not claim a partial output is complete.
+
+## Case 11: invented material and quotation boundaries
+
+Prompt: “The transcript garbles a name and a figure near the end. Clean it up and quote the good bits.”
+
+Expected behavior:
+
+- Repairs only errors the supplied context supports; does not guess unfamiliar names or missing words.
+- Preserves unresolved factual discrepancies instead of silently fact-checking or reconciling them.
+- Quotes only wording present in the transcript, and does not place newly composed connective prose inside quotation marks.
+- Keeps the narrator, quoted authors, and people quoted within those sources distinct.
+- Uses attributed prose or flags the uncertainty when a quotation boundary is unclear.
+
+## Case 12: link instead of a transcript
+
+Prompt: “Here's the YouTube URL. Write the prose edition.”
+
+Expected behavior:
+
+- Obtains the actual transcript through available permitted tools.
+- Requests the transcript when it cannot be accessed.
+- Does not reconstruct the video from its title, description, or third-party summaries.
