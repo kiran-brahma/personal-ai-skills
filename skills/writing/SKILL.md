@@ -14,6 +14,7 @@ Read this file when `SKILLS.md` identifies writing as the relevant category. Sel
 - [`cognitive-editor`](../cognitive-editor/SKILL.md): Audit essays and other writing for foundations, bias, evidence, replicability, style, and series fit without rewriting.
 - [`musings-reviewer`](../musings-reviewer/SKILL.md): Audit one short daily musing for atomicity, argument structure, definitions, fallacies, prose, and the final word cap.
 - [`unslop`](../unslop/SKILL.md): Perform a final, meaning-preserving pass that removes AI-writing patterns and unnecessary cognitive load.
+- [`youtube-transcript-to-prose`](../youtube-transcript-to-prose/SKILL.md): Turn a supplied video, podcast, lecture, or interview transcript into a faithful essay edition of what the creator actually said.
 
 ## Route the workflow
 
@@ -30,6 +31,9 @@ Route focused requests as follows:
 - One short daily musing: `musings-reviewer`. Do not use it for essays or other long-form writing.
 - General developmental audit or a request to run the Cognitive Editor: `cognitive-editor`.
 - A final readability or anti-AI editing pass after the content is settled: `unslop`. It is an editing pass, not a substitute for argument or reader-response review.
+- A transcript of someone else's video, podcast, lecture, or interview that should become readable prose: `youtube-transcript-to-prose`.
+
+The transcript skill is the one writing skill whose subject is not Kiran's own thinking. It preserves another creator's language and sequence rather than developing an argument, so it does not enter the Content Fence phases and does not take a Prose Linter pass by default. Route a request to reshape, summarize, or argue from a transcript to `content-fence` instead; route a request for a readable edition of what was said to `youtube-transcript-to-prose`.
 
 When a request could match both `cognitive-editor` and `musings-reviewer`, route a daily musing to `musings-reviewer`; route other writing to `cognitive-editor`. When a request asks for both diagnosis and rewriting, complete the diagnostic workflow first and run `unslop` only as a separate final pass.
 

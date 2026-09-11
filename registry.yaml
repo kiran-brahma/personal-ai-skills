@@ -28,7 +28,7 @@ categories:
     path: skills/business/SKILL.md
     purpose: Business strategy, customer understanding, decisions, and problem solving.
 
-last_reviewed: 2026-09-06
+last_reviewed: 2026-09-11
 
 sources:
   - id: matt-pocock-skills
@@ -73,6 +73,13 @@ sources:
     license: MIT
     role: supporting-methods
     update_policy: Compare upstream methods with the local business adaptations, user context, and evaluations before adoption.
+  - id: youtube-transcript-to-prose-package
+    repository: supplied-by-owner
+    reference: youtube-transcript-to-prose.zip
+    version: unversioned
+    license: Unspecified
+    role: transcript-editing
+    update_policy: Re-inspect the supplied package before adopting a newer copy; the upstream carries no version or commit to diff against.
   - id: heygen-hyperframes
     repository: https://github.com/heygen-com/hyperframes
     reference: 05b57f9204a963104f1f79ef88ffc24cd174fd68
@@ -139,6 +146,12 @@ packages:
     upstream_prefix: skills
     skills: [hyperframes, hyperframes-core, hyperframes-cli, hyperframes-creative, hyperframes-animation, hyperframes-keyframes, hyperframes-audio, hyperframes-registry, media-use, faceless-explainer, product-launch-video]
     adaptations: [flat-layout, trigger-budget, selected-routes-only, canonical-update-review, approved-writing-gate, opt-in-external-media, no-autonomous-publishing]
+
+  - id: transcript-prose-workflows
+    source: youtube-transcript-to-prose-package
+    status: trial
+    skills: [youtube-transcript-to-prose]
+    adaptations: [trigger-budget, named-writing-boundaries, no-agent-metadata, no-bundled-icon]
 
 external_workflows:
   - id: codex-security
