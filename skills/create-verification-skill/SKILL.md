@@ -1,6 +1,6 @@
 ---
 name: create-verification-skill
-description: "Generate a project-local skill that drives the app like a user, in any language or framework. Use when a project has no scripted way to prove behavior."
+description: "Generate a project-local skill that drives the app like a user, any language or framework. Use when a project has no scripted way to prove behavior."
 disable-model-invocation: true
 ---
 

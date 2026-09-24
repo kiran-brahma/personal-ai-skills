@@ -1,6 +1,6 @@
 ---
 name: coding
-description: Route software-development work to the most relevant focused skill in this category, including planning, implementation, debugging, review, testing, and release work.
+description: Route software-development work to the most relevant focused skill: planning, implementation, debugging, review, testing, release.
 ---
 
 # Coding skill catalogue
@@ -19,7 +19,7 @@ The Matt skills are deliberately kept as separate, focused skills. Select the na
 
 Engineering skills live under [`matt/engineering`](../../packages/matt-pocock-skills/README.md), including `ask-matt`, `grill-with-docs`, `to-spec`, `to-tickets`, `implement`, `code-review`, `tdd`, `domain-modeling`, `codebase-design`, `diagnosing-bugs`, `triage`, `wayfinder`, `prototype`, `research`, `wizard`, and merge-conflict handling.
 
-The supporting productivity skills live under [`../misc/matt/productivity`](../../packages/matt-pocock-productivity/README.md), including `grilling`, `grill-me`, `handoff`, `teach`, `to-questionnaire`, `wait-what`, and `writing-for-agents`.
+The supporting productivity skills live under [`matt/productivity`](../../packages/matt-pocock-productivity/README.md), including `grilling`, `grill-me`, `handoff`, `teach`, `to-questionnaire`, `wait-what`, and `writing-for-agents`.
 
 ## Supporting skills: pstack
 
@@ -41,11 +41,22 @@ Use pstack skills only for the specific task they improve. They supplement the M
 
 Do not import or activate pstack’s Cursor-specific orchestration (`poteto-mode`, `setup-pstack`, `make-bot-ui`, or `automate-me`) as canonical portable skills without a separate adaptation decision.
 
+## Supporting skills: fallow (TypeScript/JavaScript only)
+
+Use these only on TypeScript/JavaScript projects; they require the external `fallow` CLI. They complement, not replace, the Matt workflow's `code-review` gate.
+
+- `fallow`: whole-project codebase intelligence — dead code, unused exports/deps, circular deps, duplication, complexity hotspots, architecture-boundary and design-token drift, feature flags, and unverified local security candidates.
+- `fallow-review`: PR/diff review that subtracts what `fallow` already owns, ranks changed files by blast radius, and surfaces structural decisions (new public API, coupling crossings, dependency bumps) through a graph-validated agent-contract loop. Its live-feedback hooks are Claude Code only.
+
 ## Major-change review: Thermos
 
 Use `thermos` when a change crosses system boundaries, changes a data model or migration, alters a public API, touches authentication or authorization, introduces concurrency, or spans multiple subsystems. Thermos runs the deep correctness/security/devex pass and the strict maintainability pass. Fix material findings before running Matt’s `code-review`.
 
 `thermo-nuclear-review` and `thermo-nuclear-code-quality-review` are the two focused passes behind `thermos`. A detailed security audit is a separate workflow and should use the external Codex Security package documented in [`adapters/codex-security/README.md`](../../adapters/codex-security/README.md).
+
+## Outside coding
+
+Writing, business, video, and other occasional work lives in the on-demand `library/` tier. Hand it to `decide-skills` rather than looking for an installed skill.
 
 ## Portability rule
 

@@ -1,6 +1,6 @@
 ---
 name: goldilocks-review
-description: "Compare viable designs after a spec and before tickets, choosing the simplest architecture that preserves required behavior. Mandatory gate before to-tickets."
+description: "Compare viable designs after a spec, before tickets: pick the simplest architecture preserving required behavior. Mandatory gate before to-tickets."
 disable-model-invocation: true
 ---
 

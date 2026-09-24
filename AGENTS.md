@@ -13,14 +13,21 @@ GitHub is the canonical source. A committed and pushed change is the version age
 Before selecting a skill:
 
 1. Read this file.
-2. Read [SKILLS.md](SKILLS.md) to identify the relevant category.
-3. Read that category's `SKILL.md` to identify the specific skill.
+2. Read [SKILLS.md](SKILLS.md) to identify the tier.
+3. Installed work: read the category router (`skills/coding/SKILL.md`) to identify the specific skill. On-demand work: follow `skills/decide-skills/SKILL.md`, which picks one library skill from its generated index.
 4. Read the selected skill's own `SKILL.md` and only the supporting references it directs you to use.
 5. Read any project-specific rules that are in scope for the work.
 
-Do not load every skill by default. Use the catalogue and category routers to narrow discovery.
+Do not load every skill by default. Use the catalogue, the router, and the index to narrow discovery.
 
-A category router is a skill beside the skills it routes to, not a directory above them. Every skill lives at `skills/<name>/`, so a router names its targets rather than containing them.
+A router is a skill beside the skills it routes to, not a directory above them. It names its targets rather than containing them.
+
+## Two tiers
+
+- `skills/<name>/` is the **installed** tier. It is linked into every agent, and its descriptions are charged against the budget. Keep it to daily-use skills, skills an installed skill calls by name, and skills that must fire unprompted.
+- `library/<name>/` is the **on-demand** tier. No agent scans it, so it costs nothing at startup. `decide-skills` reaches it through `skills/decide-skills/references/index.md`, which `bin/skills-sync index` generates from each library skill's frontmatter (`metadata.group` sets its group).
+
+Both tiers follow the same flat layout rules, and a name must be unique across both. Move a skill with `bin/skills-sync tier <name> installed|library`, following the `skill-tiers` skill.
 
 ## The layout contract
 
@@ -32,11 +39,12 @@ bin/skills-sync validate
 
 The rules exist because an agent breaks without them, and each finding names which one:
 
-- A skill is exactly `skills/<name>/SKILL.md`. Claude Code searches one level and finds nothing deeper.
+- A skill is exactly `skills/<name>/SKILL.md` or `library/<name>/SKILL.md`. Claude Code searches one level and finds nothing deeper.
 - No `SKILL.md` may sit beneath another. Pi stops at the first one it finds and never looks below it.
 - A skill directory is real, never a symlink. Codex drops symlinks when it copies a plugin into its cache.
 - `name:` matches the directory, and names are unique library-wide. A mismatch or a duplicate fails silently at run time.
-- Descriptions stay within the per-skill and library budgets in [policies/skill-format.md](policies/skill-format.md). Codex truncates past a fixed budget with no error, which degrades routing invisibly.
+- The generated library index is current. `decide-skills` finds library skills only through it.
+- Installed descriptions stay within the per-skill and library budgets in [policies/skill-format.md](policies/skill-format.md). Codex truncates past a fixed budget with no error, which degrades routing invisibly.
 
 Do not relax a rule to make a change fit. The layout is what allows one copy of a skill to serve every agent, which is the point of the repository.
 
@@ -71,7 +79,7 @@ First inspect the complete skill package, including `SKILL.md`, scripts, referen
 
 Pause for the owner's discussion and approval before changing the skill into the active library. If adjustments are requested, apply them to the single canonical skill and explain the resulting local behaviour.
 
-After approval, scaffold it with `bin/skills-sync new <name> -d "<description>"` so it starts conformant, record it in `registry.yaml`, add relevant evaluation cases under `evals/`, and update the changelog when appropriate.
+After approval, scaffold it with `bin/skills-sync new <name> -d "<description>"` so it starts conformant. Add `--library` unless it meets the installed-tier rule in `skills/skill-tiers/SKILL.md`. Then record it in `registry.yaml`, add relevant evaluation cases under `evals/`, and update the changelog when appropriate.
 
 ## Skill changes
 

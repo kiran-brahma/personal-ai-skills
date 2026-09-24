@@ -24,6 +24,14 @@ Copyright (c) 2026 Lauren Tan (pstack)
 
 Copyright (c) 2026 Cursor (Thermos)
 
+## Fallow
+
+Source: [fallow-rs/fallow-skills](https://github.com/fallow-rs/fallow-skills), commit `1dd4ea25f2db5bd7e73f21883fc3ec8fd7833a63`, version `1.2.57`.
+
+Copyright (c) 2026 Bart Waardenburg
+
+The adapted skills (`fallow`, `fallow-review`) are distributed under the MIT License. The upstream package's Claude plugin marketplace scaffolding (`.claude-plugin/`, `commands/`, `bin/`) and its `agents/openai.yaml` interface descriptors were not vendored — the latter is Codex-specific policy metadata, which `policies/skill-format.md` places under `adapters/`, not the portable skill. Only the two `SKILL.md` files, their `references/`, and `fallow-review`'s optional Claude-Code-only feedback hooks were kept. Those hooks stay self-fenced to Claude Code within the skill text, per this repository's scope-discipline rule.
+
 ## MIT License
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:

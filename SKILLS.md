@@ -1,37 +1,24 @@
 # Skill catalogue
 
-Use this file to identify the category that best matches the work. Then read that category's `SKILL.md` and select the specific skill it lists. Do not load all categories or skills unless the task genuinely spans them.
+The library has two tiers. Pick the door, then let that router pick the skill. Do not load every skill for one request.
 
-## Coding
+## Installed: coding and daily tools
 
-Engineering work such as understanding a codebase, planning, implementing, debugging, reviewing, testing, deploying, or maintaining software.
+`skills/` is installed into every agent. Its skills fire on their own, and each one's description is charged against the shared budget in [policies/skill-format.md](policies/skill-format.md).
 
-Catalogue: [skills/coding/SKILL.md](skills/coding/SKILL.md)
+Engineering work, such as understanding a codebase, planning, implementing, debugging, reviewing, testing, or releasing, starts at [skills/coding/SKILL.md](skills/coding/SKILL.md).
 
-## Business
+## On demand: everything else
 
-Business strategy, customer understanding, problem solving, and consequential operating decisions.
+`library/` is never installed, so it costs nothing until a skill is used. It holds writing, business, video, and occasional governance workflows.
 
-Catalogue: [skills/business/SKILL.md](skills/business/SKILL.md)
+[skills/decide-skills/SKILL.md](skills/decide-skills/SKILL.md) is the only door into it. It reads a generated index, [skills/decide-skills/references/index.md](skills/decide-skills/references/index.md), and loads one skill.
 
-## Writing
+## Orientation and upkeep
 
-Drafting, editing, rewriting, reviewing, structuring, or adapting written content.
-
-Catalogue: [skills/writing/SKILL.md](skills/writing/SKILL.md)
-
-## Miscellaneous
-
-Research, planning, analysis, organization, personal workflows, and other reusable work that is not primarily coding or writing.
-
-Catalogue: [skills/misc/SKILL.md](skills/misc/SKILL.md)
-
-## Governance
-
-Adding, reviewing, evaluating, updating, auditing, or retiring skills and maintaining this repository.
-
-Catalogue: [skills/governance/SKILL.md](skills/governance/SKILL.md)
+- [skills/ask-kb/SKILL.md](skills/ask-kb/SKILL.md): which skill or flow fits, and how to invoke it.
+- [skills/skill-tiers/SKILL.md](skills/skill-tiers/SKILL.md): move a skill between tiers and audit the budget.
 
 ## Selection rule
 
-If more than one category appears relevant, start with the category that governs the riskiest or most consequential part of the task, then add another category only when its workflow is genuinely needed.
+If a task spans both tiers, start with the tier that governs the riskiest or most consequential part of the task. Bring in the other only when its workflow is genuinely needed.

@@ -1,6 +1,6 @@
 ---
 name: unslop
-description: "Final editorial pass to remove AI-writing patterns from long-form prose while preserving meaning, voice, and quotations. Use when writing sounds AI-generated."
+description: "Final pass removing AI-writing patterns from long-form prose, preserving meaning, voice, quotations. Use when writing sounds AI-generated."
 ---
 
 # Unslop

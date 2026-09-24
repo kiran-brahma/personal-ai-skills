@@ -3,6 +3,8 @@
 
 Subcommands:
   validate    Check the library against the cross-agent contract. Exit 1 on error.
+  index       Regenerate the library index that decide-skills routes from.
+  tier        Move a skill between the installed tier and the on-demand library.
 
 Every rule here exists because at least one agent breaks without it. The `why`
 field on each finding names that agent, so a failure explains itself.
@@ -18,6 +20,12 @@ import sys
 
 SKILL_FILE = "SKILL.md"
 SKILLS_DIR = "skills"
+# On-demand tier: same flat layout, but never installed or scanned by an agent,
+# so it costs nothing against the description budget. decide-skills reads it.
+LIBRARY_DIR = "library"
+TIERS = (SKILLS_DIR, LIBRARY_DIR)
+ROUTER = "decide-skills"
+INDEX_FILE = os.path.join(SKILLS_DIR, ROUTER, "references", "index.md")
 REGISTRY = "registry.yaml"
 
 # Directories inside a skill that hold supporting files rather than more skills.
@@ -86,12 +94,21 @@ def parse_frontmatter(text):
     return data, None
 
 
-def find_skill_files(root):
+def skill_home(root, name):
+    """The directory a skill lives in, whichever tier holds it."""
+    for tier in TIERS:
+        d = os.path.join(root, tier, name)
+        if os.path.isdir(d):
+            return d
+    return os.path.join(root, SKILLS_DIR, name)
+
+
+def find_skill_files(root, tier=SKILLS_DIR):
     """Every SKILL.md under skills/, including ones reached through a symlinked
     directory. os.walk does not follow symlinks, so those must be collected
     explicitly — otherwise a symlinked skill is invisible here and then silently
     dropped by Codex, which is the exact failure S6 exists to catch."""
-    skills_root = os.path.join(root, SKILLS_DIR)
+    skills_root = os.path.join(root, tier)
     out = set()
     for dirpath, dirnames, filenames in os.walk(skills_root):
         dirnames[:] = [d for d in dirnames if not d.startswith(".")]
@@ -108,8 +125,8 @@ def rel(root, path):
     return os.path.relpath(path, root)
 
 
-def check_structure(root, skill_files, findings):
-    skills_root = os.path.join(root, SKILLS_DIR)
+def check_structure(root, skill_files, findings, tier=SKILLS_DIR):
+    skills_root = os.path.join(root, tier)
     by_name = {}
 
     for sf in skill_files:
@@ -122,7 +139,7 @@ def check_structure(root, skill_files, findings):
         if depth != 1:
             findings.append(Finding(
                 ERROR, "S1-depth", relpath,
-                f"skill is {depth} levels below skills/, must be exactly 1",
+                f"skill is {depth} levels below {tier}/, must be exactly 1",
                 "Claude Code discovers skills/<name>/SKILL.md and nothing deeper"))
 
         # S6 — Codex copies plugins into a cache and silently drops symlinks.
@@ -561,7 +578,7 @@ def derived_version(root):
         return f"{base}.0", base, "0"
 
     patch, tag = max(tags)
-    changed = git(root, "rev-list", "--count", f"{tag}..HEAD", "--", SKILLS_DIR)
+    changed = git(root, "rev-list", "--count", f"{tag}..HEAD", "--", *TIERS)
     moved = changed.returncode == 0 and changed.stdout.strip() not in ("", "0")
     patch += 1 if moved else 0
     return f"{base}.{patch}", base, str(patch)
@@ -826,13 +843,13 @@ def changed_skills(root, since):
     """Skill names touched since a ref, for pointing at the eval cases that cover them."""
     if not since:
         return None
-    r = git(root, "diff", "--name-only", f"{since}..HEAD", "--", SKILLS_DIR)
+    r = git(root, "diff", "--name-only", f"{since}..HEAD", "--", *TIERS)
     if r.returncode != 0:
         return None
     names = set()
     for line in r.stdout.split("\n"):
         parts = line.strip().split("/")
-        if len(parts) >= 2 and parts[0] == SKILLS_DIR:
+        if len(parts) >= 2 and parts[0] in TIERS:
             names.add(parts[1])
     return names
 
@@ -936,7 +953,7 @@ def local_differences(root, name, repo, pinned, upath):
     edited, omitted = [], []
     for f in [x for x in listing.stdout.split("\n") if x.strip()]:
         relp = os.path.relpath(f, upath)
-        localp = os.path.join(root, SKILLS_DIR, name, relp)
+        localp = os.path.join(skill_home(root, name), relp)
         blob = git(repo, "show", f"{pinned}:{f}")
         if blob.returncode != 0:
             continue
@@ -1159,7 +1176,7 @@ def cmd_adopt(args):
                     parts = line.split("\t")
                     status, path = parts[0][:1], parts[-1]
                     relp = os.path.relpath(path, upath)
-                    localp = os.path.join(root, SKILLS_DIR, name, relp)
+                    localp = os.path.join(skill_home(root, name), relp)
                     label = f"{name}/{relp}"
 
                     if status == "A":
@@ -1305,7 +1322,7 @@ def cmd_doctor(args):
     tagged = git(root, "rev-parse", "-q", "--verify", f"refs/tags/{tag}").returncode == 0
     if tagged:
         unreleased = git(root, "rev-list", "--count", f"{tag}..HEAD",
-                         "--", SKILLS_DIR).stdout.strip()
+                         "--", *TIERS).stdout.strip()
         check("release", "published", "ok" if unreleased == "0" else "warn",
               f"{tag} is current" if unreleased == "0" else
               f"{unreleased} skill commit(s) since {tag} — run release")
@@ -1689,6 +1706,103 @@ def cmd_release(args):
     return 0
 
 
+def library_entries(root):
+    """(group, name, description, explicit_only) for every library skill."""
+    out = []
+    for sf in find_skill_files(root, LIBRARY_DIR):
+        fm, err = parse_frontmatter(open(sf, encoding="utf-8", errors="replace").read())
+        if err or not fm.get("name"):
+            continue
+        gm = re.search(r"group:\s*([a-z0-9-]+)", fm.get("metadata", ""))
+        out.append((gm.group(1) if gm else "other", fm["name"],
+                    " ".join(fm.get("description", "").split()),
+                    fm.get("disable-model-invocation", "").lower() == "true"))
+    return sorted(out)
+
+
+def render_index(root):
+    """The index decide-skills reads instead of carrying every description.
+    Generated, so it can never drift from the library it describes."""
+    lines = [
+        "# Library index", "",
+        "Generated by `bin/skills-sync index`. Do not edit by hand.", "",
+        "One line per on-demand skill: name, trigger contract, path from the repository root.",
+        "`[explicit]` marks a gate: run it only when the user asked for it by name or intent.", "",
+    ]
+    groups = {}
+    for group, name, desc, explicit in library_entries(root):
+        groups.setdefault(group, []).append((name, desc, explicit))
+    notes = os.path.join(root, SKILLS_DIR, ROUTER, "references", "groups")
+    for group in sorted(groups):
+        lines.append(f"## {group}")
+        if os.path.isfile(os.path.join(notes, f"{group}.md")):
+            lines.append(f"Group rules: `references/groups/{group}.md`")
+        lines.append("")
+        for name, desc, explicit in groups[group]:
+            tag = " [explicit]" if explicit else ""
+            lines.append(f"- `{name}`{tag}: {desc} `{LIBRARY_DIR}/{name}/SKILL.md`")
+        lines.append("")
+    return "\n".join(lines)
+
+
+def check_index(root, findings):
+    # X1 — decide-skills routes from the index alone; a stale one hides or
+    # misroutes a library skill with no error at run time.
+    if not os.path.isdir(os.path.join(root, SKILLS_DIR, ROUTER)):
+        return
+    path = os.path.join(root, INDEX_FILE)
+    current = open(path, encoding="utf-8").read() if os.path.exists(path) else None
+    if current != render_index(root):
+        findings.append(Finding(
+            ERROR, "X1-index", INDEX_FILE,
+            "missing" if current is None else "out of date — run `bin/skills-sync index`",
+            f"{ROUTER} finds library skills only through this index"))
+
+
+def cmd_index(args):
+    root = os.path.abspath(args.root)
+    path = os.path.join(root, INDEX_FILE)
+    text = render_index(root)
+    old = open(path, encoding="utf-8").read() if os.path.exists(path) else None
+    if old == text:
+        print(f"{INDEX_FILE} is current ({len(library_entries(root))} library skills)")
+        return 0
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(text)
+    print(f"wrote {INDEX_FILE} ({len(library_entries(root))} library skills)")
+    return 0
+
+
+def cmd_tier(args):
+    """Move a skill between the installed tier and the on-demand library."""
+    root = os.path.abspath(args.root)
+    dest_tier = SKILLS_DIR if args.to == "installed" else LIBRARY_DIR
+    src_tier = LIBRARY_DIR if dest_tier == SKILLS_DIR else SKILLS_DIR
+    src = os.path.join(root, src_tier, args.name)
+    dest = os.path.join(root, dest_tier, args.name)
+    if args.name == ROUTER:
+        print(f"{ROUTER} must stay installed; it is how the library is reached")
+        return 1
+    if not os.path.isfile(os.path.join(src, SKILL_FILE)):
+        where = "already there" if os.path.isdir(dest) else "not found"
+        print(f"{args.name}: {where} ({src_tier}/{args.name} has no {SKILL_FILE})")
+        return 1
+    os.makedirs(os.path.join(root, dest_tier), exist_ok=True)
+    r = git(root, "mv", src, dest)
+    if r.returncode != 0:
+        print(r.stderr.strip())
+        return 1
+    print(f"moved {src_tier}/{args.name} -> {dest_tier}/{args.name}")
+    if dest_tier == LIBRARY_DIR:
+        print("add a group to its frontmatter (`metadata:` then `  group: <group>`), "
+              "then run `bin/skills-sync index`")
+    cmd_index(args)
+    print("next: `bin/skills-sync validate` (checks links and the budget), then commit; "
+          "the post-commit hook re-links the installs")
+    return 0
+
+
 SKILL_TEMPLATE = '''---
 name: {name}
 description: "{description}"
@@ -1718,9 +1832,9 @@ def cmd_new(args):
     if not re.match(r"^[a-z0-9][a-z0-9-]*$", name):
         print(f"invalid name '{name}': use lowercase letters, digits, and hyphens")
         return 1
-    target = os.path.join(root, SKILLS_DIR, name)
-    if os.path.exists(target):
-        print(f"{rel(root, target)} already exists")
+    target = os.path.join(root, LIBRARY_DIR if args.library else SKILLS_DIR, name)
+    if any(os.path.exists(os.path.join(root, t, name)) for t in TIERS):
+        print(f"a skill named '{name}' already exists in skills/ or library/")
         return 1
     desc = (args.description or "").strip()
     if not desc:
@@ -1738,17 +1852,35 @@ def cmd_new(args):
     print(f"created {rel(root, os.path.join(target, SKILL_FILE))}")
     print("next: write the body, add the skill to registry.yaml, then run "
           "`bin/skills-sync validate`")
+    if args.library:
+        print("library skill: add a group to its frontmatter (`metadata:` then "
+              "`  group: <group>`), then run `bin/skills-sync index`")
     return 0
 
 
 def cmd_validate(args):
     root = os.path.abspath(args.root)
-    skill_files = find_skill_files(root)
+    installed = find_skill_files(root)
+    library = find_skill_files(root, LIBRARY_DIR)
+    skill_files = installed + library
     findings = []
 
-    by_name = check_structure(root, skill_files, findings)
-    total = check_budget(root, skill_files, findings, args.max_desc, args.total_desc)
+    by_name = check_structure(root, installed, findings)
+    lib_names = check_structure(root, library, findings, LIBRARY_DIR)
+    # S4 across tiers — decide-skills and the installs both resolve by name.
+    for name in sorted(set(by_name) & set(lib_names)):
+        findings.append(Finding(
+            ERROR, "S4-unique", lib_names[name][0],
+            f"name '{name}' also declared in {', '.join(by_name[name])}",
+            "a skill must live in exactly one tier"))
+    for name, paths in lib_names.items():
+        by_name.setdefault(name, []).extend(paths)
+    # Only the installed tier is loaded by agents, so only it is charged.
+    total = check_budget(root, installed, findings, args.max_desc, args.total_desc)
+    # Library descriptions keep the per-skill cap: each is a line of the index.
+    check_budget(root, library, findings, args.max_desc, float("inf"))
     check_integrity(root, skill_files, by_name, findings)
+    check_index(root, findings)
 
     if args.strict:
         for f in findings:
@@ -1760,6 +1892,8 @@ def cmd_validate(args):
     if args.json:
         print(json.dumps({
             "skills": len(skill_files),
+            "installed": len(installed),
+            "library": len(library),
             "unique_names": len(by_name),
             "description_bytes": total,
             "errors": len(errors),
@@ -1768,8 +1902,8 @@ def cmd_validate(args):
         }, indent=2))
         return 1 if errors else 0
 
-    print(f"skills-sync validate — {len(skill_files)} SKILL.md, "
-          f"{len(by_name)} unique names, {total} description bytes\n")
+    print(f"skills-sync validate — {len(installed)} installed + {len(library)} library "
+          f"SKILL.md, {len(by_name)} unique names, {total} installed description bytes\n")
 
     for group in (errors, warns):
         if not group:
@@ -1876,7 +2010,17 @@ def main():
     n.add_argument("-d", "--description", required=True,
                    help="trigger contract; see policies/skill-format.md")
     n.add_argument("--max-desc", type=int, default=DEFAULT_MAX_DESC)
+    n.add_argument("--library", action="store_true",
+                   help="create it in the on-demand library instead of the installed tier")
     n.set_defaults(func=cmd_new)
+
+    ix = sub.add_parser("index", help=f"regenerate the library index {ROUTER} reads")
+    ix.set_defaults(func=cmd_index)
+
+    tr = sub.add_parser("tier", help="move a skill between installed and library")
+    tr.add_argument("name", help="skill name")
+    tr.add_argument("to", choices=("installed", "library"), help="destination tier")
+    tr.set_defaults(func=cmd_tier)
 
     args = p.parse_args()
     sys.exit(args.func(args))

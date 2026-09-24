@@ -61,6 +61,14 @@ Both were verified against this repository at version 0.5.0, installing all 59 r
 
 Do not install both the plugin and the symlinks on the same machine. Each agent would carry every skill twice, once namespaced and once bare.
 
+### Using it
+
+You do not need to memorise anything:
+
+- **Coding**: just work. The engineering skills fire on their own. Run `/kb:ask-matt` for the idea-to-ship flow.
+- **Everything else**: `/kb:decide-skills review my musing`, `/kb:decide-skills should I take this client`, or name a skill directly: `/kb:decide-skills content-fence`.
+- **Lost?** `/kb:ask-kb` explains what exists and how to invoke it. With the symlink install, drop the `kb:` prefix. In Codex, use `$ask-kb` and `$decide-skills`.
+
 ### Two things worth knowing first
 
 **These are personal skills, not a neutral toolkit.** They encode how I want an agent to work with me. Four of them name me directly and are tuned to my writing and my blogs: `cognitive-editor`, `content-fence`, `musings-reviewer`, and the `writing` router. Most of the engineering skills are portable, but if you want a library shaped around your own judgment, fork this and adapt it rather than installing it as-is. That is what I did with the sources below.
@@ -117,17 +125,16 @@ For a major code change, the sequence is:
 
 Every pull request must complete `code-review`. Detailed security audits use the separately loaded Codex Security workflow rather than the normal coding workflow.
 
-## Categories
+## Two tiers
 
-Skills are grouped into focused categories so agents can narrow discovery before loading detailed instructions.
+A library that keeps growing cannot load every skill into every session. Each installed skill's description sits in the agent's context from startup, and Codex silently truncates once the combined descriptions pass a fixed budget. So the library is split:
 
-- [`Coding`](skills/coding/SKILL.md): planning, implementation, debugging, testing, architecture, review, and release work.
-- [`Business`](skills/business/SKILL.md): business ideas, customer value propositions, strategic decisions, and complex operating problems.
-- [`Writing`](skills/writing/SKILL.md): documentation and other writing workflows.
-- [`Miscellaneous`](skills/misc/SKILL.md): research, planning, productivity, and other reusable work.
-- [`Governance`](skills/governance/SKILL.md): maintaining skills and proposing updates to project agent instructions.
+- **Installed** ([`skills/`](skills/)): the daily set. This is the full coding workflow, the [`coding`](skills/coding/SKILL.md) router, cross-cutting tools such as `unslop`, `grilling`, `handoff`, and `research`, and three entry points: `decide-skills`, `ask-kb`, and `skill-tiers`. These fire on their own.
+- **On demand** ([`library/`](library/)): writing, business, video, and occasional governance workflows. No agent scans this folder. [`decide-skills`](skills/decide-skills/SKILL.md) reads a generated [index](skills/decide-skills/references/index.md), one line per skill, then loads only the skill that fits.
 
-A category router is a skill like any other, sitting beside the skills it routes to rather than above them. Every skill lives at `skills/<name>/`, one level deep, with its supporting references and scripts beside it. The flat layout is required: Claude Code searches only one level, and Pi stops at the first `SKILL.md` it finds, so a skill nested under a router would be invisible to both. [`bin/skills-sync validate`](bin/skills-sync) enforces this, and [`policies/skill-format.md`](policies/skill-format.md) records which agent imposes which constraint.
+The startup cost is the installed descriptions plus one line for `decide-skills`, whether the library holds 20 skills or 200. Both tiers use the same flat, one-level layout. Claude Code searches only one level, and Pi stops at the first `SKILL.md` it finds. [`bin/skills-sync validate`](bin/skills-sync) enforces the layout, checks that the index is current, and charges only the installed tier against the budget. [`policies/skill-format.md`](policies/skill-format.md) records which agent imposes which constraint.
+
+Move a skill between tiers with `bin/skills-sync tier <name> library` or `bin/skills-sync tier <name> installed`. The [`skill-tiers`](skills/skill-tiers/SKILL.md) skill decides which tier a skill belongs in.
 
 ## Current skill sources
 
@@ -144,7 +151,8 @@ The source list and pinned references are in [`registry.yaml`](registry.yaml). A
 ## Adding a skill
 
 ```bash
-bin/skills-sync new my-skill -d "What it does. When it fires. Not for X, use Y."
+bin/skills-sync new my-skill -d "What it does. When it fires. Not for X, use Y."            # installed
+bin/skills-sync new my-skill -d "..." --library   # on demand; add metadata.group, then `index`
 ```
 
 The scaffold refuses an over-budget description and a name that will not resolve. A description is a trigger contract, not a summary: it answers whether the skill should fire, and the detail belongs in the body where it costs nothing until the skill is invoked. The rule is in [`policies/skill-format.md`](policies/skill-format.md).
@@ -160,7 +168,7 @@ bin/skills-sync release --apply    # publish, then verify the install moved
 
 Preflight blocks on a dirty tree, a detached HEAD, a validation failure, an invalid plugin manifest, a tag that already exists, and a missing changelog entry. Only then does it write the version, commit, tag, push, refresh the local install, and re-check that the install actually moved.
 
-`VERSION` holds the major and minor version. The patch is derived from the commits touching `skills/` since the last tag, so it cannot fail to move when the library does. Claude Code and Codex ship an update only when the manifest version changes, which makes a forgotten bump a silent failure rather than a loud one.
+`VERSION` holds the major and minor version. The patch is derived from the commits touching `skills/` or `library/` since the last tag, so it cannot fail to move when the library does. Claude Code and Codex ship an update only when the manifest version changes, which makes a forgotten bump a silent failure rather than a loud one.
 
 ## Repository layout
 
@@ -169,13 +177,14 @@ personal-ai-skills/
 ├── AGENTS.md            Canonical repository control document
 ├── CLAUDE.md            Claude entrypoint that refers to AGENTS.md
 ├── GEMINI.md            Gemini entrypoint that refers to AGENTS.md
-├── SKILLS.md            Top-level category catalogue
+├── SKILLS.md            Top-level catalogue: which tier, which router
 ├── VERSION              Major and minor version; the patch is derived
 ├── bin/skills-sync      Validation, install, release, and upstream tooling
 ├── .githooks/           Hooks that validate and reconcile on every commit
 ├── .claude-plugin/      Claude Code plugin and marketplace manifests
 ├── .codex-plugin/       Codex plugin manifest
-├── skills/              Portable skills and category routers, one level deep
+├── skills/              Installed tier: daily skills and routers, one level deep
+├── library/             On-demand tier, reached only through decide-skills
 ├── adapters/            Agent-specific discovery and installation details
 ├── packages/            Provenance documents for vendored upstream packages
 ├── policies/            Repository rules and decision records

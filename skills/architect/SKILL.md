@@ -1,6 +1,6 @@
 ---
 name: architect
-description: "Sketch types, signatures, and module structure before code, then stay in the loop while implementation fills in. Use when jumping straight to code would lock in the wrong shape."
+description: "Sketch types, signatures, and module structure before code, staying in the loop during implementation. Use when jumping to code locks in the wrong shape."
 disable-model-invocation: true
 ---
 

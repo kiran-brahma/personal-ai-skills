@@ -1,6 +1,6 @@
 # Skill format
 
-Each category has a routing `SKILL.md`. Each concrete skill is a directory containing its own `SKILL.md` with YAML frontmatter containing at least:
+Each concrete skill is a directory containing its own `SKILL.md` with YAML frontmatter containing at least:
 
 ```yaml
 ---
@@ -13,8 +13,17 @@ Skill names use lowercase letters, numbers, and hyphens.
 
 ## Layout
 
-Every concrete skill is a directory directly under `skills/`, named for the skill:
-`skills/code-review/SKILL.md`. The layout is flat, one level, with no exceptions.
+Every concrete skill is a directory directly under `skills/` (installed) or `library/`
+(on demand), named for the skill: `skills/code-review/SKILL.md`,
+`library/content-fence/SKILL.md`. The layout is flat, one level, with no exceptions. A name
+is unique across both tiers.
+
+A library skill also records its index group, which `bin/skills-sync index` reads:
+
+```yaml
+metadata:
+  group: writing
+```
 
 This is not a stylistic preference, and it is worth being exact about which agent
 forces it:
@@ -33,7 +42,7 @@ forces it:
 So the flat layout is required by Claude Code and Pi. Codex tolerates nesting but
 cannot tolerate symlinks.
 
-Category routing files stay at `skills/<category>/SKILL.md`. Because every concrete
+Routers (`coding`, `decide-skills`) stay at `skills/<name>/SKILL.md`. Because every concrete
 skill is a sibling, nothing is nested beneath a router and the discovery order in
 `AGENTS.md` still holds. A router lists skills and their trigger boundaries; it never
 duplicates their instructions.
@@ -47,7 +56,9 @@ The description is a **trigger contract**, not a summary. It answers one questio
 should this skill fire for the request in front of the agent? Everything else belongs
 in the body, where it costs nothing until the skill is actually invoked.
 
-Budget: **200 bytes per description, 9000 bytes across the library.** Codex loads every
+Budget: **200 bytes per description, 9000 bytes across the installed tier.** Library
+descriptions are never loaded at startup, so they are exempt from the total; they still
+keep the 200-byte rule because each one becomes a line in the index `decide-skills` reads. Codex loads every
 description into a fixed skills budget and silently truncates once that is exceeded.
 Truncation degrades routing with no error, so the limit is a correctness constraint
 rather than a cost optimisation. `disable-model-invocation` does not exempt a skill: Codex

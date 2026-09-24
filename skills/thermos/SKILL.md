@@ -1,6 +1,6 @@
 ---
 name: thermos
-description: Run the deep correctness/security/devex and maintainability reviews for a major code change, then synthesize prioritized findings before the normal code review.
+description: Run deep correctness/security/devex and maintainability reviews for a major change, then synthesize findings before the normal code review.
 disable-model-invocation: true
 ---
 

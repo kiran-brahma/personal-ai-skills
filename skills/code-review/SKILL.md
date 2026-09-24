@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: "Review changes since a commit, branch, tag, or merge-base on two axes: repo standards and spec match. Use for 'review this branch/PR' or 'review since X'."
+description: "Review changes since a commit, branch, tag, or merge-base: repo standards and spec match. Use for 'review this branch/PR' or 'review since X'."
 ---
 
 Two-axis review of the diff between `HEAD` and a fixed point the user supplies:

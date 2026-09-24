@@ -14,19 +14,18 @@ repository:
 categories:
   - id: coding
     path: skills/coding/SKILL.md
-    purpose: Software-development work.
-  - id: writing
-    path: skills/writing/SKILL.md
-    purpose: Drafting and editing written content.
-  - id: misc
-    path: skills/misc/SKILL.md
-    purpose: Research, planning, analysis, and other reusable work.
-  - id: governance
-    path: skills/governance/SKILL.md
-    purpose: Skill-library maintenance and governance.
-  - id: business
-    path: skills/business/SKILL.md
-    purpose: Business strategy, customer understanding, decisions, and problem solving.
+    purpose: Software-development work; routes among the installed daily skills.
+  - id: decide-skills
+    path: skills/decide-skills/SKILL.md
+    purpose: Routes everything else, loading one on-demand skill from library/ by its generated index.
+
+# Two tiers, one flat layout each. skills/ is installed into every agent and is
+# charged against the description budget. library/ is never installed; it is
+# reached only through decide-skills, so it costs nothing until a skill is used.
+# Move a skill between them with `bin/skills-sync tier <name> installed|library`.
+tiers:
+  installed: skills/
+  library: library/
 
 last_reviewed: 2026-09-11
 
@@ -87,6 +86,13 @@ sources:
     license: Apache-2.0
     role: video-workflows
     update_policy: Review upstream skill, scripts, references, assets, providers, and user-cost implications before adoption.
+  - id: fallow-skills
+    repository: https://github.com/fallow-rs/fallow-skills
+    reference: 1dd4ea25f2db5bd7e73f21883fc3ec8fd7833a63
+    version: 1.2.57
+    license: MIT
+    role: codebase-intelligence
+    update_policy: Requires an external fallow CLI install; re-check the agent rules, onboarding-offer behavior, and Claude-only review hooks before adopting an upstream change.
 
 packages:
   - id: matt-pocock-skills
@@ -113,6 +119,11 @@ packages:
     upstream_prefix: skills
     skills: [thermos, thermo-nuclear-review, thermo-nuclear-code-quality-review]
     adaptations: [major-change-gate, portable-orchestration]
+  - id: skill-routing
+    source: repository-owner
+    status: trial
+    skills: [ask-kb, skill-tiers]
+    adaptations: [two-tier-library, generated-index, router-over-library]
   - id: local-workflow
     source: repository-owner
     status: trial
@@ -152,6 +163,12 @@ packages:
     status: trial
     skills: [youtube-transcript-to-prose]
     adaptations: [trigger-budget, named-writing-boundaries, no-agent-metadata, no-bundled-icon]
+  - id: fallow-workflows
+    source: fallow-skills
+    status: trial
+    upstream_prefix: fallow/skills
+    skills: [fallow, fallow-review]
+    adaptations: [flat-layout, no-plugin-marketplace-scaffolding, no-agent-metadata, claude-hooks-kept-self-fenced]
 
 external_workflows:
   - id: codex-security

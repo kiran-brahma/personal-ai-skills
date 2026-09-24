@@ -1,6 +1,6 @@
 ---
 name: why
-description: "Design rationale and history: 'why does X work this way', 'why we picked Y', regressions, postmortems. Queries evidence sources and cites them. Use how for runtime behavior."
+description: "Design rationale and history: 'why does X work this way', 'why we picked Y', regressions, postmortems. Cites evidence sources. Use how for runtime behavior."
 disable-model-invocation: true
 ---
 
