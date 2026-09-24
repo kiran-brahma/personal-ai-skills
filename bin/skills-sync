@@ -588,7 +588,7 @@ def derived_version(root):
         return f"{base}.0", base, "0"
 
     patch, tag = max(tags)
-    changed = git(root, "rev-list", "--count", f"{tag}..HEAD", "--", *TIERS)
+    changed = git(root, "rev-list", "--count", f"{tag}..HEAD", "--", *TIERS, "adapters", "bin")
     moved = changed.returncode == 0 and changed.stdout.strip() not in ("", "0")
     patch += 1 if moved else 0
     return f"{base}.{patch}", base, str(patch)
@@ -857,6 +857,57 @@ def refresh_codex(root, skills, dry_run):
     return home, actions, conflicts, note
 
 
+def refresh_antigravity(root, skills, dry_run):
+    """Antigravity loads global skills from ~/.gemini/config/skills (or
+    $GEMINI_CONFIG_DIR/skills) and workspace skills from .agents/skills.
+    It follows symlinks there.
+
+    Also maintains ~/.gemini/config/skills.json so explicit configuration is
+    honoured across Antigravity 2.0, Antigravity IDE, and CLI.
+    """
+    config = os.path.expanduser(os.environ.get("GEMINI_CONFIG_DIR", "~/.gemini/config"))
+    if not os.path.isdir(config):
+        return None, [], []
+    home = os.path.join(config, "skills")
+    actions, conflicts = reconcile_links(root, home, skills, dry_run)
+
+    # Maintain ~/.gemini/config/skills.json
+    json_path = os.path.join(config, "skills.json")
+    agents_skills = os.path.expanduser("~/.agents/skills")
+    if not dry_run:
+        try:
+            cfg = {"entries": [{"path": home}]}
+            if os.path.isdir(agents_skills):
+                cfg["entries"].append({"path": agents_skills})
+            with open(json_path, "w", encoding="utf-8") as f:
+                json.dump(cfg, f, indent=2)
+                f.write("\n")
+        except Exception:
+            pass
+
+    # Maintain CLI symlink if ~/.gemini/antigravity-cli exists
+    cli_dir = os.path.expanduser("~/.gemini/antigravity-cli")
+    if os.path.isdir(cli_dir):
+        cli_skills = os.path.join(cli_dir, "skills")
+        if not os.path.exists(cli_skills) and not dry_run:
+            try:
+                os.symlink(home, cli_skills)
+            except Exception:
+                pass
+
+    # Maintain legacy IDE symlink if ~/.gemini/antigravity exists
+    legacy_dir = os.path.expanduser("~/.gemini/antigravity")
+    if os.path.isdir(legacy_dir):
+        legacy_skills = os.path.join(legacy_dir, "skills")
+        if not os.path.exists(legacy_skills) and not dry_run:
+            try:
+                os.symlink(home, legacy_skills)
+            except Exception:
+                pass
+
+    return home, actions, conflicts
+
+
 def cmd_refresh(args):
     # --quiet buffers everything and prints only when something actually changed,
     # so a post-commit hook stays silent on a no-op commit.
@@ -924,10 +975,25 @@ def cmd_refresh(args):
             print(f"         WARNING {cx_note}")
         total += len(cx_actions)
 
+    agy_home, agy_actions, agy_conflicts = refresh_antigravity(root, skills, dry)
+    if agy_home is None:
+        print("\nantigravity skipped — ~/.gemini/config not found")
+    else:
+        print(f"\nantigravity {agy_home}")
+        for kind, name, why in agy_actions[:12]:
+            print(f"         {kind:7} {name}  ({why})")
+        if len(agy_actions) > 12:
+            print(f"         … and {len(agy_actions) - 12} more")
+        if not agy_actions:
+            print("         already in sync")
+        for name in agy_conflicts:
+            print(f"         CONFLICT {name} exists and is not ours — left untouched")
+        total += len(agy_actions)
+
     print(f"\n{total} change(s)" + (" — re-run without --dry-run to apply" if dry and total
                                     else ""))
     if total and not dry:
-        print("Claude Code and Codex load skills at startup: restart or /reload-plugins.")
+        print("Claude Code, Codex, and Antigravity load skills at startup: restart or /reload-plugins.")
     return 0
 
 
@@ -1442,7 +1508,8 @@ def cmd_doctor(args):
 
     # Installs — ask refresh what it would change, but change nothing.
     skills = installed_skills(root)
-    for label, fn in (("claude", refresh_claude), ("pi", refresh_pi)):
+    for label, fn in (("claude", refresh_claude), ("pi", refresh_pi),
+                      ("antigravity", refresh_antigravity)):
         home, actions, conflicts = fn(root, skills, True)
         if home is None:
             check("installs", label, "warn", "not installed on this machine")
@@ -1508,7 +1575,19 @@ def origin_slug(root):
 
 def detect_tools():
     import shutil
-    return {name: shutil.which(name) for name in ("git", "claude", "codex", "pi")}
+    tools = {name: shutil.which(name) for name in ("git", "claude", "codex", "pi", "agy")}
+    if not tools["agy"]:
+        app_path = "/Applications/Antigravity.app"
+        cfg_dir = os.path.expanduser("~/.gemini/config")
+        if os.path.isdir(app_path):
+            tools["antigravity"] = app_path
+        elif os.path.isdir(cfg_dir):
+            tools["antigravity"] = cfg_dir
+        else:
+            tools["antigravity"] = None
+    else:
+        tools["antigravity"] = tools["agy"]
+    return tools
 
 
 def cmd_bootstrap(args):
@@ -1543,10 +1622,10 @@ def cmd_bootstrap(args):
 
     print("Detected")
     for name, path in tools.items():
-        print(f"  {'ok  ' if path else 'MISS'} {name:7} {path or 'not on PATH'}")
-    print(f"  ok   repo    {root}")
-    print(f"  {'ok  ' if slug else 'MISS'} origin  {url or 'no origin remote'}")
-    print(f"  ok   skills  {len(skills)}")
+        print(f"  {'ok  ' if path else 'MISS'} {name:11} {path or 'not on PATH'}")
+    print(f"  ok   repo        {root}")
+    print(f"  {'ok  ' if slug else 'MISS'} origin      {url or 'no origin remote'}")
+    print(f"  ok   skills      {len(skills)}")
 
     if not tools["git"]:
         print("\ngit is required.")
@@ -1565,6 +1644,8 @@ def cmd_bootstrap(args):
             steps.append(("pi", f"link {len(skills)} skills into the agent skills dir"))
         if tools["codex"]:
             steps.append(("codex", f"link {len(skills)} skills into ~/.agents/skills"))
+        if tools.get("antigravity"):
+            steps.append(("antigravity", f"link {len(skills)} skills into ~/.gemini/config/skills"))
     else:
         if tools["claude"]:
             steps.append(("claude", f"add marketplace {slug}, install the plugin"))
@@ -1795,6 +1876,15 @@ def cmd_release(args):
         cached = set(os.listdir(cache)) if os.path.isdir(cache) else set()
         gate("codex cache matches the repo", cached == set(skills),
              f"{len(cached)} cached vs {len(skills)} in repo")
+
+    agy_config = os.path.expanduser(os.environ.get("GEMINI_CONFIG_DIR", "~/.gemini/config"))
+    agy_home = os.path.join(agy_config, "skills")
+    if os.path.isdir(agy_home):
+        live = {n for n in os.listdir(agy_home)
+                if os.path.isfile(os.path.join(agy_home, n, SKILL_FILE))}
+        gate("antigravity install resolves every skill", set(skills) <= live,
+             f"missing {sorted(set(skills) - live)[:3]}" if not set(skills) <= live else
+             f"{len(skills)} skills")
 
     if failures:
         print(f"\nRELEASED {version}, but {len(failures)} verification(s) failed.")

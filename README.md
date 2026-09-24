@@ -95,7 +95,7 @@ The git hooks make this automatic: `pre-commit` validates, and `post-commit`, `p
 
 I start with well-written external skills, then adapt them to my own working style. A local change is intentional when it improves the way I work, even when the upstream skill is already strong.
 
-The repository maintains one canonical local version of each adopted skill. It does not maintain separate Claude, Codex, and Pi copies. Harness-specific discovery and installation details belong in [`adapters/`](adapters/), while the workflow itself remains portable.
+The repository maintains one canonical local version of each adopted skill. It does not maintain separate Claude, Codex, Pi, or Antigravity copies. Harness-specific discovery and installation details belong in [`adapters/`](adapters/), while the workflow itself remains portable.
 
 Upstream updates are inputs for review, never applied automatically:
 
