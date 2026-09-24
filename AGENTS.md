@@ -25,9 +25,11 @@ A router is a skill beside the skills it routes to, not a directory above them. 
 ## Two tiers
 
 - `skills/<name>/` is the **installed** tier. It is linked into every agent, and its descriptions are charged against the budget. Keep it to daily-use skills, skills an installed skill calls by name, and skills that must fire unprompted.
-- `library/<name>/` is the **on-demand** tier. No agent scans it, so it costs nothing at startup. `decide-skills` reaches it through `skills/decide-skills/references/index.md`, which `bin/skills-sync index` generates from each library skill's frontmatter (`metadata.group` sets its group).
+- `library/<name>/` is the **on-demand** tier. No agent scans it, so it costs nothing at startup. `decide-skills` reaches it through `skills/decide-skills/references/index.md`, which `bin/skills-sync index` generates from every skill in both tiers, sectioned by the profiles in `profiles.json`.
 
 Both tiers follow the same flat layout rules, and a name must be unique across both. Move a skill with `bin/skills-sync tier <name> installed|library`, following the `skill-tiers` skill.
+
+The tiers are the library's default. A machine with a `my-skills.txt` (git-ignored, written by `bin/skills-sync select` and the `setup-skills` skill) installs its own selection instead: `core` plus the chosen profiles and skills, with their declared requirements. Other people use this library by forking it and running `bin/skills-sync setup`. They pull releases with `bin/skills-sync sync` and keep their own skills in their fork. Never commit a `my-skills.txt` here, because every fork would inherit it.
 
 ## The layout contract
 
@@ -43,7 +45,8 @@ The rules exist because an agent breaks without them, and each finding names whi
 - No `SKILL.md` may sit beneath another. Pi stops at the first one it finds and never looks below it.
 - A skill directory is real, never a symlink. Codex drops symlinks when it copies a plugin into its cache.
 - `name:` matches the directory, and names are unique library-wide. A mismatch or a duplicate fails silently at run time.
-- The generated library index is current. `decide-skills` finds library skills only through it.
+- The generated index is current. `decide-skills` finds uninstalled skills only through it.
+- Every profile in `profiles.json` names real skills, and every `metadata.requires` names a real skill.
 - Installed descriptions stay within the per-skill and library budgets in [policies/skill-format.md](policies/skill-format.md). Codex truncates past a fixed budget with no error, which degrades routing invisibly.
 
 Do not relax a rule to make a change fit. The layout is what allows one copy of a skill to serve every agent, which is the point of the repository.

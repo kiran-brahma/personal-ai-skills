@@ -2,7 +2,7 @@
 name: faceless-explainer
 description: "Turn approved text or articles into faceless explainers with invented visuals. Not for products or sites."
 metadata:
-  group: video
+  requires: hyperframes
 ---
 
 > This workflow is locally vendored and reviewed with the shared HyperFrames foundation. Do not refresh it from the network during a content run.

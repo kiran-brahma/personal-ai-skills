@@ -3,7 +3,7 @@ name: hyperframes-core
 description: "Build HyperFrames HTML with timing, tracks, variables, media, and deterministic rendering."
 disable-model-invocation: true
 metadata:
-  group: video
+  requires: hyperframes
 ---
 
 # HyperFrames Core

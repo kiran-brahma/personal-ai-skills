@@ -2,6 +2,8 @@
 name: technical-writing
 description: "Standard for writing or reviewing docs, RFCs, readmes, PR descriptions, and commit messages: Diataxis, Google style, STE, Global English."
 disable-model-invocation: true
+metadata:
+  requires: unslop
 ---
 
 # Technical writing

@@ -2,8 +2,6 @@
 name: hyperframes-audio
 description: "Mix placed HyperFrames audio: ducking, effects, automation, or submixes. Not for sourcing."
 disable-model-invocation: true
-metadata:
-  group: video
 ---
 
 # HyperFrames Audio

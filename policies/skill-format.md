@@ -18,12 +18,20 @@ Every concrete skill is a directory directly under `skills/` (installed) or `lib
 `library/content-fence/SKILL.md`. The layout is flat, one level, with no exceptions. A name
 is unique across both tiers.
 
-A library skill also records its index group, which `bin/skills-sync index` reads:
+A skill that calls another skill declares it, so `bin/skills-sync select` installs both:
 
 ```yaml
 metadata:
-  group: writing
+  requires: grilling domain-modeling
 ```
+
+Declare only real calls, where the skill tells the agent to invoke the other one. A mention
+or a "see also" does not count. `validate` fails on a requirement that names no skill
+(`R1-requires`).
+
+`profiles.json` groups skills into install bundles. The first profile that lists a skill
+sets its section in the `decide-skills` index. A skill in no profile is indexed under
+`unsorted` and draws a `P2-unprofiled` warning.
 
 This is not a stylistic preference, and it is worth being exact about which agent
 forces it:

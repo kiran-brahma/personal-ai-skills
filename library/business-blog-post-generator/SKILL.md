@@ -2,7 +2,7 @@
 name: business-blog-post-generator
 description: "Draft an evidence-led company blog post: audit existing content, find topic gaps, interview the owner. Not for personal essays or autonomous publishing."
 metadata:
-  group: business
+  requires: grilling technical-writing unslop
 ---
 
 # Business blog post generator

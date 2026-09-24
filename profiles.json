@@ -1,0 +1,55 @@
+{
+  "_comment": "Install bundles for `bin/skills-sync select`, and the groups decide-skills' index is sorted by. Order matters: a skill in several profiles is indexed under the first. `core` is always installed. A skill's own requirements live in its frontmatter (metadata.requires) and are pulled in automatically.",
+  "profiles": [
+    {
+      "name": "core",
+      "summary": "Entry points: route to any skill, orient, set up. Always installed.",
+      "skills": ["decide-skills", "ask-kb", "setup-skills"]
+    },
+    {
+      "name": "coding",
+      "summary": "The daily engineering flow: idea, spec, tickets, implement test-first, review, debug.",
+      "skills": ["coding", "ask-matt", "setup-matt-pocock-skills", "grill-with-docs", "grill-me", "grilling", "domain-modeling", "codebase-design", "to-spec", "goldilocks-review", "to-tickets", "implement", "tdd", "code-review", "diagnosing-bugs", "triage", "prototype", "research", "handoff", "resolving-merge-conflicts", "improve-codebase-architecture", "wayfinder", "wizard"]
+    },
+    {
+      "name": "deep-review",
+      "summary": "Heavier lenses for big or risky changes: major-change review, blast radius, design comparison.",
+      "skills": ["thermos", "thermo-nuclear-review", "thermo-nuclear-code-quality-review", "interrogate", "blast-radius", "arena", "architect", "how", "why"]
+    },
+    {
+      "name": "typescript",
+      "summary": "TypeScript/JavaScript rules and fallow static analysis (needs the fallow CLI).",
+      "skills": ["typescript-best-practices", "fallow", "fallow-review"]
+    },
+    {
+      "name": "agent-ops",
+      "summary": "Long-running or unattended agent work: fan-out, decision trails, resuming, verification skills.",
+      "skills": ["swarm", "show-me-your-work", "recall", "reflect", "create-verification-skill", "maintain-verification-skill"]
+    },
+    {
+      "name": "productivity",
+      "summary": "Learning, questionnaires, clarifying confusion, and plain-prose editing passes.",
+      "skills": ["teach", "to-questionnaire", "wait-what", "unslop", "technical-writing"]
+    },
+    {
+      "name": "writing",
+      "summary": "KB's essay and reading workflows. Personal to KB's voice; adapt before relying on them.",
+      "skills": ["content-fence", "cognitive-editor", "musings-reviewer", "book-reference-extractor", "youtube-transcript-to-prose"]
+    },
+    {
+      "name": "business",
+      "summary": "Test ideas, value propositions, consequential decisions, structured problem solving, company blog posts.",
+      "skills": ["business-idea-review", "customer-value-proposition", "decision-navigator", "business-problem-solving", "business-blog-post-generator"]
+    },
+    {
+      "name": "video",
+      "summary": "HyperFrames: explainer and product-launch videos rendered from HTML.",
+      "skills": ["hyperframes", "faceless-explainer", "product-launch-video", "hyperframes-core", "hyperframes-cli", "hyperframes-creative", "hyperframes-animation", "hyperframes-keyframes", "hyperframes-audio", "hyperframes-registry", "media-use"]
+    },
+    {
+      "name": "maintainer",
+      "summary": "Write and maintain skills in your own fork: authoring guide, tier moves, instruction updates.",
+      "skills": ["writing-for-agents", "skill-tiers", "continual-learning"]
+    }
+  ]
+}

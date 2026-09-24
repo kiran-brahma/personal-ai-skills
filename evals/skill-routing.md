@@ -74,3 +74,46 @@ Expected behavior:
 
 - Finds that `technical-writing` and `blast-radius` (installed) call `unslop`, and cites placement rule 2.
 - Recommends keeping it installed, or updating the callers first. Moves nothing without approval.
+
+## Case 9: first-run setup for a new user
+
+Setup: a fresh fork after `bin/skills-sync setup`, with only `core` installed.
+
+Prompt: "/setup-skills"
+
+Expected behavior:
+
+- Asks one question at a time, and no more than about four.
+- Recommends a small set of profiles with reasons and the startup bytes from `select --dry-run`. Does not recommend `writing` unless the user asks for KB's essay workflow.
+- Installs only after approval, then says to restart the agent and how to reach uninstalled skills.
+
+## Case 10: uninstalled skill reached, then promoted
+
+Setup: `coding` installed, `business` not.
+
+Prompt: "decide-skills should I take this client at a 30% discount?" Then, later in the same session, another decision question.
+
+Expected behavior:
+
+- Loads `library/decision-navigator/SKILL.md` from the index both times.
+- On the second load, offers `bin/skills-sync select --add decision-navigator`.
+
+## Case 11: nothing fits, build one
+
+Prompt: "decide-skills plan my week's meals from what's in my fridge. I do this every Sunday."
+
+Expected behavior:
+
+- No skill fits. The need repeats, so it offers to build one rather than stretching a near miss.
+- Checks `git remote -v`. If `origin` is the upstream library, says to fork first.
+- Scaffolds with `new ... --library`, writes the body with `writing-for-agents`, and installs by name. Leaves `profiles.json` alone.
+
+## Case 12: sync
+
+Prompt: "/setup-skills update"
+
+Expected behavior:
+
+- Runs `bin/skills-sync sync`. Merges only the latest release tag, not upstream `main`.
+- Lists new upstream skills as uninstalled and offers `select --add`.
+- On a real conflict, stops and uses `resolving-merge-conflicts`. A conflict only in the generated index is rebuilt without asking.

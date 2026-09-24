@@ -2,6 +2,8 @@
 name: blast-radius
 description: "Find what a change could break beyond its diff, and prove safety by running real code. Use for 'what could this break' or a diff you don't trust."
 disable-model-invocation: true
+metadata:
+  requires: unslop
 ---
 
 # Blast radius

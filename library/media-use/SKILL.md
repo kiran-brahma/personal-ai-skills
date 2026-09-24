@@ -2,7 +2,7 @@
 name: media-use
 description: "Resolve or generate HyperFrames media: music, SFX, images, voice, captions, and logos."
 metadata:
-  group: video
+  requires: hyperframes
 ---
 
 # media-use

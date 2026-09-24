@@ -39,35 +39,39 @@ Codex and Pi both read `~/.agents/skills`, the cross-harness Agent Skills locati
 
 ## Installing this library yourself
 
-The sections above are for my own machines. If you want to use these skills, install the published plugin instead. You do not need to clone anything.
+The sections above are for my own machines. To use these skills yourself, **fork** the repository and install only what you need. Everything you don't install stays in your fork, and `decide-skills` can still find and run it.
 
-**Claude Code**
+1. Fork `kiran-brahma/personal-ai-skills` on GitHub, then:
+
+   ```bash
+   git clone https://github.com/<you>/personal-ai-skills.git ~/.kb-skills
+   ~/.kb-skills/bin/skills-sync setup
+   ```
+
+   `setup` adds this repository as the `upstream` remote, installs three entry-point skills into every agent it finds (Claude Code, Codex, Pi), and wires the git hooks.
+
+2. Restart your agent and run `/setup-skills` (`$setup-skills` in Codex). It asks what you work on, recommends a few **profiles** (`coding`, `typescript`, `deep-review`, `business`, `video`, and others in [`profiles.json`](profiles.json)), and installs them with their dependencies. Your choice lives in `my-skills.txt`, per machine and git-ignored. Change it any time with `/setup-skills` or `bin/skills-sync select --add profile:video`.
+
+3. Pull my releases with `bin/skills-sync sync`. It merges the latest release tag, never unreleased work, and reinstalls. New skills arrive uninstalled but reachable.
+
+Your own skills belong in your fork. When `decide-skills` finds that nothing fits a repeated need, it offers to build one: `bin/skills-sync new <name> --library`, then `select --add <name>` to install it.
+
+**Install everything instead.** The plugin installs the default set (everything in `skills/`) with no selection:
 
 ```bash
-claude plugin marketplace add kiran-brahma/personal-ai-skills
-claude plugin install kb@kb-skills
+claude plugin marketplace add kiran-brahma/personal-ai-skills && claude plugin install kb@kb-skills
+codex plugin marketplace add kiran-brahma/personal-ai-skills && codex plugin add kb@kb-skills
 ```
 
-**Codex**
-
-```bash
-codex plugin marketplace add kiran-brahma/personal-ai-skills
-codex plugin add kb@kb-skills
-```
-
-Both were verified against this repository at version 0.5.0, installing all 59 released skills. The working tree also contains an unreleased trial HyperFrames package. Restart the agent afterwards, and invoke a skill as `/kb:skill-name` in Claude Code. Update with `claude plugin update kb@kb-skills` or by re-running `codex plugin add kb@kb-skills`; Codex ships an update only when the version in the manifest changes.
-
-**Pi** has no marketplace. Clone the repository and link the skills into `~/.pi/agent/skills`, or run `bin/skills-sync bootstrap --role consumer --apply` from the clone.
-
-Do not install both the plugin and the symlinks on the same machine. Each agent would carry every skill twice, once namespaced and once bare.
+Invoke plugin skills as `/kb:skill-name` in Claude Code. Use one route or the other on a machine, never both, or every skill loads twice.
 
 ### Using it
 
 You do not need to memorise anything:
 
-- **Coding**: just work. The engineering skills fire on their own. Run `/kb:ask-matt` for the idea-to-ship flow.
-- **Everything else**: `/kb:decide-skills review my musing`, `/kb:decide-skills should I take this client`, or name a skill directly: `/kb:decide-skills content-fence`.
-- **Lost?** `/kb:ask-kb` explains what exists and how to invoke it. With the symlink install, drop the `kb:` prefix. In Codex, use `$ask-kb` and `$decide-skills`.
+- **Coding**: just work. The engineering skills fire on their own. Run `/ask-matt` for the idea-to-ship flow.
+- **Everything else**: `/decide-skills review my musing`, `/decide-skills should I take this client`, or name a skill: `/decide-skills content-fence`. Plain language reaches it too.
+- **Lost?** `/ask-kb` explains what exists and how to invoke it. In Codex, use `$` instead of `/`. With the plugin, add the `kb:` prefix.
 
 ### Two things worth knowing first
 
@@ -152,7 +156,7 @@ The source list and pinned references are in [`registry.yaml`](registry.yaml). A
 
 ```bash
 bin/skills-sync new my-skill -d "What it does. When it fires. Not for X, use Y."            # installed
-bin/skills-sync new my-skill -d "..." --library   # on demand; add metadata.group, then `index`
+bin/skills-sync new my-skill -d "..." --library   # on demand; add it to a profile, then `index`
 ```
 
 The scaffold refuses an over-budget description and a name that will not resolve. A description is a trigger contract, not a summary: it answers whether the skill should fire, and the detail belongs in the body where it costs nothing until the skill is invoked. The rule is in [`policies/skill-format.md`](policies/skill-format.md).
@@ -190,6 +194,7 @@ personal-ai-skills/
 ├── policies/            Repository rules and decision records
 ├── evals/               Behavioral evaluation cases
 ├── registry.yaml        Skill inventory and provenance metadata
+├── profiles.json        Install bundles for `select`; sections of the decide-skills index
 ├── THIRD_PARTY.md       Notices for adapted external skills
 ├── CHANGELOG.md         Release index
 └── changelog/           Release notes, one file per month

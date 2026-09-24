@@ -1,8 +1,6 @@
 ---
 name: musings-reviewer
 description: "Review KB's daily musing (one atomic idea, 300-word cap) for atomicity, argument, and prose. Not for essays or blog drafts, use cognitive-editor."
-metadata:
-  group: writing
 ---
 
 # Musings Reviewer

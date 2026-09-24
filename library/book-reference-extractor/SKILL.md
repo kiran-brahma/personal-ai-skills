@@ -2,7 +2,7 @@
 name: book-reference-extractor
 description: "Build source-faithful book documents from highlights or notes: author reconstruction, durable reference, reader response, Book Memo. Interviews the reader first."
 metadata:
-  group: writing
+  requires: grill-with-docs
 ---
 
 # Book Reference Extractor

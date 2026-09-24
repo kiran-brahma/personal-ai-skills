@@ -5,6 +5,9 @@ Subcommands:
   validate    Check the library against the cross-agent contract. Exit 1 on error.
   index       Regenerate the library index that decide-skills routes from.
   tier        Move a skill between the installed tier and the on-demand library.
+  setup       First-run setup for a fork: upstream remote, core-only install, hooks.
+  select      Choose which skills this machine installs, by profile or by name.
+  sync        Merge the latest upstream release into this fork and reinstall.
 
 Every rule here exists because at least one agent breaks without it. The `why`
 field on each finding names that agent, so a failure explains itself.
@@ -26,6 +29,13 @@ LIBRARY_DIR = "library"
 TIERS = (SKILLS_DIR, LIBRARY_DIR)
 ROUTER = "decide-skills"
 INDEX_FILE = os.path.join(SKILLS_DIR, ROUTER, "references", "index.md")
+# Install bundles and index groups, shared by everyone who forks the library.
+PROFILES_FILE = "profiles.json"
+CORE_PROFILE = "core"
+# This machine's choice of skills. Git-ignored: selections are per machine, and
+# keeping it out of history means a fork never conflicts with upstream over it.
+SELECTION_FILE = "my-skills.txt"
+UPSTREAM_URL = "https://github.com/kiran-brahma/personal-ai-skills.git"
 REGISTRY = "registry.yaml"
 
 # Directories inside a skill that hold supporting files rather than more skills.
@@ -643,6 +653,91 @@ def repo_skill_names(root):
     return out
 
 
+def parse_metadata(text):
+    """The `metadata:` map from frontmatter, one level deep, values as strings."""
+    m = re.match(r"^---\n(.*?)\n---\n", text, re.S)
+    out, inside = {}, False
+    for line in (m.group(1).split("\n") if m else []):
+        if re.match(r"^metadata:\s*$", line):
+            inside = True
+            continue
+        if inside:
+            km = re.match(r"^\s+([A-Za-z][\w-]*):\s*(.*)$", line)
+            if not km:
+                break
+            out[km.group(1)] = km.group(2).strip().strip("\"'")
+    return out
+
+
+def all_skills(root):
+    """name -> directory, across both tiers."""
+    out = {}
+    for tier in TIERS:
+        for sf in find_skill_files(root, tier):
+            out.setdefault(os.path.basename(os.path.dirname(sf)), os.path.dirname(sf))
+    return out
+
+
+def requires_of(skill_dir):
+    text = open(os.path.join(skill_dir, SKILL_FILE), encoding="utf-8", errors="replace").read()
+    return parse_metadata(text).get("requires", "").replace(",", " ").split()
+
+
+def load_profiles(root):
+    path = os.path.join(root, PROFILES_FILE)
+    if not os.path.exists(path):
+        return []
+    return json.load(open(path, encoding="utf-8")).get("profiles", [])
+
+
+def read_selection(root):
+    """Tokens from my-skills.txt (`profile:<name>` or a skill name), or None."""
+    path = os.path.join(root, SELECTION_FILE)
+    if not os.path.exists(path):
+        return None
+    out = []
+    for line in open(path, encoding="utf-8"):
+        line = line.split("#", 1)[0].strip()
+        if line:
+            out.append(line)
+    return out
+
+
+def resolve_selection(root, tokens):
+    """Expand profiles and requirements. Returns (name -> dir, unknown tokens)."""
+    skills, profiles = all_skills(root), {p["name"]: p for p in load_profiles(root)}
+    wanted, unknown = [], []
+    for tok in [f"profile:{CORE_PROFILE}"] + list(tokens):
+        if tok.startswith("profile:"):
+            prof = profiles.get(tok.split(":", 1)[1])
+            if prof is None:
+                unknown.append(tok)
+            else:
+                wanted.extend(prof["skills"])
+        else:
+            wanted.append(tok)
+    out, queue = {}, list(wanted)
+    while queue:
+        name = queue.pop(0)
+        if name in out:
+            continue
+        if name not in skills:
+            unknown.append(name)
+            continue
+        out[name] = skills[name]
+        queue.extend(requires_of(skills[name]))
+    return dict(sorted(out.items())), sorted(set(unknown))
+
+
+def installed_skills(root):
+    """What this machine installs: its selection when it has one, otherwise the
+    installed tier (skills/), which is the library's recommended default."""
+    tokens = read_selection(root)
+    if tokens is None:
+        return repo_skill_names(root)
+    return resolve_selection(root, tokens)[0]
+
+
 def link_target(path):
     """Absolute target of a symlink, even when it dangles."""
     t = os.readlink(path)
@@ -668,7 +763,8 @@ def reconcile_links(root, install_dir, skills, dry_run):
     managed = {}
     for name in sorted(os.listdir(install_dir)):
         p = os.path.join(install_dir, name)
-        if os.path.islink(p) and under(link_target(p), os.path.join(root, SKILLS_DIR)):
+        if os.path.islink(p) and any(under(link_target(p), os.path.join(root, tier))
+                                     for tier in TIERS):
             managed[name] = p
         elif name in skills:
             conflicts.append(name)
@@ -776,9 +872,10 @@ def cmd_refresh(args):
         return rc
 
     root = os.path.abspath(args.root)
-    skills = repo_skill_names(root)
+    skills = installed_skills(root)
     dry = args.dry_run
-    print(f"skills-sync refresh — {len(skills)} skills in the repo"
+    source = SELECTION_FILE if read_selection(root) is not None else f"{SKILLS_DIR}/ (default)"
+    print(f"skills-sync refresh — {len(skills)} skills from {source}"
           f"{' (DRY RUN)' if dry else ''}\n")
 
     total = 0
@@ -1344,7 +1441,7 @@ def cmd_doctor(args):
         check("hooks", "core.hooksPath", "ok", f"{HOOKS_DIR} ({len(present)} hooks)")
 
     # Installs — ask refresh what it would change, but change nothing.
-    skills = repo_skill_names(root)
+    skills = installed_skills(root)
     for label, fn in (("claude", refresh_claude), ("pi", refresh_pi)):
         home, actions, conflicts = fn(root, skills, True)
         if home is None:
@@ -1425,7 +1522,7 @@ def cmd_bootstrap(args):
     root = os.path.abspath(args.root)
     tools = detect_tools()
     slug, url = origin_slug(root)
-    skills = repo_skill_names(root)
+    skills = installed_skills(root)
 
     role = args.role
     if not role:
@@ -1680,7 +1777,7 @@ def cmd_release(args):
 
     # Prove the install actually moved, rather than trusting refresh's report.
     print("\nPost-release verification")
-    skills = repo_skill_names(root)
+    skills = installed_skills(root)
     config = os.path.expanduser(os.environ.get("CLAUDE_CONFIG_DIR", "~/.claude"))
     home = os.path.join(config, "skills")
     if os.path.isdir(home):
@@ -1706,43 +1803,82 @@ def cmd_release(args):
     return 0
 
 
-def library_entries(root):
-    """(group, name, description, explicit_only) for every library skill."""
+def index_entries(root):
+    """(group, name, tier, description, explicit_only) for every skill in the repo,
+    grouped by the first profile that lists it."""
+    group_of = {}
+    for prof in load_profiles(root):
+        for name in prof["skills"]:
+            group_of.setdefault(name, prof["name"])
+    order = {p["name"]: i for i, p in enumerate(load_profiles(root))}
     out = []
-    for sf in find_skill_files(root, LIBRARY_DIR):
-        fm, err = parse_frontmatter(open(sf, encoding="utf-8", errors="replace").read())
-        if err or not fm.get("name"):
-            continue
-        gm = re.search(r"group:\s*([a-z0-9-]+)", fm.get("metadata", ""))
-        out.append((gm.group(1) if gm else "other", fm["name"],
-                    " ".join(fm.get("description", "").split()),
-                    fm.get("disable-model-invocation", "").lower() == "true"))
-    return sorted(out)
+    for tier in TIERS:
+        for sf in find_skill_files(root, tier):
+            fm, err = parse_frontmatter(open(sf, encoding="utf-8", errors="replace").read())
+            if err or not fm.get("name"):
+                continue
+            group = group_of.get(fm["name"], "unsorted")
+            out.append((order.get(group, len(order)), group, fm["name"], tier,
+                        " ".join(fm.get("description", "").split()),
+                        fm.get("disable-model-invocation", "").lower() == "true"))
+    return [row[1:] for row in sorted(out)]
 
 
 def render_index(root):
     """The index decide-skills reads instead of carrying every description.
     Generated, so it can never drift from the library it describes."""
     lines = [
-        "# Library index", "",
-        "Generated by `bin/skills-sync index`. Do not edit by hand.", "",
-        "One line per on-demand skill: name, trigger contract, path from the repository root.",
+        "# Skill index", "",
+        "Generated by `bin/skills-sync index` from every skill in the repository and "
+        "`profiles.json`. Do not edit by hand.", "",
+        "One line per skill: name, trigger contract, path from the repository root. "
+        "Sections are install profiles.",
         "`[explicit]` marks a gate: run it only when the user asked for it by name or intent.", "",
     ]
-    groups = {}
-    for group, name, desc, explicit in library_entries(root):
-        groups.setdefault(group, []).append((name, desc, explicit))
+    summaries = {p["name"]: p.get("summary", "") for p in load_profiles(root)}
     notes = os.path.join(root, SKILLS_DIR, ROUTER, "references", "groups")
-    for group in sorted(groups):
-        lines.append(f"## {group}")
-        if os.path.isfile(os.path.join(notes, f"{group}.md")):
-            lines.append(f"Group rules: `references/groups/{group}.md`")
-        lines.append("")
-        for name, desc, explicit in groups[group]:
-            tag = " [explicit]" if explicit else ""
-            lines.append(f"- `{name}`{tag}: {desc} `{LIBRARY_DIR}/{name}/SKILL.md`")
-        lines.append("")
+    current = None
+    for group, name, tier, desc, explicit in index_entries(root):
+        if group != current:
+            if current is not None:
+                lines.append("")
+            current = group
+            lines.append(f"## {group}")
+            if summaries.get(group):
+                lines.append(summaries[group])
+            if os.path.isfile(os.path.join(notes, f"{group}.md")):
+                lines.append(f"Group rules: `references/groups/{group}.md`")
+            lines.append("")
+        tag = " [explicit]" if explicit else ""
+        lines.append(f"- `{name}`{tag}: {desc} `{tier}/{name}/SKILL.md`")
+    lines.append("")
     return "\n".join(lines)
+
+
+def check_profiles(root, by_name, findings):
+    # P1 — a profile naming a missing skill fails `select` for every user of it.
+    for prof in load_profiles(root):
+        for name in prof["skills"]:
+            if name not in by_name:
+                findings.append(Finding(
+                    ERROR, "P1-profile", PROFILES_FILE,
+                    f"profile '{prof['name']}' lists unknown skill '{name}'",
+                    "select installs profiles by name and cannot resolve a missing skill"))
+    profiled = {n for p in load_profiles(root) for n in p["skills"]}
+    for name in sorted(set(by_name) - profiled):
+        findings.append(Finding(
+            WARN, "P2-unprofiled", by_name[name][0],
+            f"'{name}' is in no profile; it is indexed under 'unsorted'",
+            "setup-skills recommends profiles, so an unprofiled skill is only found by name "
+            "(expected for your own skills in a fork)"))
+    # R1 — an unresolvable requirement silently installs a skill without its callee.
+    for name, paths in sorted(by_name.items()):
+        for req in requires_of(os.path.join(root, os.path.dirname(paths[0]))):
+            if req not in by_name:
+                findings.append(Finding(
+                    ERROR, "R1-requires", paths[0],
+                    f"requires unknown skill '{req}'",
+                    "select installs requirements with the skill; a missing one breaks it"))
 
 
 def check_index(root, findings):
@@ -1765,12 +1901,12 @@ def cmd_index(args):
     text = render_index(root)
     old = open(path, encoding="utf-8").read() if os.path.exists(path) else None
     if old == text:
-        print(f"{INDEX_FILE} is current ({len(library_entries(root))} library skills)")
+        print(f"{INDEX_FILE} is current ({len(index_entries(root))} skills)")
         return 0
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(text)
-    print(f"wrote {INDEX_FILE} ({len(library_entries(root))} library skills)")
+    print(f"wrote {INDEX_FILE} ({len(index_entries(root))} skills)")
     return 0
 
 
@@ -1794,12 +1930,186 @@ def cmd_tier(args):
         print(r.stderr.strip())
         return 1
     print(f"moved {src_tier}/{args.name} -> {dest_tier}/{args.name}")
-    if dest_tier == LIBRARY_DIR:
-        print("add a group to its frontmatter (`metadata:` then `  group: <group>`), "
-              "then run `bin/skills-sync index`")
     cmd_index(args)
     print("next: `bin/skills-sync validate` (checks links and the budget), then commit; "
           "the post-commit hook re-links the installs")
+    return 0
+
+
+def description_bytes(skill_dir):
+    fm, _ = parse_frontmatter(open(os.path.join(skill_dir, SKILL_FILE),
+                                   encoding="utf-8", errors="replace").read())
+    return len(" ".join(((fm or {}).get("description") or "").split()))
+
+
+def write_selection(root, tokens):
+    with open(os.path.join(root, SELECTION_FILE), "w", encoding="utf-8") as fh:
+        fh.write("# Skills installed on this machine. Edit with `bin/skills-sync select`,\n"
+                 "# or by hand: one `profile:<name>` or skill name per line.\n"
+                 f"# profile:{CORE_PROFILE} is always installed. Everything else stays in the\n"
+                 "# repository, reachable through decide-skills.\n")
+        for tok in tokens:
+            fh.write(tok + "\n")
+
+
+def cmd_select(args):
+    """Choose what this machine installs, by profile or by skill."""
+    root = os.path.abspath(args.root)
+    profiles = load_profiles(root)
+    tokens = read_selection(root)
+    if tokens is None:
+        # Seed from the default so a first edit never silently drops skills.
+        tokens = list(repo_skill_names(root))
+    before = set(resolve_selection(root, tokens)[0])
+
+    if args.profiles:
+        chosen = set(resolve_selection(root, tokens)[0])
+        skills = all_skills(root)
+        for prof in profiles:
+            names = [n for n in prof["skills"] if n in skills]
+            size = sum(description_bytes(skills[n]) for n in names)
+            have = sum(1 for n in names if n in chosen)
+            print(f"  {prof['name']:13} {have:>2}/{len(names):<2} installed  "
+                  f"{size:>5} B  {prof.get('summary', '')}")
+        return 0
+
+    changed = False
+    for tok in args.add or []:
+        if tok not in tokens:
+            tokens.append(tok)
+            changed = True
+    for tok in args.remove or []:
+        if tok in tokens:
+            tokens.remove(tok)
+            changed = True
+        else:
+            print(f"note: '{tok}' is not listed in {SELECTION_FILE}")
+
+    resolved, unknown = resolve_selection(root, tokens)
+    if unknown:
+        print(f"unknown: {', '.join(unknown)} — see `select --profiles` or the index")
+        return 1
+    for tok in args.remove or []:
+        if tok in resolved:
+            print(f"note: '{tok}' stays installed; a profile or another skill requires it")
+
+    size = sum(description_bytes(d) for d in resolved.values())
+    added, dropped = sorted(set(resolved) - before), sorted(before - set(resolved))
+    print(f"{len(resolved)} skills, {size} description bytes loaded at startup "
+          f"(budget {DEFAULT_TOTAL_DESC})")
+    if added:
+        print(f"  + {', '.join(added)}")
+    if dropped:
+        print(f"  - {', '.join(dropped)}")
+    if size > DEFAULT_TOTAL_DESC:
+        print(f"  WARNING over budget: Codex will truncate descriptions. Drop a profile; "
+              f"dropped skills stay reachable through {ROUTER}.")
+    if args.show or not changed:
+        print("\n" + "\n".join(f"  {n}" for n in resolved))
+        return 0
+    if args.dry_run:
+        print("\n(dry run — nothing written)")
+        return 0
+    write_selection(root, tokens)
+    print(f"\nwrote {SELECTION_FILE}\n")
+    return cmd_refresh(argparse.Namespace(root=root, dry_run=False, quiet=False))
+
+
+def cmd_setup(args):
+    """First-run setup for a fork: remotes, a minimal selection, hooks, install."""
+    root = os.path.abspath(args.root)
+    slug, url = origin_slug(root)
+    up_slug = re.search(r"[:/]([^/:]+/[^/]+?)(?:\.git)?$", UPSTREAM_URL).group(1)
+    remotes = git(root, "remote").stdout.split()
+
+    print("skills-sync setup\n")
+    if slug == up_slug:
+        print(f"  origin is the upstream library ({up_slug}), not a fork. That works for\n"
+              f"  using skills, but to build your own, fork on GitHub and repoint origin:\n"
+              f"  git remote set-url origin <your fork>\n")
+    elif "upstream" not in remotes:
+        git(root, "remote", "add", "upstream", UPSTREAM_URL)
+        print(f"  added remote upstream -> {UPSTREAM_URL}")
+    else:
+        print("  remote upstream already set")
+
+    if read_selection(root) is None:
+        write_selection(root, [])
+        print(f"  wrote {SELECTION_FILE}: only profile:{CORE_PROFILE} "
+              f"({', '.join(resolve_selection(root, [])[0])})")
+    else:
+        print(f"  kept existing {SELECTION_FILE}")
+
+    print()
+    cmd_hooks(argparse.Namespace(root=root, install=True, uninstall=False))
+    print()
+    cmd_refresh(argparse.Namespace(root=root, dry_run=False, quiet=False))
+    print("\nNext: restart your agent, then run the setup-skills skill "
+          "(`/setup-skills` in Claude Code or Pi, `$setup-skills` in Codex). It asks what "
+          "you work on and installs the matching profiles.")
+    print("If you also installed the kb plugin, remove it; otherwise every skill loads twice.")
+    return 0
+
+
+def latest_release_tag(root):
+    tags = git(root, "tag", "-l", f"{TAG_PREFIX}*").stdout.split()
+    def key(tag):
+        return [int(x) for x in re.findall(r"\d+", tag)]
+    return max(tags, key=key) if tags else None
+
+
+def cmd_sync(args):
+    """Merge the latest upstream release into this fork, then reinstall."""
+    root = os.path.abspath(args.root)
+    remotes = git(root, "remote").stdout.split()
+    remote = "upstream" if "upstream" in remotes else "origin"
+    if git(root, "status", "--porcelain", "--untracked-files=no").stdout.strip():
+        print("working tree has uncommitted changes; commit or stash them first")
+        return 1
+    before = set(all_skills(root))
+    r = git(root, "fetch", "--tags", remote)
+    if r.returncode != 0:
+        print(r.stderr.strip())
+        return 1
+    tag = latest_release_tag(root)
+    if not tag:
+        print(f"no {TAG_PREFIX}* release tags found on {remote}")
+        return 1
+    if git(root, "merge-base", "--is-ancestor", tag, "HEAD").returncode == 0:
+        print(f"up to date: {tag} is already merged")
+        return 0
+    if args.dry_run:
+        print(f"would merge {tag} from {remote}")
+        return 0
+
+    print(f"merging {tag} from {remote}")
+    r = git(root, "merge", "--no-edit", "-m", f"Sync upstream {tag}", tag)
+    if r.returncode != 0:
+        conflicts = git(root, "diff", "--name-only", "--diff-filter=U").stdout.split()
+        if conflicts == [INDEX_FILE]:
+            # Generated file: rebuild it rather than merging two generations.
+            cmd_index(argparse.Namespace(root=root))
+            git(root, "add", INDEX_FILE)
+            git(root, "commit", "--no-edit")
+        else:
+            print("merge stopped on conflicts:\n  " + "\n  ".join(conflicts))
+            print("Resolve them (the resolving-merge-conflicts skill helps), run "
+                  "`bin/skills-sync index`, commit, then `bin/skills-sync refresh`.")
+            return 1
+
+    # Your own skills are not in upstream's generated index; rebuild it.
+    if render_index(root) != open(os.path.join(root, INDEX_FILE), encoding="utf-8").read():
+        cmd_index(argparse.Namespace(root=root))
+        git(root, "add", INDEX_FILE)
+        git(root, "commit", "-q", "-m", "Regenerate skill index after sync")
+
+    new = sorted(set(all_skills(root)) - before)
+    print()
+    cmd_refresh(argparse.Namespace(root=root, dry_run=False, quiet=True))
+    print(f"synced to {tag}")
+    if new:
+        print(f"new upstream skills (not installed, reachable through {ROUTER}): "
+              f"{', '.join(new)}\nInstall one with `bin/skills-sync select --add <name>`.")
     return 0
 
 
@@ -1852,9 +2162,9 @@ def cmd_new(args):
     print(f"created {rel(root, os.path.join(target, SKILL_FILE))}")
     print("next: write the body, add the skill to registry.yaml, then run "
           "`bin/skills-sync validate`")
-    if args.library:
-        print("library skill: add a group to its frontmatter (`metadata:` then "
-              "`  group: <group>`), then run `bin/skills-sync index`")
+    print(f"then run `bin/skills-sync index`. Library maintainer: add it to a profile in "
+          f"{PROFILES_FILE}. Your own skill in a fork: skip that and install it by name "
+          f"with `bin/skills-sync select --add {name}`")
     return 0
 
 
@@ -1880,6 +2190,7 @@ def cmd_validate(args):
     # Library descriptions keep the per-skill cap: each is a line of the index.
     check_budget(root, library, findings, args.max_desc, float("inf"))
     check_integrity(root, skill_files, by_name, findings)
+    check_profiles(root, by_name, findings)
     check_index(root, findings)
 
     if args.strict:
@@ -2021,6 +2332,21 @@ def main():
     tr.add_argument("name", help="skill name")
     tr.add_argument("to", choices=("installed", "library"), help="destination tier")
     tr.set_defaults(func=cmd_tier)
+
+    se = sub.add_parser("setup", help="first-run setup for a fork: remotes, minimal install, hooks")
+    se.set_defaults(func=cmd_setup)
+
+    sl = sub.add_parser("select", help="choose which skills this machine installs")
+    sl.add_argument("--add", nargs="+", metavar="ITEM", help="profile:<name> or a skill name")
+    sl.add_argument("--remove", nargs="+", metavar="ITEM", help="profile:<name> or a skill name")
+    sl.add_argument("--profiles", action="store_true", help="list profiles and what they cost")
+    sl.add_argument("--show", action="store_true", help="print the resolved selection")
+    sl.add_argument("--dry-run", action="store_true", help="report without writing")
+    sl.set_defaults(func=cmd_select)
+
+    sy = sub.add_parser("sync", help="merge the latest upstream release into this fork")
+    sy.add_argument("--dry-run", action="store_true", help="report without merging")
+    sy.set_defaults(func=cmd_sync)
 
     args = p.parse_args()
     sys.exit(args.func(args))

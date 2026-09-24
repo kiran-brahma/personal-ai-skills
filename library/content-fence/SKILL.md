@@ -1,8 +1,6 @@
 ---
 name: content-fence
 description: "KB's essay-development workflows, no ghostwriting: thinking grills, Thinking Essay development, reader reconstruction, reader-response audits, prose linting."
-metadata:
-  group: writing
 ---
 
 # Content Fence

@@ -1,8 +1,6 @@
 ---
 name: customer-value-proposition
 description: "Frame and test a value proposition: real buyer, job, current alternative, desired outcome, adoption barrier. Not a substitute for evidence."
-metadata:
-  group: business
 ---
 
 # Customer value proposition

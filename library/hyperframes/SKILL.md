@@ -2,7 +2,7 @@
 name: hyperframes
 description: "Route video and animation work to HyperFrames. Not for writing, use content-fence."
 metadata:
-  group: video
+  requires: hyperframes-core hyperframes-cli hyperframes-creative hyperframes-animation hyperframes-keyframes hyperframes-audio hyperframes-registry media-use
 ---
 
 # HyperFrames entry point

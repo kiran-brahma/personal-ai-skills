@@ -2,6 +2,8 @@
 name: to-tickets
 description: "Break a plan, spec, or conversation into tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker."
 disable-model-invocation: true
+metadata:
+  requires: goldilocks-review
 ---
 
 # To Tickets

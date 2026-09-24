@@ -2,6 +2,8 @@
 name: thermos
 description: Run deep correctness/security/devex and maintainability reviews for a major change, then synthesize findings before the normal code review.
 disable-model-invocation: true
+metadata:
+  requires: thermo-nuclear-review thermo-nuclear-code-quality-review code-review
 ---
 
 # Thermos

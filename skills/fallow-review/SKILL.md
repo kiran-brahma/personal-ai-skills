@@ -2,6 +2,8 @@
 name: fallow-review
 description: Graph-validated PR/diff review for TypeScript/JavaScript via fallow. Subtracts dead-code noise, surfaces structural decisions (API, coupling, deps). Not a CI gate, use fallow's audit command for that.
 license: MIT
+metadata:
+  requires: fallow
 ---
 
 # Fallow Review: graph-grounded code review

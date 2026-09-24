@@ -1,8 +1,6 @@
 ---
 name: decision-navigator
 description: "Audit a consequential business decision: bias check, premortem, hard gates, exit conditions. For pricing, hiring, client, cash, or continue/kill choices."
-metadata:
-  group: business
 ---
 
 # Decision navigator

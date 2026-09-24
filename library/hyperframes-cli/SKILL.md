@@ -2,8 +2,6 @@
 name: hyperframes-cli
 description: "Run HyperFrames projects: scaffold, capture, check, preview, render, or diagnose failures."
 disable-model-invocation: true
-metadata:
-  group: video
 ---
 
 # HyperFrames CLI

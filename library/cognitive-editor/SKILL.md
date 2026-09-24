@@ -1,8 +1,6 @@
 ---
 name: cognitive-editor
 description: "Editorial audit of any writing, KB's drafts or an unfamiliar piece. Use for 'audit this', 'check this draft', or when KB pastes writing for feedback."
-metadata:
-  group: writing
 ---
 
 

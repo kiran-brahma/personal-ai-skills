@@ -122,8 +122,8 @@ packages:
   - id: skill-routing
     source: repository-owner
     status: trial
-    skills: [ask-kb, skill-tiers]
-    adaptations: [two-tier-library, generated-index, router-over-library]
+    skills: [ask-kb, skill-tiers, setup-skills]
+    adaptations: [two-tier-library, generated-index, router-over-library, per-machine-selection, fork-and-sync]
   - id: local-workflow
     source: repository-owner
     status: trial

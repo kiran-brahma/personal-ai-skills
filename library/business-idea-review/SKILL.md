@@ -1,8 +1,6 @@
 ---
 name: business-idea-review
 description: "Test a new business idea, product, or strategic bet before committing time or money. Not for implementation planning."
-metadata:
-  group: business
 ---
 
 # Business idea review

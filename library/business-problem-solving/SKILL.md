@@ -1,8 +1,6 @@
 ---
 name: business-problem-solving
 description: "Structure a multi-factor business problem before analysis: outcome, problem type, issue tree, priorities. Not for simple factual questions."
-metadata:
-  group: business
 ---
 
 # Business problem solving

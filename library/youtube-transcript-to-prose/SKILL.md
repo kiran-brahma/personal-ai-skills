@@ -1,8 +1,6 @@
 ---
 name: youtube-transcript-to-prose
 description: "Turn a YouTube, podcast, lecture, or interview transcript into faithful essay prose, ads and clutter removed. Not a summary or a new essay."
-metadata:
-  group: writing
 ---
 
 # YouTube Transcript to Prose

@@ -2,7 +2,7 @@
 name: product-launch-video
 description: "Turn a product URL, script, or brief into a promo or product-tour video."
 metadata:
-  group: video
+  requires: hyperframes
 ---
 
 > This workflow is locally vendored and reviewed with the shared HyperFrames foundation. Do not refresh it from the network during a content run.

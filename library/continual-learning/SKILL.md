@@ -2,8 +2,6 @@
 name: continual-learning
 description: "Review completed work for durable preferences and workspace facts, then propose a small evidence-backed update to AGENTS.md or CLAUDE.md."
 disable-model-invocation: true
-metadata:
-  group: governance
 ---
 
 # Continual learning
