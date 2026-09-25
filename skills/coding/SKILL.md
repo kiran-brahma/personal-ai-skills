@@ -58,6 +58,8 @@ Use `thermos` when a change crosses system boundaries, changes a data model or m
 
 Writing, business, video, and other occasional work lives in the on-demand `library/` tier. Hand it to `decide-skills` rather than looking for an installed skill.
 
+Visual design for UI work, such as aesthetic direction, typography, layout, and interface copy, is also in the library. When the user asks for UI changes or UI ideas, hand it to `decide-skills` before building.
+
 ## Portability rule
 
 The canonical `SKILL.md` files use skill names, not a particular harness’s command syntax. Translate explicit invocation through the relevant adapter: Claude Code uses `/skill-name`, Codex uses `$skill-name`, and Pi uses `/skill:name`. A skill may be model-invoked or user-invoked according to its frontmatter; user-invoked gates must not be silently bypassed.

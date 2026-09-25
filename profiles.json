@@ -50,6 +50,11 @@
       "name": "maintainer",
       "summary": "Write and maintain skills in your own fork: authoring guide, tier moves, instruction updates.",
       "skills": ["writing-for-agents", "skill-tiers", "continual-learning"]
+    },
+    {
+      "name": "design",
+      "summary": "Deliberate visual design for UI work: aesthetic direction, typography, layout, interface copy.",
+      "skills": ["frontend-design"]
     }
   ]
 }

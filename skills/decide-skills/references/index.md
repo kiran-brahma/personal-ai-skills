@@ -120,3 +120,8 @@ Write and maintain skills in your own fork: authoring guide, tier moves, instruc
 - `continual-learning` [explicit]: Review completed work for durable preferences and workspace facts, then propose a small evidence-backed update to AGENTS.md or CLAUDE.md. `library/continual-learning/SKILL.md`
 - `skill-tiers` [explicit]: Move a skill between installed and on-demand library tiers, or audit which skills belong in each, keeping the budget and index correct. `skills/skill-tiers/SKILL.md`
 - `writing-for-agents`: Writing documents for agents. Use when creating or editing skills, or modifying AGENTS.md or CLAUDE.md. `skills/writing-for-agents/SKILL.md`
+
+## design
+Deliberate visual design for UI work: aesthetic direction, typography, layout, interface copy.
+
+- `frontend-design`: Distinctive, intentional visual design for new or reshaped UI: aesthetic direction, type, layout, copy. Use for UI changes or ideas. Not for throwaway prototypes, use prototype. `library/frontend-design/SKILL.md`

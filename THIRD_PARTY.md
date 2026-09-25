@@ -32,6 +32,14 @@ Copyright (c) 2026 Bart Waardenburg
 
 The adapted skills (`fallow`, `fallow-review`) are distributed under the MIT License. The upstream package's Claude plugin marketplace scaffolding (`.claude-plugin/`, `commands/`, `bin/`) and its `agents/openai.yaml` interface descriptors were not vendored — the latter is Codex-specific policy metadata, which `policies/skill-format.md` places under `adapters/`, not the portable skill. Only the two `SKILL.md` files, their `references/`, and `fallow-review`'s optional Claude-Code-only feedback hooks were kept. Those hooks stay self-fenced to Claude Code within the skill text, per this repository's scope-discipline rule.
 
+## Anthropic skills
+
+Source: [anthropics/skills](https://github.com/anthropics/skills), commit `33375500bcea98d610eb30ce10ac4e59b89c390d`.
+
+Copyright (c) Anthropic, PBC
+
+The `frontend-design` skill is distributed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0); the full terms are in `library/frontend-design/LICENSE.txt`. The body is vendored verbatim. Only the description was shortened to fit this repository's trigger budget, and the skill sits in the on-demand library tier.
+
 ## MIT License
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:

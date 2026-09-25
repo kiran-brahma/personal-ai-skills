@@ -93,6 +93,13 @@ sources:
     license: MIT
     role: codebase-intelligence
     update_policy: Requires an external fallow CLI install; re-check the agent rules, onboarding-offer behavior, and Claude-only review hooks before adopting an upstream change.
+  - id: anthropic-skills
+    repository: https://github.com/anthropics/skills
+    reference: 33375500bcea98d610eb30ce10ac4e59b89c390d
+    version: unversioned
+    license: Apache-2.0
+    role: ui-design
+    update_policy: Compare upstream skill text with the local trigger contract before adoption; keep the body verbatim unless a local adaptation is approved.
 
 packages:
   - id: matt-pocock-skills
@@ -169,6 +176,12 @@ packages:
     upstream_prefix: fallow/skills
     skills: [fallow, fallow-review]
     adaptations: [flat-layout, no-plugin-marketplace-scaffolding, no-agent-metadata, claude-hooks-kept-self-fenced]
+  - id: anthropic-design
+    source: anthropic-skills
+    status: trial
+    upstream_prefix: skills
+    skills: [frontend-design]
+    adaptations: [trigger-budget, library-tier]
 
 external_workflows:
   - id: codex-security
