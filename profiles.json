@@ -34,7 +34,7 @@
     {
       "name": "writing",
       "summary": "KB's essay and reading workflows. Personal to KB's voice; adapt before relying on them.",
-      "skills": ["content-fence", "cognitive-editor", "musings-reviewer", "book-reference-extractor", "youtube-transcript-to-prose"]
+      "skills": ["content-fence", "cognitive-editor", "musings-reviewer", "book-reference-extractor", "youtube-transcript-to-prose", "close-reading"]
     },
     {
       "name": "business",

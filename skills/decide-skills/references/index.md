@@ -83,6 +83,7 @@ KB's essay and reading workflows. Personal to KB's voice; adapt before relying o
 Group rules: `references/groups/writing.md`
 
 - `book-reference-extractor`: Build source-faithful book documents from highlights or notes: author reconstruction, durable reference, reader response, Book Memo. Interviews the reader first. `library/book-reference-extractor/SKILL.md`
+- `close-reading`: Interrogate KB's close reading of an article they admired: KB answers, the agent only asks and pushes back. Lite or complete mode. Not for auditing drafts, use cognitive-editor. `library/close-reading/SKILL.md`
 - `cognitive-editor`: Editorial audit of any writing, KB's drafts or an unfamiliar piece. Use for 'audit this', 'check this draft', or when KB pastes writing for feedback. `library/cognitive-editor/SKILL.md`
 - `content-fence`: KB's essay-development workflows, no ghostwriting: thinking grills, Thinking Essay development, reader reconstruction, reader-response audits, prose linting. `library/content-fence/SKILL.md`
 - `musings-reviewer`: Review KB's daily musing (one atomic idea, 300-word cap) for atomicity, argument, and prose. Not for essays or blog drafts, use cognitive-editor. `library/musings-reviewer/SKILL.md`

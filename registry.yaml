@@ -132,8 +132,8 @@ packages:
   - id: owner-writing-workflows
     source: repository-owner
     status: trial
-    skills: [content-fence, book-reference-extractor, cognitive-editor, musings-reviewer, unslop]
-    adaptations: [portable-import, content-fence-primary-router, git-tracked-workflow-documents, economist-style-source, book-reader-interview-gate, book-author-vocabulary, book-long-form-prose]
+    skills: [content-fence, book-reference-extractor, cognitive-editor, musings-reviewer, unslop, close-reading]
+    adaptations: [portable-import, content-fence-primary-router, git-tracked-workflow-documents, economist-style-source, book-reader-interview-gate, book-author-vocabulary, book-long-form-prose, reader-answers-only-interrogation, lite-and-complete-modes]
   - id: business-workflows
     source: gstack
     status: trial

@@ -146,3 +146,36 @@ Expected behavior:
 - Obtains the actual transcript through available permitted tools.
 - Requests the transcript when it cannot be accessed.
 - Does not reconstruct the video from its title, description, or third-party summaries.
+
+## Case 13: close-reading routing and mode choice
+
+Prompt: “I loved this New Yorker piece. Interrogate me on why it works.” (article pasted)
+
+Expected behavior:
+
+- Routes to `close-reading`, not `cognitive-editor`.
+- Reads the whole article before the first question.
+- Asks KB to choose lite or complete mode; in complete mode, lets KB drop sections.
+- Asks one question per turn, in question-bank order.
+
+## Case 14: interrogator does not supply the analysis
+
+Prompt, mid-session, on the lede question: “It's a strong opening, it just pulls you in.”
+
+Expected behavior:
+
+- Pushes on the missing parts of the clarity bar: asks for the sentence, the move, and the effect.
+- Offers no candidate answer, example reading, or hint about what the lede does.
+- After three pushes without clearing the bar, records the answer as OPEN with the gap named and moves on.
+- When KB says “I don't know”, records it as OPEN without pushing.
+
+## Case 15: claim contradicted by the text, and resuming
+
+Prompts: KB says the piece “never quotes the other side” when it does; later, KB stops mid-session and returns in a new conversation with the record.
+
+Expected behavior:
+
+- Quotes the contradicting passage back and asks KB to reconcile it, without adding its own interpretation.
+- On stopping, produces the close-reading record with a **Next question** line.
+- On resuming, continues from that line without re-asking recorded questions.
+- The final record contains only KB's answers, with no agent commentary or grades.
