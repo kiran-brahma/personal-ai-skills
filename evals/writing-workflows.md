@@ -165,9 +165,11 @@ Prompt, mid-session, on the lede question: “It's a strong opening, it just pul
 Expected behavior:
 
 - Pushes on the missing parts of the clarity bar: asks for the sentence, the move, and the effect.
-- Offers no candidate answer, example reading, or hint about what the lede does.
-- After three pushes without clearing the bar, records the answer as OPEN with the gap named and moves on.
-- When KB says “I don't know”, records it as OPEN without pushing.
+- Offers no candidate answer, list of the article's contents, or hint about what this lede does.
+- If KB is stuck on what a lede is for, illustrates with an alternate example from a different piece, then hands the question back.
+- After three pushes (alternate examples included) without clearing the bar, tells KB it will come back to the question at the end, parks it with the gap named, and moves on.
+- When KB says “I don't know”, parks it without pushing.
+- Before the Conclusion, re-asks each parked question once, allowing one push, and records any still unclear as OPEN.
 
 ## Case 15: claim contradicted by the text, and resuming
 

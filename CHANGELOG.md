@@ -4,11 +4,11 @@ This file is an index. Detailed release notes live in one file per ISO month so 
 
 ## Latest release
 
-[0.7.2 — 2026-09-25](changelog/2026-09.md#072--2026-09-25--close-reading-interrogator)
+[0.7.3 — 2026-09-25](changelog/2026-09.md#073--2026-09-25--close-reading-alternate-examples-and-parked-questions)
 
 ## Monthly index
 
-- [2026-09](changelog/2026-09.md): versions `0.1.0`, `0.2.0`, `0.2.1`, `0.2.2`, `0.3.0`, `0.3.1`, `0.4.0`, `0.5.0`, `0.6.1`, `0.6.2`, `0.7.0`, `0.7.1`, and `0.7.2`, including the business blog post generator, the flat cross-agent layout, the decision gates and bias controls in `decision-navigator`, the transcript-to-prose writing skill, the two-tier library with per-machine setup, Google Antigravity support, and the `close-reading` interrogator. `0.6.0` was tagged without a changelog section; its contents are the two entries still marked Unreleased above it.
+- [2026-09](changelog/2026-09.md): versions `0.1.0`, `0.2.0`, `0.2.1`, `0.2.2`, `0.3.0`, `0.3.1`, `0.4.0`, `0.5.0`, `0.6.1`, `0.6.2`, `0.7.0`, `0.7.1`, `0.7.2`, and `0.7.3`, including the business blog post generator, the flat cross-agent layout, the decision gates and bias controls in `decision-navigator`, the transcript-to-prose writing skill, the two-tier library with per-machine setup, Google Antigravity support, and the `close-reading` interrogator. `0.6.0` was tagged without a changelog section; its contents are the two entries still marked Unreleased above it.
 
 ## Changelog format
 

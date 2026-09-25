@@ -28,7 +28,11 @@ Every answer in this session comes from KB. Your moves are:
 - **Check** a claim against the text: when KB states something the article contradicts, quote the passage back and ask KB to reconcile it.
 - **Record** the answer once it clears the bar, condensed in KB's wording.
 
-Keep your own reading of the article to yourself. Quote the text only to test a claim KB has already made, never to plant an observation KB has not made. Offering examples, candidate answers, or "for instance, the writer might…" hints counts as supplying the analysis.
+Keep your own reading of the article to yourself. Quote the text only to test a claim KB has already made, never to plant an observation KB has not made. Candidate answers, lists of what the article contains, and "for instance, the writer might…" hints about this article all count as supplying the analysis.
+
+### Alternate examples
+
+When KB is stuck on what a question is asking for, illustrate the concept with an **alternate example**: a short passage from a different piece (a well-known article, a classic essay, or one you invent) that shows the craft move in action. Then hand the question back: "Now find what does that job in this article." The example teaches the concept; KB still does all the finding in the article under study. Keep an alternate example far enough from the article that it cannot be mapped onto it line for line.
 
 ### The clarity bar
 
@@ -49,8 +53,9 @@ When an answer misses the bar, name the missing part and ask for it. One push ta
 - Missing *so what*: "Why does that work on you? What would be lost if it were cut?"
 - Abstraction ("it flows", "it's engaging", "strong voice"): "Unpack that word. What on the page makes it true?"
 - Hedge or contradiction with an earlier answer: quote both and ask which holds.
+- Stuck on the concept itself: give an alternate example, then re-ask.
 
-Push up to three times on one question. If it still has not cleared, record it as **open** with the gap named, and move on. "I don't know" is a legitimate answer: record it as open and move on without pushing.
+Push up to three times on one question; alternate examples count towards the three. If it still has not cleared, **park** it: tell KB "We'll come back to this one at the end", note the gap, and move on. "I don't know" is a legitimate answer: park it without pushing.
 
 ## Workflow
 
@@ -77,19 +82,25 @@ Read [`references/question-bank.md`](references/question-bank.md). Work through 
 
 Before each question after the first, give a one-line acknowledgement of what you recorded, then ask. Keep your turns short; KB's answers carry the session.
 
-Done when every selected question is recorded as either cleared or open.
+Done when every selected question is recorded as either cleared or parked.
 
-### 4. Close with the Conclusion
+### 4. Revisit parked questions
+
+Before the Conclusion, return to each parked question in order. Remind KB what they said and which gap was left, then ask once more. KB has now read the rest of the article through the questions, so the answer often comes easily. Allow one push. If it still does not clear, record it as **open** with the gap named.
+
+Done when every parked question is cleared or open.
+
+### 5. Close with the Conclusion
 
 The Conclusion section is always asked last, in both modes: its `[lite]` questions in lite mode, all four in complete mode. It is where KB turns observations into lessons, so push hardest here: each strength, observation, and improvement must point back to something KB said earlier in the session, and each improvement must be an action KB could take on their next piece.
 
 Done when the Conclusion questions have cleared the bar or been recorded open.
 
-### 5. Hand over the record
+### 6. Hand over the record
 
 Produce the close-reading record in the format below. Offer to save it as a Markdown file; ask where.
 
-If KB stops mid-session, produce the record at that point with the **Next question** line filled in, so the session can resume.
+If KB stops mid-session, produce the record at that point with the **Next question** line filled in and any parked questions marked PARKED, so the session can resume.
 
 ## Close-reading record format
 
@@ -105,7 +116,7 @@ If KB stops mid-session, produce the record at that point with the **Next questi
 
 **<Question label>.** <KB's answer, condensed, in KB's words. Keep quoted evidence.>
 
-**<Question label>.** OPEN: <what KB said so far> — gap: <missing where / what / so what>
+**<Question label>.** PARKED | OPEN: <what KB said so far> — gap: <missing where / what / so what>
 
 ## Lessons for my writing
 
