@@ -1867,15 +1867,24 @@ def cmd_release(args):
         gate("claude install resolves every skill", set(skills) <= live,
              f"missing {sorted(set(skills) - live)[:3]}" if not set(skills) <= live else
              f"{len(skills)} skills")
-    mk = os.path.join(root, ".claude-plugin/marketplace.json")
-    if shutil.which("codex") and os.path.exists(mk):
-        m = json.load(open(mk, encoding="utf-8"))["name"]
-        pl = json.load(open(os.path.join(root, ".codex-plugin/plugin.json"),
-                            encoding="utf-8"))["name"]
+    # Codex takes one route: the plugin cache when the plugin is installed,
+    # otherwise the ~/.agents/skills links that refresh_codex maintains.
+    dup = shutil.which("codex") and codex_plugin_installed(root)
+    if dup:
+        pl, m = dup.split("@")
         cache = os.path.expanduser(f"~/.codex/plugins/cache/{m}/{pl}/{version}/skills")
         cached = set(os.listdir(cache)) if os.path.isdir(cache) else set()
         gate("codex cache matches the repo", cached == set(skills),
              f"{len(cached)} cached vs {len(skills)} in repo")
+    elif shutil.which("codex"):
+        agents_home = os.path.expanduser(
+            os.environ.get("AGENTS_SKILLS_DIR", "~/.agents/skills"))
+        live = ({n for n in os.listdir(agents_home)
+                 if os.path.isfile(os.path.join(agents_home, n, SKILL_FILE))}
+                if os.path.isdir(agents_home) else set())
+        gate("codex install resolves every skill", set(skills) <= live,
+             f"missing {sorted(set(skills) - live)[:3]}" if not set(skills) <= live else
+             f"{len(skills)} skills")
 
     agy_config = os.path.expanduser(os.environ.get("GEMINI_CONFIG_DIR", "~/.gemini/config"))
     agy_home = os.path.join(agy_config, "skills")
