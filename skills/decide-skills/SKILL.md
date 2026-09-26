@@ -1,6 +1,6 @@
 ---
 name: decide-skills
-description: "Find and run the right skill from this library when no installed one fits, or recommend adding or building one. For writing, business, video, uninstalled skills."
+description: "Run a skill from this library that is not installed, including one the user names, or recommend adding or building one. For writing, business, UI design, video skills."
 ---
 
 # Decide skills

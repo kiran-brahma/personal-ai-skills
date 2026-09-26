@@ -9,7 +9,7 @@ One line per skill: name, trigger contract, path from the repository root. Secti
 Entry points: route to any skill, orient, set up. Always installed.
 
 - `ask-kb` [explicit]: Ask which skill or flow fits your situation in this library, what is installed versus on demand, and how to invoke each. A guide to the library. `skills/ask-kb/SKILL.md`
-- `decide-skills`: Find and run the right skill from this library when no installed one fits, or recommend adding or building one. For writing, business, video, uninstalled skills. `skills/decide-skills/SKILL.md`
+- `decide-skills`: Run a skill from this library that is not installed, including one the user names, or recommend adding or building one. For writing, business, UI design, video skills. `skills/decide-skills/SKILL.md`
 - `setup-skills`: Choose which skills this machine installs: first-run interview, add or drop profiles, sync a fork with upstream. Not for changing repo defaults, use skill-tiers. `skills/setup-skills/SKILL.md`
 
 ## coding
