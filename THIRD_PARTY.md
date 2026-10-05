@@ -12,13 +12,13 @@ The local adaptation keeps the two selected creation workflows and their shared 
 
 ## Matt Pocock skills
 
-Source: [mattpocock/skills](https://github.com/mattpocock/skills), commit `6654f6b60cd9d5be8b54c6fafe44346dabeb3b76`, version `1.2.3`.
+Source: [mattpocock/skills](https://github.com/mattpocock/skills), commit `24fe0ef7737efae15c87225755e9f6f5965e4888`, version `1.3.1`. The `pr` skill adapts the Summary visuals of Dex Horthy's `show-me` skill (HumanLayer); see `skills/pr/CREDITS.md`.
 
 Copyright (c) 2026 Matt Pocock
 
 ## pstack and Thermos
 
-Source: [cursor/plugins](https://github.com/cursor/plugins), commit `efa2a531985e0a8084d36ff3cf87233be8a9f34b`, pstack version `0.14.7`, Thermos version `1.0.0`.
+Source: [cursor/plugins](https://github.com/cursor/plugins), commit `efa2a531985e0a8084d36ff3cf87233be8a9f34b`, pstack version `0.14.7`, Thermos version `1.0.0`. `correct` and `principle-test-behavior-not-implementation` come from commit `2cbf58508f40de470d7490b55c51d71241928fa2`, pstack version `0.15.13`.
 
 Copyright (c) 2026 Lauren Tan (pstack)
 

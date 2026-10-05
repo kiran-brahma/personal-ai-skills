@@ -1002,6 +1002,24 @@ def git(root, *a):
     return subprocess.run(["git", "-C", root] + list(a), capture_output=True, text=True)
 
 
+def git_blob(repo, rev, path):
+    """A file's raw bytes at a commit, or None. Raw because vendored skills
+    carry images and fonts, which a text decode crashes on."""
+    import subprocess
+    r = subprocess.run(["git", "-C", repo, "show", f"{rev}:{path}"], capture_output=True)
+    return r.stdout if r.returncode == 0 else None
+
+
+def as_text(data):
+    """Decoded text, or None for a binary file that a line merge cannot handle."""
+    if b"\0" in data:
+        return None
+    try:
+        return data.decode("utf-8")
+    except UnicodeDecodeError:
+        return None
+
+
 def changed_skills(root, since):
     """Skill names touched since a ref, for pointing at the eval cases that cover them."""
     if not since:
@@ -1117,14 +1135,14 @@ def local_differences(root, name, repo, pinned, upath):
     for f in [x for x in listing.stdout.split("\n") if x.strip()]:
         relp = os.path.relpath(f, upath)
         localp = os.path.join(skill_home(root, name), relp)
-        blob = git(repo, "show", f"{pinned}:{f}")
-        if blob.returncode != 0:
+        blob = git_blob(repo, pinned, f)
+        if blob is None:
             continue
         if not os.path.exists(localp):
             # A file we deliberately did not vendor, such as an agent-specific
             # manifest. Different in kind from an edit, and much less interesting.
             omitted.append(relp)
-        elif open(localp, encoding="utf-8", errors="replace").read() != blob.stdout:
+        elif open(localp, "rb").read() != blob:
             edited.append(relp)
     return edited, omitted
 
@@ -1352,21 +1370,33 @@ def cmd_adopt(args):
                         skipped.append(f"{label} (not vendored locally)")
                         continue
 
-                    base = git(repo, "show", f"{pinned}:{path}")
-                    theirs = git(repo, "show", f"{head}:{path}")
-                    if base.returncode != 0 or theirs.returncode != 0:
+                    base_b = git_blob(repo, pinned, path)
+                    theirs_b = git_blob(repo, head, path)
+                    if base_b is None or theirs_b is None:
                         skipped.append(f"{label} (could not read upstream blobs)")
                         continue
-                    ours = open(localp, encoding="utf-8", errors="replace").read()
-                    if ours == theirs.stdout:
+                    ours_b = open(localp, "rb").read()
+                    if ours_b == theirs_b:
                         continue  # already matches upstream
+                    ours, base, theirs = as_text(ours_b), as_text(base_b), as_text(theirs_b)
+                    if None in (ours, base, theirs):
+                        # A binary file has no lines to merge. Unchanged locally,
+                        # upstream's copy is the merge; edited locally, a person decides.
+                        if ours_b != base_b:
+                            conflicted.append(f"{label} (binary, also changed locally: "
+                                              f"replace or keep by hand)")
+                            continue
+                        if args.apply:
+                            open(localp, "wb").write(theirs_b)
+                        clean.append(f"{label} (binary)")
+                        continue
 
                     if not args.apply:
                         # Predict the outcome without writing to the working tree.
                         with tempfile.TemporaryDirectory() as td:
                             f = {}
-                            for tag, content in (("ours", ours), ("base", base.stdout),
-                                                 ("theirs", theirs.stdout)):
+                            for tag, content in (("ours", ours), ("base", base),
+                                                 ("theirs", theirs)):
                                 f[tag] = os.path.join(td, tag)
                                 open(f[tag], "w", encoding="utf-8").write(content)
                             rc = subprocess.run(
@@ -1379,8 +1409,8 @@ def cmd_adopt(args):
                     with tempfile.TemporaryDirectory() as td:
                         bp = os.path.join(td, "base")
                         tp = os.path.join(td, "theirs")
-                        open(bp, "w", encoding="utf-8").write(base.stdout)
-                        open(tp, "w", encoding="utf-8").write(theirs.stdout)
+                        open(bp, "w", encoding="utf-8").write(base)
+                        open(tp, "w", encoding="utf-8").write(theirs)
                         rc = subprocess.run(
                             ["git", "merge-file",
                              "-L", f"local ({name})", "-L", f"upstream @ {pinned[:8]}",
@@ -2192,7 +2222,7 @@ def cmd_sync(args):
             git(root, "commit", "--no-edit")
         else:
             print("merge stopped on conflicts:\n  " + "\n  ".join(conflicts))
-            print("Resolve them (the resolving-merge-conflicts skill helps), run "
+            print("Resolve each by tracing both sides' intent, run "
                   "`bin/skills-sync index`, commit, then `bin/skills-sync refresh`.")
             return 1
 

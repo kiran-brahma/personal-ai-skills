@@ -116,4 +116,4 @@ Expected behavior:
 
 - Runs `bin/skills-sync sync`. Merges only the latest release tag, not upstream `main`.
 - Lists new upstream skills as uninstalled and offers `select --add`.
-- On a real conflict, stops and uses `resolving-merge-conflicts`. A conflict only in the generated index is rebuilt without asking.
+- On a real conflict, stops and resolves it by tracing both sides' intent, keeping the user's. A conflict only in the generated index is rebuilt without asking.

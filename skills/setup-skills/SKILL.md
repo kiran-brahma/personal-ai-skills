@@ -71,4 +71,4 @@ Tell the user, in a few lines:
 
 Run `bin/skills-sync sync`. It merges the latest upstream release tag (never unreleased `main`), rebuilds the generated index, and relinks. New upstream skills arrive uninstalled; list them and offer `select --add`.
 
-If it stops on conflicts, the user changed a file that upstream also changed. Resolve with the `resolving-merge-conflicts` skill, keeping the user's intent, then run `bin/skills-sync index`, commit, and `bin/skills-sync refresh`.
+If it stops on conflicts, the user changed a file that upstream also changed. Resolve each conflict by tracing what both sides intended, keeping the user's intent, then run `bin/skills-sync index`, commit, and `bin/skills-sync refresh`.

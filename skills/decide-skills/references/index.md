@@ -20,17 +20,20 @@ The daily engineering flow: idea, spec, tickets, implement test-first, review, d
 - `codebase-design`: Deep-module vocabulary for designing or improving a module interface, placing a seam, or making code more testable. `skills/codebase-design/SKILL.md`
 - `coding`: Route software-development work to the most relevant focused skill: planning, implementation, debugging, review, testing, release. `skills/coding/SKILL.md`
 - `diagnosing-bugs`: Diagnosis loop for hard bugs and performance regressions. Use when the user says "diagnose"/"debug", or reports something broken/failing/slow. `skills/diagnosing-bugs/SKILL.md`
-- `domain-modeling`: Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a CONTEXT.md, or recording or editing an ADR. `skills/domain-modeling/SKILL.md`
+- `domain-modeling`: Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a GLOSSARY.md, or recording or editing an ADR. `skills/domain-modeling/SKILL.md`
 - `goldilocks-review` [explicit]: Compare viable designs after a spec, before tickets: pick the simplest architecture preserving required behavior. Mandatory gate before to-tickets. `skills/goldilocks-review/SKILL.md`
 - `grill-me` [explicit]: A relentless interview to sharpen a plan or design. `skills/grill-me/SKILL.md`
 - `grill-with-docs` [explicit]: A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go. `skills/grill-with-docs/SKILL.md`
 - `grilling`: Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking, or uses any 'grill' trigger phrases. `skills/grilling/SKILL.md`
 - `handoff` [explicit]: Compact the current conversation into a handoff document for another agent to pick up. `skills/handoff/SKILL.md`
 - `implement` [explicit]: Implement a piece of work based on a spec or set of tickets. `skills/implement/SKILL.md`
+- `implement-spec` [explicit]: Implement the result of /to-spec and /to-tickets in code. `skills/implement-spec/SKILL.md`
 - `improve-codebase-architecture` [explicit]: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick. `skills/improve-codebase-architecture/SKILL.md`
+- `pr`: Use when writing a PR body. `skills/pr/SKILL.md`
+- `principle-test-behavior-not-implementation` [explicit]: Apply when writing, changing, or keeping a test: assert the observed result against a literal value. If it would pass with every import returning undefined, rewrite or delete it. `library/principle-test-behavior-not-implementation/SKILL.md`
 - `prototype`: Build a throwaway prototype to answer a design question. Use to sanity-check a state model or logic, or explore what a UI should look like. `skills/prototype/SKILL.md`
 - `research`: Investigate a question against primary sources and capture findings as a Markdown file. Use to gather docs/API facts, or delegate reading legwork. `skills/research/SKILL.md`
-- `resolving-merge-conflicts`: Use when you need to resolve an in-progress git merge/rebase conflict. `skills/resolving-merge-conflicts/SKILL.md`
+- `retro` [explicit]: Conduct a retrospective on a coding session. `skills/retro/SKILL.md`
 - `setup-matt-pocock-skills` [explicit]: Configure this repo for the engineering skills: issue tracker, triage labels, domain doc layout. Run once before first use. `skills/setup-matt-pocock-skills/SKILL.md`
 - `tdd`: Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions "red-green-refactor", or wants integration tests. `skills/tdd/SKILL.md`
 - `to-spec` [explicit]: Turn the current conversation into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already discussed. `skills/to-spec/SKILL.md`
@@ -62,6 +65,7 @@ TypeScript/JavaScript rules and fallow static analysis (needs the fallow CLI).
 ## agent-ops
 Long-running or unattended agent work: fan-out, decision trails, resuming, verification skills.
 
+- `correct` [explicit]: Find mistakes agents keep repeating in a repo and make each impossible: architecture, then types, then a lint naming the fix, then a test, docs last. Rerun after each correction. `library/correct/SKILL.md`
 - `create-verification-skill` [explicit]: Generate a project-local skill that drives the app like a user, any language or framework. Use when a project has no scripted way to prove behavior. `skills/create-verification-skill/SKILL.md`
 - `maintain-verification-skill` [explicit]: Audit a project's verification skill and feature map against real behavior, returning at most one PR of proven corrections. `skills/maintain-verification-skill/SKILL.md`
 - `recall` [explicit]: Reconstruct recent working context into a current-state brief. Use for 'catch me up', 'what was I working on', 'where did I leave off'. `skills/recall/SKILL.md`

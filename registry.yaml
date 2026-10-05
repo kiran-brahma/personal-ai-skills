@@ -44,6 +44,13 @@ sources:
     license: MIT
     role: supporting-lenses
     update_policy: Selectively review relevant skills; do not wholesale-sync Cursor-specific orchestration.
+  - id: cursor-pstack-0.15
+    repository: https://github.com/cursor/plugins/tree/main/pstack
+    reference: 2cbf58508f40de470d7490b55c51d71241928fa2
+    version: 0.15.13
+    license: MIT
+    role: supporting-lenses
+    update_policy: Skills first vendored after the cursor-pstack pin. Fold into cursor-pstack once that source is reviewed and pinned forward to this commit or later.
   - id: cursor-thermos
     repository: https://github.com/cursor/plugins/tree/main/thermos
     reference: efa2a531985e0a8084d36ff3cf87233be8a9f34b
@@ -106,7 +113,7 @@ packages:
     source: matt-pocock-skills
     status: trial
     upstream_prefix: skills/engineering
-    skills: [ask-matt, code-review, codebase-design, diagnosing-bugs, domain-modeling, grill-with-docs, implement, improve-codebase-architecture, prototype, research, resolving-merge-conflicts, setup-matt-pocock-skills, tdd, to-spec, to-tickets, triage, wayfinder, wizard]
+    skills: [ask-matt, code-review, codebase-design, diagnosing-bugs, domain-modeling, grill-with-docs, implement, implement-spec, improve-codebase-architecture, pr, prototype, research, setup-matt-pocock-skills, tdd, to-spec, retro, to-tickets, triage, wayfinder, wizard]
     adaptations: [portable-paths, local-goldilocks-gate, thermos-before-code-review]
   - id: matt-pocock-productivity
     source: matt-pocock-skills
@@ -120,6 +127,12 @@ packages:
     upstream_prefix: skills
     skills: [architect, arena, blast-radius, create-verification-skill, how, interrogate, maintain-verification-skill, recall, reflect, show-me-your-work, swarm, technical-writing, typescript-best-practices, why]
     adaptations: [portable-paths, selective-adoption, matt-workflow-routing]
+  - id: pstack-correctness
+    source: cursor-pstack-0.15
+    status: trial
+    upstream_prefix: skills
+    skills: [correct, principle-test-behavior-not-implementation]
+    adaptations: [portable-paths, library-tier, shorter-descriptions]
   - id: thermos
     source: cursor-thermos
     status: trial

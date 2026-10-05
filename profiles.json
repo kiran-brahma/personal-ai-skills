@@ -9,7 +9,7 @@
     {
       "name": "coding",
       "summary": "The daily engineering flow: idea, spec, tickets, implement test-first, review, debug.",
-      "skills": ["coding", "ask-matt", "setup-matt-pocock-skills", "grill-with-docs", "grill-me", "grilling", "domain-modeling", "codebase-design", "to-spec", "goldilocks-review", "to-tickets", "implement", "tdd", "code-review", "diagnosing-bugs", "triage", "prototype", "research", "handoff", "resolving-merge-conflicts", "improve-codebase-architecture", "wayfinder", "wizard"]
+      "skills": ["coding", "ask-matt", "setup-matt-pocock-skills", "grill-with-docs", "grill-me", "grilling", "domain-modeling", "codebase-design", "to-spec", "goldilocks-review", "to-tickets", "implement", "implement-spec", "tdd", "principle-test-behavior-not-implementation", "code-review", "pr", "retro", "diagnosing-bugs", "triage", "prototype", "research", "handoff", "improve-codebase-architecture", "wayfinder", "wizard"]
     },
     {
       "name": "deep-review",
@@ -24,7 +24,7 @@
     {
       "name": "agent-ops",
       "summary": "Long-running or unattended agent work: fan-out, decision trails, resuming, verification skills.",
-      "skills": ["swarm", "show-me-your-work", "recall", "reflect", "create-verification-skill", "maintain-verification-skill"]
+      "skills": ["swarm", "show-me-your-work", "recall", "reflect", "create-verification-skill", "maintain-verification-skill", "correct"]
     },
     {
       "name": "productivity",

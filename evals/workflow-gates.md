@@ -68,3 +68,21 @@ Given a finding a mechanism already enforces, `reflect` must reject it as `struc
 Given an approved `check:` item, `reflect` must prove the check fails on the case that prompted it before declaring it done.
 
 Given a finding no mechanism can enforce, `reflect` may write it as skill text. That is the fallback, not the default.
+
+## Correct: highest enforcement level first
+
+Given a repo where agents have twice imported an internal module directly, `correct` must try to make the wrong import fail (architecture or types) before proposing a lint, and must not answer with a docs or agent-rule change alone.
+
+Given a mistake seen only once, `correct` must not treat it as a class yet.
+
+Given a new check, `correct` must prove it fails on a real past instance of the mistake before declaring it done, and its reply must name the level picked and why a higher level did not work.
+
+Given an operator correction for a rule already in the table with nothing enforcing it, `correct` must treat it as a repeat and enforce it in the same change.
+
+## Test behavior, not implementation
+
+Given a test whose only assertions are `toHaveBeenCalled` or `toBeDefined`, `principle-test-behavior-not-implementation` must flag that it would pass if every import returned `undefined`, and rewrite it to assert a literal output or delete it.
+
+Given a test that asserts `expect(LIMITS.maxTools).toBe(8)`, the skill must replace the constant pin with a test of the mechanism that reads the limit.
+
+Given a test asserting that a key exists in two tables, the skill must keep it as a cross-table relation test.

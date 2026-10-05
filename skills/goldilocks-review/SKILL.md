@@ -17,7 +17,7 @@ Do not create GitHub issues or local implementation tickets until this review is
 Read, in order:
 
 1. The approved PRD or spec.
-2. The project’s `CONTEXT.md`, relevant ADRs, and existing design documents.
+2. The project’s `GLOSSARY.md`, relevant ADRs, and existing design documents.
 3. The current code paths and operational configuration affected by the proposal.
 4. Any prototype, research note, or issue discussion named by the PRD/spec.
 
