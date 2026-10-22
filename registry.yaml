@@ -102,7 +102,7 @@ sources:
     update_policy: Requires an external fallow CLI install; re-check the agent rules, and onboarding-offer behavior before adopting an upstream change.
   - id: anthropic-skills
     repository: https://github.com/anthropics/skills
-    reference: 33375500bcea98d610eb30ce10ac4e59b89c390d
+    reference: dbd4588f9e1033efb41dad4bef2f7947c8993d44
     version: unversioned
     license: Apache-2.0
     role: ui-design
