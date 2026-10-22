@@ -14,7 +14,7 @@ This links each skill into `~/.agents/skills`, the cross-harness Agent Skills lo
 
 Pi reads this directory as well as its own agent directory, and deduplicates by real path, so the overlap is harmless.
 
-For a machine that only consumes the library, `bin/skills-sync bootstrap --role consumer` installs the plugin from the marketplace instead, so it tracks published releases rather than the working tree. **Do not use both routes on one machine**: Codex would carry every skill twice, once namespaced by the plugin and once bare. `bin/skills-sync doctor` warns when both are present.
+For a machine that only consumes the library, `bin/skills-sync bootstrap --role consumer` installs the plugin from the marketplace instead, so it tracks published releases rather than the working tree. **Do not use both routes on one machine**: Codex would carry every skill twice, once namespaced by the plugin and once bare. `bin/skills-sync doctor` warns when both are present, and when `~/.codex/skills` or a plugin cached under an older marketplace name still holds a copy of a library skill.
 
 ## Codex behaviours that shape this repository
 

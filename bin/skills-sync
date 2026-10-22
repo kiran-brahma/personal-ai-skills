@@ -833,6 +833,23 @@ def codex_plugin_installed(root):
     return f"{pl}@{m}" if os.path.isdir(base) else None
 
 
+def codex_stale_copies(skills):
+    """Directories outside the live route where Codex also finds one of our skill
+    names: legacy copies in ~/.codex/skills, or a plugin cached under an old
+    marketplace name that codex_plugin_installed cannot recognise. Each gives
+    Codex a second, frozen copy of the skill."""
+    import glob
+    names, found = set(skills), []
+    legacy = os.path.expanduser("~/.codex/skills")
+    if os.path.isdir(legacy):
+        found += [os.path.join(legacy, n) for n in sorted(os.listdir(legacy)) if n in names]
+    cache = os.path.expanduser("~/.codex/plugins/cache")
+    for d in sorted(glob.glob(os.path.join(cache, "*", "*", "*", "skills"))):
+        if any(n in names for n in os.listdir(d)):
+            found.append(os.path.dirname(os.path.dirname(d)))
+    return found
+
+
 def refresh_codex(root, skills, dry_run):
     """Codex loads skills from ~/.agents/skills, the cross-harness Agent Skills
     location, and follows symlinks there.
@@ -854,6 +871,14 @@ def refresh_codex(root, skills, dry_run):
     note = (f"also installed as plugin {dup}; Codex will carry every skill twice. "
             f"Remove it with `codex plugin remove {dup.split('@')[0]} "
             f"--marketplace {dup.split('@')[1]}`" if dup else None)
+    stale = [p for p in codex_stale_copies(skills)
+             if not (dup and p.endswith("/" + dup.split("@")[0]))]
+    if stale:
+        more = (f"stale copies Codex loads beside the live links: "
+                f"{', '.join(stale[:3])}{' …' if len(stale) > 3 else ''}. "
+                f"Move them out of ~/.codex and remove their plugin entries "
+                f"from ~/.codex/config.toml")
+        note = f"{note}; {more}" if note else more
     return home, actions, conflicts, note
 
 
