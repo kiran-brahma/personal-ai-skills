@@ -12,6 +12,8 @@ Implement the work described by the user in the spec or tickets.
 
 ## Before you write code
 
+If the user passes a ticket reference, fetch it from the issue tracker and state its title before starting. If the reference is ambiguous, ask.
+
 State which ticket you are implementing and which user stories it covers. If the ticket leaves a business rule ambiguous, stop and ask. A guessed business rule produces code that compiles, passes review, and is wrong, which is the most expensive failure to find later.
 
 ## The loop
