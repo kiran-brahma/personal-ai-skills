@@ -1,6 +1,6 @@
 ---
 name: thermo-nuclear-code-quality-review
-description: Strict maintainability and structural-simplicity review of changed code in a major change: deep modules, fewer concepts, deletion opportunities.
+description: "Strict maintainability and structural-simplicity review of changed code in a major change: deep modules, fewer concepts, deletion opportunities."
 disable-model-invocation: true
 ---
 

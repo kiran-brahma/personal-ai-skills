@@ -1,6 +1,6 @@
 ---
 name: coding
-description: Route software-development work to the most relevant focused skill: planning, implementation, debugging, review, testing, release.
+description: "Route software-development work to the most relevant focused skill: planning, implementation, debugging, review, testing, release."
 ---
 
 # Coding skill catalogue
