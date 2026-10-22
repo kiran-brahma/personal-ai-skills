@@ -30,7 +30,7 @@ The daily engineering flow: idea, spec, tickets, implement test-first, review, d
 - `implement-spec` [explicit]: Implement the result of /to-spec and /to-tickets in code. `skills/implement-spec/SKILL.md`
 - `improve-codebase-architecture` [explicit]: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick. `skills/improve-codebase-architecture/SKILL.md`
 - `pr`: Use when writing a PR body. `skills/pr/SKILL.md`
-- `principle-test-behavior-not-implementation` [explicit]: Apply when writing, changing, or keeping a test: assert the observed result against a literal value. If it would pass with every import returning undefined, rewrite or delete it. `library/principle-test-behavior-not-implementation/SKILL.md`
+- `principle-test-behavior-not-implementation` [explicit]: Apply when you write, change, or keep a test. Assert what the code's users can observe, so that the test fails when that behavior breaks and keeps passing when only the internals change. `library/principle-test-behavior-not-implementation/SKILL.md`
 - `prototype`: Build a throwaway prototype to answer a design question. Use to sanity-check a state model or logic, or explore what a UI should look like. `skills/prototype/SKILL.md`
 - `research`: Investigate a question against primary sources and capture findings as a Markdown file. Use to gather docs/API facts, or delegate reading legwork. `skills/research/SKILL.md`
 - `retro` [explicit]: Conduct a retrospective on a coding session. `skills/retro/SKILL.md`
