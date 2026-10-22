@@ -50,7 +50,7 @@ The sections above are for my own machines. To use these skills yourself, **fork
 
    `setup` adds this repository as the `upstream` remote, installs three entry-point skills into every agent it finds (Claude Code, Codex, Pi), and wires the git hooks.
 
-2. Restart your agent and run `/setup-skills` (`$setup-skills` in Codex). It asks what you work on, recommends a few **profiles** (`coding`, `typescript`, `deep-review`, `business`, `video`, and others in [`profiles.json`](profiles.json)), and installs them with their dependencies. Your choice lives in `my-skills.txt`, per machine and git-ignored. Change it any time with `/setup-skills` or `bin/skills-sync select --add profile:video`.
+2. Restart your agent and run `/setup-skills` (`$setup-skills` in Codex). It asks what you work on, recommends a few **profiles** (`coding`, `typescript`, `deep-review`, `business`, and others in [`profiles.json`](profiles.json)), and installs them with their dependencies. Your choice lives in `my-skills.txt`, per machine and git-ignored. Change it any time with `/setup-skills` or `bin/skills-sync select --add profile:video`.
 
 3. Pull my releases with `bin/skills-sync sync`. It merges the latest release tag, never unreleased work, and reinstalls. New skills arrive uninstalled but reachable.
 
@@ -147,7 +147,7 @@ Move a skill between tiers with `bin/skills-sync tier <name> library` or `bin/sk
 - **Thermos:** deep review for major changes before Matt's final code review.
 - **Continual learning:** proposal-first updates to `AGENTS.md` and `CLAUDE.md` based on durable lessons.
 - **gstack:** selected product-discovery and founder-review methods, adapted into portable business workflows.
-- **HyperFrames:** selected open-source video-authoring workflows for approved writing explainers and product-launch videos, adapted for the repository's canonical layout and provider boundaries.
+- **HyperFrames:** not vendored. `decide-skills` runs it from [heygen-com/hyperframes](https://github.com/heygen-com/hyperframes) on demand for video work.
 - **Codex Security:** external-only workflow for detailed security audits.
 
 The source list and pinned references are in [`registry.yaml`](registry.yaml). Adapted-license notices are in [`THIRD_PARTY.md`](THIRD_PARTY.md). Upstream provenance documents that are not skills live in [`packages/`](packages/).

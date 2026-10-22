@@ -10,7 +10,7 @@ Engineering work, such as understanding a codebase, planning, implementing, debu
 
 ## On demand: everything else
 
-`library/` is never installed, so it costs nothing until a skill is used. It holds writing, business, video, and occasional governance workflows.
+`library/` is never installed, so it costs nothing until a skill is used. It holds writing, business, and occasional governance workflows. Video work runs from the upstream HyperFrames repository on demand, through `decide-skills`.
 
 [skills/decide-skills/SKILL.md](skills/decide-skills/SKILL.md) is the only door into it. It reads a generated index, [skills/decide-skills/references/index.md](skills/decide-skills/references/index.md), and loads one skill.
 

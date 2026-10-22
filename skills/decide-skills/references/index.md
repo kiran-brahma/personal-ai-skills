@@ -103,21 +103,6 @@ Group rules: `references/groups/business.md`
 - `customer-value-proposition`: Frame and test a value proposition: real buyer, job, current alternative, desired outcome, adoption barrier. Not a substitute for evidence. `library/customer-value-proposition/SKILL.md`
 - `decision-navigator`: Audit a consequential business decision: bias check, premortem, hard gates, exit conditions. For pricing, hiring, client, cash, or continue/kill choices. `library/decision-navigator/SKILL.md`
 
-## video
-HyperFrames: explainer and product-launch videos rendered from HTML.
-
-- `faceless-explainer`: Turn approved text or articles into faceless explainers with invented visuals. Not for products or sites. `library/faceless-explainer/SKILL.md`
-- `hyperframes`: Route video and animation work to HyperFrames. Not for writing, use content-fence. `library/hyperframes/SKILL.md`
-- `hyperframes-animation` [explicit]: Design seek-safe HyperFrames motion, transitions, and runtime adapters. `library/hyperframes-animation/SKILL.md`
-- `hyperframes-audio` [explicit]: Mix placed HyperFrames audio: ducking, effects, automation, or submixes. Not for sourcing. `library/hyperframes-audio/SKILL.md`
-- `hyperframes-cli` [explicit]: Run HyperFrames projects: scaffold, capture, check, preview, render, or diagnose failures. `library/hyperframes-cli/SKILL.md`
-- `hyperframes-core` [explicit]: Build HyperFrames HTML with timing, tracks, variables, media, and deterministic rendering. `library/hyperframes-core/SKILL.md`
-- `hyperframes-creative` [explicit]: Plan HyperFrames video direction: design, narration, pacing, and storyboards. `library/hyperframes-creative/SKILL.md`
-- `hyperframes-keyframes` [explicit]: Add or audit HyperFrames keyframes, camera moves, zooms, masks, or SVG. `library/hyperframes-keyframes/SKILL.md`
-- `hyperframes-registry` [explicit]: Discover and wire reusable HyperFrames blocks and components. `library/hyperframes-registry/SKILL.md`
-- `media-use`: Resolve or generate HyperFrames media: music, SFX, images, voice, captions, and logos. `library/media-use/SKILL.md`
-- `product-launch-video`: Turn a product URL, script, or brief into a promo or product-tour video. `library/product-launch-video/SKILL.md`
-
 ## maintainer
 Write and maintain skills in your own fork: authoring guide, tier moves, instruction updates.
 

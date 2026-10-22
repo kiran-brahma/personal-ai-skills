@@ -16,7 +16,7 @@ cd "<this skill's directory>" && cd "$(pwd -P)/../.." && pwd
 ## Pick the branch
 
 - **First run.** `my-skills.txt` does not exist, or it lists nothing beyond `core`: start at step 1.
-- **"Add the video skills" / "drop business."** Run `bin/skills-sync select --add profile:video` (or `--remove`, or a skill name instead of a profile). Report its output, then go to step 5.
+- **"Add the business skills" / "drop writing."** Run `bin/skills-sync select --add profile:business` (or `--remove`, or a skill name instead of a profile). Report its output, then go to step 5.
 - **"Update" / "get the latest."** Go to [Sync](#sync).
 
 ## 1. Check the machine
@@ -29,7 +29,7 @@ Note which agents are present: Claude Code (`~/.claude`), Codex (`codex` on PATH
 
 Ask one question at a time. Stop once the profiles are clear. Four questions is usually enough.
 
-1. What do you use coding agents for? (software, writing, business thinking, video, or other)
+1. What do you use coding agents for? (software, writing, business thinking, or other)
 2. Software only: which languages? Do you ship large or risky changes, or run agents unattended for long stretches?
 3. Will you write or adapt skills of your own?
 
@@ -43,7 +43,6 @@ Map the answers to profiles using the summaries from `select --profiles`:
 | Long or unattended agent runs | `agent-ops` |
 | Learning, or editing plain prose | `productivity` |
 | Business ideas, decisions, company blog | `business` |
-| Explainer or product videos | `video` |
 | Writes own skills | `maintainer` |
 
 The `writing` profile is KB's personal essay system, tuned to one person's voice and blogs. Recommend it only if the user asks for that workflow by name.

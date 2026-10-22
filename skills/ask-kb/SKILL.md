@@ -12,7 +12,7 @@ A guide for someone who does not remember every skill, including a first-time us
 
 Each machine installs only what its user picked. The rest stays in the repository, uninstalled and free until needed.
 
-- **Installed**: the chosen profiles from `profiles.json` (`coding`, `typescript`, `business`, `video`, and others), plus `core`: `decide-skills`, `ask-kb`, and `setup-skills`. Agents load their one-line descriptions at startup and fire them on their own. `my-skills.txt` at the repository root records the choice; without it, the default is everything in `skills/`.
+- **Installed**: the chosen profiles from `profiles.json` (`coding`, `typescript`, `business`, and others), plus `core`: `decide-skills`, `ask-kb`, and `setup-skills`. Agents load their one-line descriptions at startup and fire them on their own. `my-skills.txt` at the repository root records the choice; without it, the default is everything in `skills/`.
 - **Everything else**: `decide-skills` reads a short index of every skill in the repository, loads the one that fits, and runs it.
 
 Adding a hundred skills to the repository adds nothing to startup context. Only what is installed costs anything.

@@ -23,6 +23,7 @@ Read the index. Match the request against each trigger contract and pick the **n
 
 - The user named a skill (`decide-skills musings-reviewer`): take it directly, with no matching.
 - The match is a skill you can already see in your installed skill list: invoke it normally and stop here.
+- The need matches a row in [External skills](#external-skills): go there.
 - Nothing fits: go to [Nothing fits](#nothing-fits). Do not stretch a near miss to fit.
 
 Done when exactly one skill is chosen, or you have established that none fits.
@@ -37,6 +38,19 @@ Done when exactly one skill is chosen, or you have established that none fits.
 When a loaded skill names another skill, an installed one is invoked normally and an uninstalled one goes back through step 2.
 
 If this is the second time this session you have loaded the same uninstalled skill, or the user says they will use it often, offer to install it: `bin/skills-sync select --add <name>`.
+
+## External skills
+
+These workflows are not vendored here. Run them from their upstream repository when a request needs one.
+
+| Need | Repository | Entry point |
+| --- | --- | --- |
+| Video rendered from HTML: explainers, product launches, slideshows, animated compositions (HyperFrames) | https://github.com/heygen-com/hyperframes | `skills/hyperframes/SKILL.md` |
+
+1. Tell the user in one line which repository you are pulling from.
+2. Shallow-clone it outside every project: `git clone --depth 1 <repository> "${TMPDIR:-/tmp}/<repo-name>"`. If a clone is already there, run `git pull` in it instead.
+3. Read the entry point and follow it. Relative paths resolve from its own directory, and it may hand you to other skills in the same `skills/` folder.
+4. This library has not reviewed this code. Ask before you run any of its scripts, install packages, or call a paid API or provider. Do not copy it into this repository; adopting it is the `AGENTS.md` adoption workflow.
 
 ## Nothing fits
 

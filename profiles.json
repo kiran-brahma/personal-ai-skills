@@ -42,11 +42,6 @@
       "skills": ["business-idea-review", "customer-value-proposition", "decision-navigator", "business-problem-solving", "business-blog-post-generator"]
     },
     {
-      "name": "video",
-      "summary": "HyperFrames: explainer and product-launch videos rendered from HTML.",
-      "skills": ["hyperframes", "faceless-explainer", "product-launch-video", "hyperframes-core", "hyperframes-cli", "hyperframes-creative", "hyperframes-animation", "hyperframes-keyframes", "hyperframes-audio", "hyperframes-registry", "media-use"]
-    },
-    {
       "name": "maintainer",
       "summary": "Write and maintain skills in your own fork: authoring guide, tier moves, instruction updates.",
       "skills": ["writing-for-agents", "skill-tiers", "continual-learning"]

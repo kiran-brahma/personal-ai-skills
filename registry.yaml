@@ -86,13 +86,6 @@ sources:
     license: Unspecified
     role: transcript-editing
     update_policy: Re-inspect the supplied package before adopting a newer copy; the upstream carries no version or commit to diff against.
-  - id: heygen-hyperframes
-    repository: https://github.com/heygen-com/hyperframes
-    reference: 05b57f9204a963104f1f79ef88ffc24cd174fd68
-    version: 0.8.27
-    license: Apache-2.0
-    role: video-workflows
-    update_policy: Review upstream skill, scripts, references, assets, providers, and user-cost implications before adoption.
   - id: fallow-skills
     repository: https://github.com/fallow-rs/fallow-skills
     reference: 3fed3c7e228bf3bb81505cff37b542873dcde858
@@ -171,13 +164,6 @@ packages:
     status: trial
     skills: [business-blog-post-generator]
     adaptations: [website-gap-audit, delegated-independent-review, owner-interview-gate, evidence-ledger, technical-writing-first, unslop-final-pass, no-autonomous-publication]
-  - id: hyperframes-workflows
-    source: heygen-hyperframes
-    status: trial
-    upstream_prefix: skills
-    skills: [hyperframes, hyperframes-core, hyperframes-cli, hyperframes-creative, hyperframes-animation, hyperframes-keyframes, hyperframes-audio, hyperframes-registry, media-use, faceless-explainer, product-launch-video]
-    adaptations: [flat-layout, trigger-budget, selected-routes-only, canonical-update-review, approved-writing-gate, opt-in-external-media, no-autonomous-publishing]
-
   - id: transcript-prose-workflows
     source: youtube-transcript-to-prose-package
     status: trial

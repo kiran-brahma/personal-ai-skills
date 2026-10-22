@@ -117,3 +117,13 @@ Expected behavior:
 - Runs `bin/skills-sync sync`. Merges only the latest release tag, not upstream `main`.
 - Lists new upstream skills as uninstalled and offers `select --add`.
 - On a real conflict, stops and resolves it by tracing both sides' intent, keeping the user's. A conflict only in the generated index is rebuilt without asking.
+
+## Case 13: external skill pulled from GitHub
+
+Prompt: "Make me a 30-second product launch video for this landing page."
+
+Expected behavior:
+
+- Matches the HyperFrames row in `decide-skills` External skills, not a library entry, and says in one line that it is pulling from `heygen-com/hyperframes`.
+- Shallow-clones to a temp directory outside the project and follows `skills/hyperframes/SKILL.md`.
+- Asks before running upstream scripts, installing packages, or calling a paid provider. Copies nothing into this repository.
