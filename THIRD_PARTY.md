@@ -30,7 +30,7 @@ Source: [fallow-rs/fallow-skills](https://github.com/fallow-rs/fallow-skills), c
 
 Copyright (c) 2026 Bart Waardenburg
 
-The adapted skills (`fallow`, `fallow-review`) are distributed under the MIT License. The upstream package's Claude plugin marketplace scaffolding (`.claude-plugin/`, `commands/`, `bin/`) and its `agents/openai.yaml` interface descriptors were not vendored — the latter is Codex-specific policy metadata, which `policies/skill-format.md` places under `adapters/`, not the portable skill. Only the two `SKILL.md` files, their `references/`, and `fallow-review`'s optional Claude-Code-only feedback hooks were kept. Those hooks stay self-fenced to Claude Code within the skill text, per this repository's scope-discipline rule.
+The adapted skills (`fallow`, `fallow-review`) are distributed under the MIT License. The upstream package's Claude plugin marketplace scaffolding (`.claude-plugin/`, `commands/`, `bin/`) and its `agents/openai.yaml` interface descriptors were not vendored — the latter is Codex-specific policy metadata, which `policies/skill-format.md` places under `adapters/`, not the portable skill. Only the two `SKILL.md` files and their `references/` were kept. `fallow-review`'s Claude-Code-only feedback hooks were removed when upstream dropped them in 1.4.41.
 
 ## Anthropic skills
 

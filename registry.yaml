@@ -99,7 +99,7 @@ sources:
     version: 1.2.57
     license: MIT
     role: codebase-intelligence
-    update_policy: Requires an external fallow CLI install; re-check the agent rules, onboarding-offer behavior, and Claude-only review hooks before adopting an upstream change.
+    update_policy: Requires an external fallow CLI install; re-check the agent rules, and onboarding-offer behavior before adopting an upstream change.
   - id: anthropic-skills
     repository: https://github.com/anthropics/skills
     reference: 33375500bcea98d610eb30ce10ac4e59b89c390d
