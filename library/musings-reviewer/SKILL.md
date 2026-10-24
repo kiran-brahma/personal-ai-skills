@@ -8,7 +8,9 @@ description: "Review KB's daily musing (one atomic idea, 300-word cap) for atomi
 ## Purpose
 
 Review one short daily musing. Audit it; do not write, rewrite, or improve it on KB's
-behalf. Name the important problems, show where they occur, and stop.
+behalf. Name the important problems, show where they occur, and stop. Never supply a
+missing example, premise, conclusion, source, or fact: surface the gap instead. A broken
+argument or failed atomicity gate always outranks prose flags.
 
 ## Reference documents
 
@@ -140,16 +142,3 @@ WORD COUNT: [n words] — [within limit / over by n / deferred, draft]
 
 PRIORITY: [the one or two things to fix before anything else]
 ```
-
-## Hard boundaries
-
-- Do not write or rewrite any part of the musing.
-- Do not run Audit 2 or Audit 3 on an OBSERVATION.
-- Do not invent an example, missing premise, conclusion, source, or factual support on KB's
-  behalf. Surface the gap and stop.
-- Do not run the Business and Finance checks unless the piece involves money, a company,
-  or economic claims.
-- Do not treat a hedge, assurance, or discount as either support or a flaw by itself.
-- Do not force a problem into a fallacy label that does not fit.
-- Do not skip Step 0 or the atomicity gate.
-- Do not let minor prose flags outrank a broken core argument or failed atomicity gate.

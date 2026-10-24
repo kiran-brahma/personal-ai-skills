@@ -6,9 +6,9 @@ Use this protocol after building the private author map and before drafting the 
 
 Establish the reader's actual position, not a plausible reaction supplied by the AI. The interview should uncover acceptance, resistance, uncertainty, experience, failure conditions, practical relevance, costs, and revision criteria. It is complete only when the reader confirms a shared understanding.
 
-## Grilling-with-docs method
+## Interview method
 
-Apply the `grill-with-docs` workflow in-line for this stage. Use its `grilling` discipline to map the reader's position as a decision tree:
+Map the reader's position as a decision tree:
 
 1. Put the claims and tensions that need judgment at the root.
 2. Treat each answer as a branch that exposes the next decisions beneath it.
@@ -17,9 +17,9 @@ Apply the `grill-with-docs` workflow in-line for this stage. Use its `grilling` 
 5. Recompute the frontier after every answer.
 6. Stop when every material branch is resolved or explicitly deferred, then present the shared-understanding checkpoint.
 
-Use `domain-modeling` to sharpen overloaded terms and name distinctions that must survive into the final prose. Record those terms in the private map as they become settled.
+Sharpen overloaded terms and name the distinctions that must survive into the final prose. Record those terms in the private map as they become settled.
 
-The general `grilling` workflow can recommend answers for design decisions. This interview is a reader assessment, so omit recommended answers, persuasion, and praise. A recommendation would steer the reader's position.
+Omit recommended answers, persuasion, and praise. A recommendation would steer the reader's position.
 
 ## Questioning sequence
 

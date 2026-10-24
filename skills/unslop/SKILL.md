@@ -33,31 +33,7 @@ Before returning the document, silently perform this pass:
 5. Fix only the remaining material problems.
 6. Return only the improved document unless the user asks to see the audit or edits.
 
-Read `references/pattern-catalog.md` when conducting the pass.
-
-## Reduce cognitive load
-
-Cut every word that does no work. If five words carry the full meaning, do not use ten.
-
-Prefer short, everyday words unless a longer or technical term is more precise. Keep source-specific terminology, defined concepts, real symbols, quotations, and domain terms when changing them would reduce accuracy.
-
-Use full stops as working-memory breaks. A sentence often reads well around 20 to 30 words, but this is a guide, not a limit. Keep a longer sentence when one thought genuinely requires its conditions or qualification. Split it when the reader must hold several independent ideas at once or backtrack to parse it.
-
-One thought per sentence is a useful default. Do not force clipped prose. Vary sentence length so the writing has rhythm.
-
-Merge or split paragraphs when that reduces effort. Preserve the order of reasoning unless a local reordering clearly improves comprehension without changing meaning.
-
-## Write for one reading
-
-Prefer active voice when the actor matters. Passive voice is fine when the actor is unknown or irrelevant.
-
-Keep modifiers next to what they modify. Make pronouns point to one obvious noun. Repeat the noun when needed.
-
-Break long noun strings into clauses. Keep articles and small structural words when they prevent ambiguity.
-
-Use one name for one thing. Do not cycle through synonyms merely to avoid repetition.
-
-Place conditions before the statement or action they govern when that makes the sentence easier to parse.
+Read [`references/pattern-catalog.md`](references/pattern-catalog.md) when conducting the pass. It covers word choice, sentence length, voice, pronouns, and modifier placement.
 
 ## Headings must predict the section
 
