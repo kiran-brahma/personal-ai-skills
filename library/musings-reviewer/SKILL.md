@@ -15,8 +15,8 @@ behalf. Name the important problems, show where they occur, and stop.
 Load both before reviewing:
 
 - `references/logic-notes.md` — argument structure, definitions, fallacies.
-- [`../content-fence/references/economist-writing-style-guide.md`](../content-fence/references/economist-writing-style-guide.md), the shared style standard. Use its Word Usage, Grammar, Punctuation Usage, Numbers,
-  statistics, Business, and Tightening sections; skip Editing, Drafting, and Pacing.
+- [`../content-fence/references/economist-writing-style-guide.md`](../content-fence/references/economist-writing-style-guide.md), the shared style standard. Use its Word Usage, How to use Words, Grammar, Punctuation
+  Usage, Numbers, Business, and Tightening sections; skip Editing, Drafting, and Pacing.
 
 Treat these references as the audit standard. Do not silently import other style
 rules, fallacy taxonomies, or writing frameworks unless KB asks for them.

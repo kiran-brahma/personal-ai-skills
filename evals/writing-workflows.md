@@ -30,7 +30,7 @@ Prompt: “Use Content Fence, Private Thinking Grill. Check the canonical workfl
 
 Expected behavior:
 
-- Reads `content-fence/references/workflow-docs.md` and the selected local workflow document.
+- Reads only the selected workflow document, `content-fence/references/private-thinking-grilling-workflow.md`, Mode A.
 - Uses the tracked document as authoritative.
 - Does not require Google Drive access for the core workflow.
 - Does not substitute memory or an older chat version for the tracked file.

@@ -18,4 +18,4 @@ Use `content-fence` as the primary workflow for Kiran's personal essays, The Ope
 
 ## Source-document preflight
 
-Before substantive work, check the selected skill for a `references/workflow-docs.md` manifest. If one exists, read it and each relevant tracked document, confirm the title and phase match, and treat the tracked content as authoritative over memory and general writing advice. Do not fetch Google Drive for tracked workflows.
+A writing skill's workflow documents live in its `references/` folder and are tracked in Git. Treat them as authoritative over memory and general writing advice, and never fetch Google Drive for them.
