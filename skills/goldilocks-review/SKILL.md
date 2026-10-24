@@ -25,18 +25,16 @@ Do not treat the speed of a previous AI-generated implementation as evidence tha
 
 ## Review method
 
-1. State the problem in one sentence without prescribing the mechanism.
-2. Separate required complexity from incidental complexity. Required complexity comes from the domain or environment; incidental complexity comes from avoidable coupling, hidden state, indirection, or operational machinery.
-3. Map the important data, rules, effects, state transitions, and operational dependencies.
-4. Compare at least two materially different solution shapes unless the constraints prove only one viable shape exists. Include the smallest plausible solution, even when it seems less familiar.
-5. Prefer deep modules: substantial behavior behind a small, stable interface at a clean seam. Count hidden connections and operational moving parts, not files or classes.
-6. Give minimal coupling and operational simplicity priority over implementation speed, local convenience, and speculative flexibility.
-7. Challenge mutable state. Keep facts immutable where possible, make state transitions explicit, and avoid making unrelated concerns depend on time-varying shared data.
-8. Check that data, business rules, presentation, storage, and orchestration can change independently. More modules are acceptable when their interfaces are narrow and their assumptions are visible.
-9. Trace the operational path: deploy, configure, observe, retry, recover, migrate, roll back, and support the change. Reject a design whose runtime behavior cannot be explained in a short sequence.
-10. Apply the deletion test: identify abstractions, flags, queues, layers, and dependencies that disappear if the design is reframed. Prefer deleting incidental complexity over rearranging it.
+State the problem in one sentence without prescribing the mechanism. Then compare at least two materially different solution shapes, unless the constraints prove only one is viable. One candidate is always the smallest plausible solution, even when it seems unfamiliar.
 
-Use `architect`, `how`, `why`, or `blast-radius` when the design cannot be evaluated from the current context. Use them as targeted supporting lenses, not as a ritual checklist.
+Judge the candidates on these, in priority order over implementation speed, local convenience, and speculative flexibility:
+
+- **Required vs incidental complexity.** Required complexity comes from the domain or environment. Incidental complexity comes from avoidable coupling, hidden state, indirection, or operational machinery. Delete incidental complexity rather than rearranging it: name the abstractions, flags, queues, layers, and dependencies that disappear under a reframing.
+- **Coupling and depth.** Prefer deep modules: substantial behaviour behind a small, stable interface at a clean seam. Count hidden connections and operational moving parts, not files or classes. Data, business rules, presentation, storage, and orchestration should be able to change independently.
+- **State.** Keep facts immutable where possible, make state transitions explicit, and don't let unrelated concerns depend on shared mutable data.
+- **Operational path.** Trace deploy, configure, observe, retry, recover, migrate, roll back, and support. Reject a design whose runtime behaviour can't be explained in a short sequence.
+
+Use `architect`, `how`, `why`, or `blast-radius` only when a design can't be evaluated from the current context.
 
 ## Output
 

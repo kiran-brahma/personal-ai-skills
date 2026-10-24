@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Continual learning
 
-Turn repeated, high-signal lessons into proposed updates to the project’s agent instructions. This is proposal-first governance, not automatic memory mutation.
+Turn repeated, high-signal lessons into proposed updates to the project’s agent instructions. Propose first; never edit an instruction file without approval.
 
 ## Scope
 
@@ -27,7 +27,7 @@ Ignore secrets, credentials, personal data, transient task details, one-off frus
 4. Keep the proposal small. Prefer a few high-signal bullets over a history dump. Do not exceed 12 learned-preference bullets or 12 learned-fact bullets in the target document.
 5. Propose the smallest patch and explain why the target file is the correct home. Project-specific facts belong in the project’s rules; reusable workflow instructions belong in a skill; domain facts belong in project documentation.
 6. Show the proposed diff and evidence to the user. Do not edit `AGENTS.md`, `CLAUDE.md`, or any other instruction file until the user approves the proposal.
-7. After approval, apply only the approved patch, re-read the result, and report what changed and what evidence supports it.
+7. After approval, apply only the approved patch and report what changed.
 
 ## Output
 
@@ -35,5 +35,3 @@ Return:
 
 - `No high-signal memory updates.` when nothing durable was found; or
 - a proposal containing the target file, proposed bullets, evidence, rejected candidates, and the exact approval needed before editing.
-
-Automatic stop hooks, transcript indexes, and harness-specific updater agents are adapters, not part of this portable skill. Add them only after a separate privacy and permissions review.
