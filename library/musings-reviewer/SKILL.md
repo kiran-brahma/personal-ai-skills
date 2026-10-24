@@ -15,9 +15,10 @@ behalf. Name the important problems, show where they occur, and stop.
 Load both before reviewing:
 
 - `references/logic-notes.md` — argument structure, definitions, fallacies.
-- `references/economist-style.md` — word choice, grammar, numbers.
+- [`../content-fence/references/economist-writing-style-guide.md`](../content-fence/references/economist-writing-style-guide.md), the shared style standard. Use its Word Usage, Grammar, Punctuation Usage, Numbers,
+  statistics, Business, and Tightening sections; skip Editing, Drafting, and Pacing.
 
-Treat these bundled references as the audit standard. Do not silently import other style
+Treat these references as the audit standard. Do not silently import other style
 rules, fallacy taxonomies, or writing frameworks unless KB asks for them.
 
 ## Step 0: Classify
@@ -82,10 +83,10 @@ Run only for ARGUMENT musings. Use `logic-notes.md`.
 
 ## Audit 4: Word and prose
 
-Run on every musing. Use `references/economist-style.md`.
+Run on every musing. Use the style guide.
 
-Check word choice, concreteness, grammar, punctuation, and numbers. Apply the Business and
-Finance section only when the musing actually touches money, a company, or the economy;
+Check word choice, concreteness, grammar, punctuation, and numbers. Apply the Business
+section only when the musing actually touches money, a company, or the economy;
 otherwise skip it silently.
 
 For each flag: quote the exact phrase, name the rule, and state what is wrong. Do not
@@ -99,7 +100,7 @@ flags is better than a long list of trivia.
 
 For a **Final**, count the complete musing with `scripts/word_count.py` and report the exact
 count. If over 300, state the count, how far over it is, and point to the likeliest sources
-of flab using the Tightening section of `economist-style.md`. Do not rewrite them.
+of flab using the style guide's Tightening section and Reduction List. Do not rewrite them.
 
 For a **Draft**, do not enforce the cap. Say: **Draft — word count check deferred to final.**
 You may report the current count if useful, but do not mark it as a failure.

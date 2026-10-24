@@ -38,8 +38,8 @@
     },
     {
       "name": "business",
-      "summary": "Test ideas, value propositions, consequential decisions, structured problem solving, company blog posts.",
-      "skills": ["business-idea-review", "customer-value-proposition", "decision-navigator", "business-problem-solving", "business-blog-post-generator"]
+      "summary": "Test ideas, value propositions, consequential decisions, company blog posts.",
+      "skills": ["business-idea-review", "customer-value-proposition", "decision-navigator", "business-blog-post-generator"]
     },
     {
       "name": "maintainer",

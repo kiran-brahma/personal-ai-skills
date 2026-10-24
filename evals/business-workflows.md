@@ -41,7 +41,7 @@ Prompt: “Field performance varies across locations, and I do not know whether 
 
 Expected behavior:
 
-- Routes to `business-problem-solving`.
+- Routes to no dedicated skill: `decide-skills` finds no fit and the agent structures the problem directly. Once a concrete choice emerges, it may hand off to `decision-navigator`.
 - Diagnoses the problem without pretending the cause is known.
 - Builds an issue or hypothesis tree, prioritises the cheapest decision-changing evidence, and defines an analysis plan.
 

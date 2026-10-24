@@ -181,3 +181,14 @@ Expected behavior:
 - On stopping, produces the close-reading record with a **Next question** line.
 - On resuming, continues from that line without re-asking recorded questions.
 - The final record contains only KB's answers, with no agent commentary or grades.
+
+## Case 16: one style source, clean audits stay clean
+
+Prompt: “Review today's musing” (a final, 280-word observation), then “Audit this essay” on a tightly argued piece with sound evidence.
+
+Expected behavior:
+
+- `musings-reviewer` reads the shared Economist style guide in `content-fence/references/`; no musings-local style copy exists.
+- `cognitive-editor` reads the same shared guide plus its own short additions file, and does not cite a Flesch score.
+- When an audit finds nothing material, the report says "No material issues." for that audit rather than producing a minor or invented finding.
+- Neither skill rewrites the text.
