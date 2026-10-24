@@ -151,7 +151,7 @@ packages:
     source: gstack
     status: trial
     upstream_prefix: [office-hours, plan-ceo-review]
-    skills: [business-idea-review, customer-value-proposition, decision-navigator]
+    skills: [business-idea-review, decision-navigator]
     adaptations: [portable-workflows, owner-prompts, India-context, cash-flow-over-SaaS-metrics, evidence-first, explicit-falsifiers, cross-category-routing, no-private-context, owner-decision-principles-merge]
   - id: owner-decision-principles
     source: repository-owner

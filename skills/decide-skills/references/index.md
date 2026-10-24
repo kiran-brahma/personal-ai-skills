@@ -94,12 +94,11 @@ Group rules: `references/groups/writing.md`
 - `youtube-transcript-to-prose`: Turn a YouTube, podcast, lecture, or interview transcript into faithful essay prose, ads and clutter removed. Not a summary or a new essay. `library/youtube-transcript-to-prose/SKILL.md`
 
 ## business
-Test ideas, value propositions, consequential decisions, company blog posts.
+Test ideas and value propositions, audit consequential decisions, company blog posts.
 Group rules: `references/groups/business.md`
 
 - `business-blog-post-generator`: Draft an evidence-led company blog post: audit existing content, find topic gaps, interview the owner. Not for personal essays or autonomous publishing. `library/business-blog-post-generator/SKILL.md`
-- `business-idea-review`: Test a new business idea, product, or strategic bet before committing time or money. Not for implementation planning. `library/business-idea-review/SKILL.md`
-- `customer-value-proposition`: Frame and test a value proposition: real buyer, job, current alternative, desired outcome, adoption barrier. Not a substitute for evidence. `library/customer-value-proposition/SKILL.md`
+- `business-idea-review`: Test a new business idea, product, offer, or value proposition before committing time or money: buyer, demand, alternatives, promise, mechanics, downside. Not for implementation. `library/business-idea-review/SKILL.md`
 - `decision-navigator`: Audit a consequential business decision: bias check, premortem, hard gates, exit conditions. For pricing, hiring, client, cash, or continue/kill choices. `library/decision-navigator/SKILL.md`
 
 ## maintainer

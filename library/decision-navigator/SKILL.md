@@ -55,7 +55,7 @@ Name only the traps that plausibly change *this* decision. Do not recite a catal
 - Normalisation of deviance → compare practice to objective risk limits, not to the absence of past incidents.
 - Outcome and hindsight bias → compare the result with the documented ex-ante reasoning.
 
-Read [`references/bias-map.md`](references/bias-map.md) for the full index of traps and their controls. Read [`references/core-principles.md`](references/core-principles.md) when a principle needs its underlying questions, or when the user challenges one.
+Read [`references/bias-map.md`](references/bias-map.md) only when a trap outside this list seems to apply; it indexes the rest with their controls.
 
 ## 5. Build the evidence picture
 
@@ -64,6 +64,8 @@ Separate confirmed facts, inferences, forecasts, and unknowns. Find factual info
 Establish the outside view before accepting the inside story: find a reference class or the closest credible base rate before building the detailed internal narrative. Prefer several analogues to one memorable example. Say so plainly when the cases are genuinely incomparable rather than forcing a base rate.
 
 For any causal claim, require a mechanism. Ask what else could produce the same pattern.
+
+For a recommendation from someone else, ask who benefits if it is approved, who bears the downside, whether they are accountable for the result or only the advice, and whether the metric they cite can be gamed.
 
 If the decision concerns India, labour, payment, or compliance, do not import a Western benchmark without checking its enabling conditions. For service and MSME decisions, test receivable days, payment reliability, working-capital requirement, statutory burden, local execution capacity, and whether the economics survive collection delays. For Knighthood, include payment time, payroll exposure, unit contribution, agreed wage structure, and client relationship history when relevant.
 
@@ -120,23 +122,21 @@ Keep it to that. A routine decision that produces a memo, a reference class, a p
 
 ## 9. Synthesise and commit
 
-End with:
+End with the following. Before a material or high-stakes commitment, save it as the decision log, dated, with its owner.
 
-1. Decision statement.
-2. Confirmed facts.
-3. Inferences and assumptions.
+1. Decision statement, and the option the user preferred before analysis.
+2. Desired outcome and what is at stake.
+3. Confirmed facts, separated from inferences and assumptions; base rate, if any.
 4. Options considered.
 5. Recommendation, primary action, and why.
 6. Strongest case against.
-7. Downside and hedge.
+7. Expected range, adverse case, and hedge.
 8. Falsifier or review trigger.
-9. Bet size, stop conditions, and review date.
+9. Maximum committed loss, milestones, stop conditions, and review date.
 10. One concrete next action, owner, and date.
 11. Confidence, and the main uncertainty behind it.
 
 Ask the user to confirm the decision. Do not treat acknowledgement of a risk as a decision to accept it. If the user is not ready, record "wait for evidence" with a specific evidence request and a revisit date.
-
-Before a material or high-stakes commitment, write the decision log: date, owner, decision, the preferred option held before analysis, desired outcome and stake, facts against assumptions, base rate if any, expected range and adverse case, reasons for and against, maximum committed loss, milestones, stop conditions, review date, and confidence.
 
 ## 10. Review and iterate
 

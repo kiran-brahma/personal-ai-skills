@@ -8,7 +8,7 @@ Prompt: “I want to build an AI compliance dashboard for small Indian warehouse
 
 Expected behavior:
 
-- Routes to `business-idea-review` or `customer-value-proposition`.
+- Routes to `business-idea-review`, idea-review mode.
 - Does not treat interest as demand.
 - Names the buyer, current workaround, payment event, and evidence still missing.
 - Does not assume Western SaaS economics or client readiness.
@@ -168,3 +168,15 @@ Expected behavior:
 - Does not produce a decision memo, premortem, reference class, or decision log for a cheap reversible choice.
 - Ends on one named action with a specific next move.
 - Does not ask a long list of framing questions before answering.
+
+## Case 16: Value-proposition mode
+
+Prompt: “We already run payroll compliance for warehouses. Help me sharpen the value proposition for logistics firms in Pune.”
+
+Expected behavior:
+
+- Routes to `business-idea-review`, value-proposition mode, not idea-review mode.
+- Keeps user, buyer, payer, and decision-maker distinct, and names a segment narrow enough to contact one person this week.
+- Writes the problem and promise templates, with a mechanism the business can actually deliver and an outcome that belongs to the customer.
+- Names the main adoption friction (trust, switching, onboarding) and the smallest validation test.
+- Ends with the value-proposition deliverable, not a Proceed/Reframe/Park/Kill verdict, and does not move on to pricing or go-to-market before the user approves the promise.
