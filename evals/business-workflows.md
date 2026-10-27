@@ -1,6 +1,6 @@
 # Business workflow evaluation cases
 
-These cases test routing and behavior for the trial business category. Run them with the relevant skill enabled and disabled for comparison.
+These cases test Ask-kb's routing and behavior for business requests. After it presents the full list for each relevant theme, the user chooses a skill before that skill runs.
 
 ## Case 1: New venture with weak demand evidence
 
@@ -8,7 +8,7 @@ Prompt: “I want to build an AI compliance dashboard for small Indian warehouse
 
 Expected behavior:
 
-- Routes to `business-idea-review`, idea-review mode.
+- Lists every Productivity skill, recommends `business-idea-review`, and waits for the user's choice; after selection, uses idea-review mode.
 - Does not treat interest as demand.
 - Names the buyer, current workaround, payment event, and evidence still missing.
 - Does not assume Western SaaS economics or client readiness.
@@ -20,7 +20,7 @@ Prompt: “A reliable client is 45 days late. Should we keep paying workers or p
 
 Expected behavior:
 
-- Routes to `decision-navigator`.
+- Lists every Productivity skill, recommends `decision-navigator`, and waits for the user's choice; after selection, runs `decision-navigator`.
 - Considers worker harm, client history, payment probability, payroll exposure, relationship cost, and the agreed threshold.
 - Separates facts from assumptions and defines a hedge, escalation, and review trigger.
 - Does not give generic collection advice or reduce the decision to a score.
@@ -31,7 +31,7 @@ Prompt: “Should we sell O9X as a client-facing compliance product next month?�
 
 Expected behavior:
 
-- Routes to `decision-navigator` or `business-idea-review`.
+- Lists every relevant theme's skills, recommends `decision-navigator` or `business-idea-review`, and waits for the user's choice.
 - Treats O9X as internal and error-prone unless the user supplies contrary context.
 - Tests liability, evidence quality, customer promise, and failure handling before recommending a launch.
 
@@ -41,7 +41,7 @@ Prompt: “Field performance varies across locations, and I do not know whether 
 
 Expected behavior:
 
-- Routes to no dedicated skill: `decide-skills` finds no fit and the agent structures the problem directly. Once a concrete choice emerges, it may hand off to `decision-navigator`.
+- Says no listed skill fits and asks whether the user wants a general response. After the user chooses general help, structures the problem directly. Once a concrete choice emerges, it may route through Ask-kb again for `decision-navigator`.
 - Diagnoses the problem without pretending the cause is known.
 - Builds an issue or hypothesis tree, prioritises the cheapest decision-changing evidence, and defines an analysis plan.
 
@@ -51,8 +51,8 @@ Prompt: “Turn this Knighthood analysis into an Operator Stack essay.”
 
 Expected behavior:
 
-- Routes the underlying business analysis to the business category only when needed.
-- Hands the writing task to `content-fence` or `cognitive-editor`.
+- Offers the relevant Productivity and Writing options in one menu and recommends a first workflow.
+- Waits for the user's choice; a later writing step is routed separately to `content-fence` or `cognitive-editor`.
 - Does not conflate Knighthood, O9X, The Operator Stack, and kiranbrahma.com.
 
 ## Case 6: Company blog gap audit
@@ -61,7 +61,7 @@ Prompt: “Create a business blog post for Knighthood from the gaps in our curre
 
 Expected behavior:
 
-- Routes to `business-blog-post-generator`.
+- Lists every Writing skill, recommends `business-blog-post-generator`, and waits for the user's choice.
 - Inspects the blog index and relevant home, about, service, industry, proof, location, and contact pages before asking the owner for facts.
 - Maps posts by topic, buyer, intent, service, industry, funnel stage, format, date, and evidence quality.
 - States candidate gaps as hypotheses tied to a reader decision and business priority.

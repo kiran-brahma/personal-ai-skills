@@ -1,10 +1,32 @@
 {
-  "_comment": "Install bundles for `bin/skills-sync select`, and the groups decide-skills' index is sorted by. Order matters: a skill in several profiles is indexed under the first. `core` is always installed. A skill's own requirements live in its frontmatter (metadata.requires) and are pulled in automatically.",
+  "_comment": "Themes classify every skill for Ask-kb's router and generated catalogue. Profiles are optional install bundles for `bin/skills-sync select`; `core` is always installed. metadata.requires are installed automatically; metadata.lazy-requires are read from the library when needed.",
+  "themes": [
+    {
+      "name": "Coding",
+      "summary": "Software development, maintenance, and engineering workflows.",
+      "skills": ["architect", "arena", "ask-matt", "blast-radius", "code-review", "codebase-design", "coding", "create-verification-skill", "correct", "diagnosing-bugs", "domain-modeling", "fallow", "fallow-review", "goldilocks-review", "grill-with-docs", "handoff", "how", "implement", "implement-spec", "improve-codebase-architecture", "interrogate", "maintain-verification-skill", "pr", "principle-test-behavior-not-implementation", "prototype", "retro", "setup-matt-pocock-skills", "tdd", "thermo-nuclear-code-quality-review", "thermo-nuclear-review", "thermos", "to-spec", "to-tickets", "triage", "typescript-best-practices", "wayfinder", "why"]
+    },
+    {
+      "name": "Writing",
+      "summary": "Creating, editing, reviewing, and understanding prose and documents.",
+      "skills": ["book-reference-extractor", "business-blog-post-generator", "close-reading", "cognitive-editor", "content-fence", "musings-reviewer", "technical-writing", "unslop", "writing-for-agents", "youtube-transcript-to-prose"]
+    },
+    {
+      "name": "Productivity",
+      "summary": "Planning, organizing, learning, and decision workflows.",
+      "skills": ["business-idea-review", "decision-navigator", "grill-me", "grilling", "continual-learning", "recall", "reflect", "setup-skills", "show-me-your-work", "skill-tiers", "swarm", "teach", "to-questionnaire", "wait-what"]
+    },
+    {
+      "name": "Misc",
+      "summary": "Specialized workflows that do not fit Coding, Writing, or Productivity.",
+      "skills": ["ask-kb", "decide-skills", "frontend-design", "research", "wizard"]
+    }
+  ],
   "profiles": [
     {
       "name": "core",
-      "summary": "Entry points: route to any skill, orient, set up. Always installed.",
-      "skills": ["decide-skills", "ask-kb", "setup-skills"]
+      "summary": "Default-loaded entry points: route, grill, and implement. Always installed.",
+      "skills": ["ask-kb", "grilling", "implement"]
     },
     {
       "name": "coding",
@@ -29,7 +51,7 @@
     {
       "name": "productivity",
       "summary": "Learning, questionnaires, clarifying confusion, and plain-prose editing passes.",
-      "skills": ["teach", "to-questionnaire", "wait-what", "unslop", "technical-writing"]
+      "skills": ["teach", "to-questionnaire", "wait-what", "unslop", "technical-writing", "setup-skills"]
     },
     {
       "name": "writing",
@@ -44,7 +66,7 @@
     {
       "name": "maintainer",
       "summary": "Write and maintain skills in your own fork: authoring guide, tier moves, instruction updates.",
-      "skills": ["writing-for-agents", "skill-tiers", "continual-learning"]
+      "skills": ["writing-for-agents", "skill-tiers", "continual-learning", "decide-skills"]
     },
     {
       "name": "design",

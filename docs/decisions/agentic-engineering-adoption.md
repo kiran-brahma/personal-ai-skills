@@ -163,7 +163,7 @@ State these when citing the material, so later work does not overclaim.
 ## Session log
 
 - **2026-09-05.** Read all four sources. Produced the analysis, then revised it against the owner context above. Agreed the plan. Completed tickets 1 and 2. Created this record.
-  - One change outside the approved plan: `implement` said `/tdd`, which breaks the portability rule in `skills/coding/SKILL.md` (canonical files name skills, they do not use one harness's command syntax). Corrected to `tdd` in a line already being rewritten. Disclosed rather than folded in silently.
+  - One change outside the approved plan: `implement` said `/tdd`, which breaks the portability rule in `library/coding/SKILL.md` (canonical files name skills, they do not use one harness's command syntax). Corrected to `tdd` in a line already being rewritten. Disclosed rather than folded in silently.
   - Evaluation cases for both tickets added to `evals/workflow-gates.md`.
 - **2026-09-05, later.** Built ticket 3 as `bin/agent-gates`. Wired `implement` to it. Added its evaluation cases. Not yet installed into any of the owner's projects; that is a per-project command he runs.
   - Open question for a later session: `implement` still carries "every import resolves" and "no silent catch" as prose rules, and `agent-gates` now checks both. The prose is the fallback for projects without the script. Revisit whether it should be trimmed once the script is installed everywhere.

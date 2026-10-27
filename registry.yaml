@@ -12,22 +12,19 @@ repository:
   project_rules: external-to-skills
 
 categories:
-  - id: coding
-    path: skills/coding/SKILL.md
-    purpose: Software-development work; routes among the installed daily skills.
-  - id: decide-skills
-    path: skills/decide-skills/SKILL.md
-    purpose: Routes everything else, loading one on-demand skill from library/ by its generated index.
+  - id: ask-kb
+    path: skills/ask-kb/SKILL.md
+    purpose: Routes skill-driven requests through the four-theme catalogue, then loads the user's chosen skill.
 
 # Two tiers, one flat layout each. skills/ is installed into every agent and is
-# charged against the description budget. library/ is never installed; it is
-# reached only through decide-skills, so it costs nothing until a skill is used.
+# charged against the description budget. library/ is never installed by default;
+# Ask-kb reads it through the generated four-theme catalogue.
 # Move a skill between them with `bin/skills-sync tier <name> installed|library`.
 tiers:
   installed: skills/
   library: library/
 
-last_reviewed: 2026-09-11
+last_reviewed: 2026-10-27
 
 sources:
   - id: matt-pocock-skills
@@ -135,8 +132,8 @@ packages:
   - id: skill-routing
     source: repository-owner
     status: trial
-    skills: [ask-kb, skill-tiers, setup-skills]
-    adaptations: [two-tier-library, generated-index, router-over-library, per-machine-selection, fork-and-sync]
+    skills: [ask-kb, decide-skills, coding, skill-tiers, setup-skills]
+    adaptations: [three-skill-default, four-theme-catalogue, user-choice-before-loading, lazy-dependencies, per-machine-selection, fork-and-sync]
   - id: local-workflow
     source: repository-owner
     status: trial

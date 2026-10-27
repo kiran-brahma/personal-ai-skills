@@ -5,7 +5,7 @@ description: "Choose which skills this machine installs: first-run interview, ad
 
 # Setup skills
 
-Install only what this user will reach for most weeks. Everything else stays in their fork of the repository, where `decide-skills` can still find and run it, so a lean install loses nothing.
+Keep the default install lean. Ask-kb can load any other skill from the repository when the user chooses it. This skill changes only which skills the current machine links into its agent directories; it does not change the repository's default tiers.
 
 All commands run from the repository root. The install is a symlink, so find the root from this skill's real path:
 
@@ -23,7 +23,7 @@ cd "<this skill's directory>" && cd "$(pwd -P)/../.." && pwd
 
 Run `bin/skills-sync select --profiles`. If it fails, or no `upstream` remote exists (`git remote`), run `bin/skills-sync setup` first. `setup` adds the remote, installs `core` only, and wires the git hooks.
 
-Note which agents are present: Claude Code (`~/.claude`), Codex (`codex` on PATH), Pi (`~/.pi/agent`).
+Note which supported agents are present: Claude Code (`~/.claude`), Codex (`codex` on PATH), Pi (`~/.pi/agent`), and Antigravity (`~/.gemini/config`).
 
 ## 2. Interview
 
@@ -62,8 +62,8 @@ Run `bin/skills-sync select --add profile:<a> profile:<b> ...`. It writes `my-sk
 Tell the user, in a few lines:
 
 - Restart the agent so it loads the new skills.
-- Anything not installed: ask in plain language, or use `decide-skills <name or need>`. `ask-kb` explains the library.
-- A need no skill covers: `decide-skills` can recommend an upstream skill or help build a new one in their fork.
+- Anything not installed: ask Ask-kb to find and load it from the library.
+- A need no skill covers: Ask-kb loads `decide-skills` to recommend an upstream skill or help build one in the user's fork.
 - Updates: `bin/skills-sync sync`, or ask this skill to update.
 
 ## Sync

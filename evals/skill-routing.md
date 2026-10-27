@@ -1,129 +1,82 @@
 # Skill routing evaluation cases
 
-These cases test the two-tier library: `decide-skills` routing into `library/`, the `ask-kb` guide, and `skill-tiers` placement. They are prose for human judgment, not executable fixtures.
+These are prose cases for human judgment, not executable tests. They cover Ask-kb's universal router, the four theme catalogue, direct skill requests, and on-demand loading.
 
-## Case 1: plain-language request reaches a library skill
+## Case 1: plain-language request routes through Writing
 
 Prompt: "Review my musing for today." (Paste a 250-word musing.)
 
 Expected behavior:
 
-- `decide-skills` fires from its description, not an installed writing skill.
-- Reads the index, then `references/groups/writing.md`, then `library/musings-reviewer/SKILL.md`.
-- States in one line that it loaded `musings-reviewer`.
-- Reads no other library skill.
+- Ask-kb lists every skill in Writing, with short descriptions, recommends `musings-reviewer`, and waits for the user's choice.
+- After the user chooses, reads the Writing routing notes and `library/musings-reviewer/SKILL.md`.
+- Reads no other skill body.
 
-## Case 2: named skill skips matching
+## Case 2: a cross-theme request combines options
 
-Prompt: "decide-skills content-fence"
-
-Expected behavior:
-
-- Loads `library/content-fence/SKILL.md` directly, with no matching step.
-- Runs the Source-document preflight from the writing group rules before substantive work.
-
-## Case 3: coding stays on the installed path
-
-Prompt: "This test is flaky, help me find out why."
+Prompt: "Help me evaluate this business decision, then shape the result into an essay."
 
 Expected behavior:
 
-- `diagnosing-bugs` (installed) handles it. `decide-skills` does not fire, or it hands over to the installed skill without reading any library skill.
+- Ask-kb combines the relevant Productivity and Writing options in one menu.
+- It gives one recommendation and waits for the user's choice before beginning.
+- The user can select a first workflow; Ask-kb loads only that skill. The next workflow is selected separately when needed.
 
-## Case 4: no fit
+## Case 3: a directly named skill skips the menu
 
-Prompt: "decide-skills convert this CSV to JSON."
-
-Expected behavior:
-
-- Reports in one line that no library skill fits, then does the task directly.
-- Does not stretch `youtube-transcript-to-prose` or another near miss to fit.
-
-## Case 5: explicit gate
-
-Prompt: "decide-skills, anything from this session worth remembering?"
+Prompt: "Use `cognitive-editor` to audit this draft."
 
 Expected behavior:
 
-- Identifies `continual-learning`, which is marked `[explicit]`.
-- Names it and asks before running, unless the user named it.
+- Treats the exact skill name as the user's selection and loads `library/cognitive-editor/SKILL.md` directly.
+- Does not show a menu or load another skill body.
 
-## Case 6: symlink install
+## Case 4: nothing fits
 
-Setup: installed through `bin/skills-sync refresh`, so `~/.claude/skills/decide-skills` is a symlink.
-
-Expected behavior:
-
-- Resolves the repository root from the real path (`pwd -P`) and reads `library/...` successfully.
-- Never looks for `~/.claude/library`.
-
-## Case 7: orientation for a new user
-
-Prompt: "/ask-kb I just installed this. What can it do?"
+Prompt: "Which skill should I use to convert a CSV to JSON?"
 
 Expected behavior:
 
-- Explains the two tiers in a few lines, lists the index groups from the live index, and gives the exact invocation for the user's agent.
-- Points engineering-flow questions to `ask-matt` rather than restating it.
+- Says no listed skill fits and asks whether the user wants a general response.
+- Does not stretch a near match to fit.
 
-## Case 8: demotion blocked by a caller
+## Case 5: explicit skill-library request
 
-Prompt: "/skill-tiers move unslop to the library."
-
-Expected behavior:
-
-- Finds that `technical-writing` and `blast-radius` (installed) call `unslop`, and cites placement rule 2.
-- Recommends keeping it installed, or updating the callers first. Moves nothing without approval.
-
-## Case 9: first-run setup for a new user
-
-Setup: a fresh fork after `bin/skills-sync setup`, with only `core` installed.
-
-Prompt: "/setup-skills"
+Prompt: "Find or build a skill for planning my weekly meals."
 
 Expected behavior:
 
-- Asks one question at a time, and no more than about four.
-- Recommends a small set of profiles with reasons and the startup bytes from `select --dry-run`. Does not recommend `writing` unless the user asks for KB's essay workflow.
-- Installs only after approval, then says to restart the agent and how to reach uninstalled skills.
+- Loads `library/decide-skills/SKILL.md` without showing it as an ordinary task option.
+- Checks whether an existing skill or approved upstream source fits before offering to build one.
+- If building is appropriate and approved, scaffolds it in the user's fork and adds it to exactly one theme.
 
-## Case 10: uninstalled skill reached, then promoted
+## Case 6: Implement waits for an explicit choice
 
-Setup: `coding` installed, `business` not.
-
-Prompt: "decide-skills should I take this client at a 30% discount?" Then, later in the same session, another decision question.
+Prompt: "I have a spec for this feature."
 
 Expected behavior:
 
-- Loads `library/decision-navigator/SKILL.md` from the index both times.
-- On the second load, offers `bin/skills-sync select --add decision-navigator`.
+- Ask-kb lists every Coding skill, recommends one, and waits for the user's choice.
+- If the user chooses Implement, loads `skills/implement/SKILL.md` and its lazy TDD and Code Review dependencies from their indexed paths when needed.
+- If Codex activates Implement from its description before the user chooses it, Implement's body asks whether to run and does not begin work.
 
-## Case 11: nothing fits, build one
+## Case 7: plugin consumer can load the library
 
-Prompt: "decide-skills plan my week's meals from what's in my fridge. I do this every Sunday."
-
-Expected behavior:
-
-- No skill fits. The need repeats, so it offers to build one rather than stretching a near miss.
-- Checks `git remote -v`. If `origin` is the upstream library, says to fork first.
-- Scaffolds with `new ... --library`, writes the body with `writing-for-agents`, and installs by name. Leaves `profiles.json` alone.
-
-## Case 12: sync
-
-Prompt: "/setup-skills update"
+Setup: install from the marketplace as a consumer, with no local author checkout.
 
 Expected behavior:
 
-- Runs `bin/skills-sync sync`. Merges only the latest release tag, not upstream `main`.
-- Lists new upstream skills as uninstalled and offers `select --add`.
-- On a real conflict, stops and resolves it by tracing both sides' intent, keeping the user's. A conflict only in the generated index is rebuilt without asking.
+- The plugin exposes only the three default skills at startup.
+- The plugin package contains the complete `library/` tree as data.
+- Ask-kb resolves the generated index and a selected library skill from the plugin's repository root.
+- Library skill descriptions do not appear in the agent's startup skill list.
 
-## Case 13: external skill pulled from GitHub
+## Case 8: one primary theme per skill
 
-Prompt: "Make me a 30-second product launch video for this landing page."
+Setup: inspect `profiles.json` and the generated catalogue.
 
 Expected behavior:
 
-- Matches the HyperFrames row in `decide-skills` External skills, not a library entry, and says in one line that it is pulling from `heygen-com/hyperframes`.
-- Shallow-clones to a temp directory outside the project and follows `skills/hyperframes/SKILL.md`.
-- Asks before running upstream scripts, installing packages, or calling a paid provider. Copies nothing into this repository.
+- Every skill appears exactly once under Coding, Writing, Productivity, or Misc.
+- The index is generated from the theme map, not from optional install profiles.
+- `bin/skills-sync validate` reports no missing, duplicate, or unknown theme assignments.

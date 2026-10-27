@@ -14,8 +14,8 @@ Before selecting a skill:
 
 1. Read this file.
 2. Read [SKILLS.md](SKILLS.md) to identify the tier.
-3. Installed work: read the category router (`skills/coding/SKILL.md`) to identify the specific skill. On-demand work: follow `skills/decide-skills/SKILL.md`, which picks one library skill from its generated index.
-4. Read the selected skill's own `SKILL.md` and only the supporting references it directs you to use.
+3. Read [`skills/ask-kb/SKILL.md`](skills/ask-kb/SKILL.md). It is the single router for installed and on-demand work; its generated catalogue groups every skill into Coding, Writing, Productivity, or Misc.
+4. After the user chooses a skill, read its own `SKILL.md` and only the supporting references it directs you to use.
 5. Read any project-specific rules that are in scope for the work.
 
 Do not load every skill by default. Use the catalogue, the router, and the index to narrow discovery.
@@ -25,11 +25,11 @@ A router is a skill beside the skills it routes to, not a directory above them. 
 ## Two tiers
 
 - `skills/<name>/` is the **installed** tier. It is linked into every agent, and its descriptions are charged against the budget. Keep it to daily-use skills, skills an installed skill calls by name, and skills that must fire unprompted.
-- `library/<name>/` is the **on-demand** tier. No agent scans it, so it costs nothing at startup. `decide-skills` reaches it through `skills/decide-skills/references/index.md`, which `bin/skills-sync index` generates from every skill in both tiers, sectioned by the profiles in `profiles.json`.
+- `library/<name>/` is the **on-demand** tier. No agent scans it, so it costs nothing at startup. Ask-kb reaches it through `skills/ask-kb/references/index.md`, which `bin/skills-sync index` generates from every skill in both tiers, sectioned by the four themes in `profiles.json`.
 
 Both tiers follow the same flat layout rules, and a name must be unique across both. Move a skill with `bin/skills-sync tier <name> installed|library`, following the `skill-tiers` skill.
 
-The tiers are the library's default. A machine with a `my-skills.txt` (git-ignored, written by `bin/skills-sync select` and the `setup-skills` skill) installs its own selection instead: `core` plus the chosen profiles and skills, with their declared requirements. Other people use this library by forking it and running `bin/skills-sync setup`. They pull releases with `bin/skills-sync sync` and keep their own skills in their fork. Never commit a `my-skills.txt` here, because every fork would inherit it.
+The tiers are the library's default. A machine with a `my-skills.txt` (git-ignored, written by `bin/skills-sync select` through Ask-kb and `setup-skills`) installs its own selection instead: `core` plus the chosen profiles and skills, with their install-time requirements. Lazy requirements stay in the library until the selected workflow needs them. Other people use this library by forking it and running `bin/skills-sync setup`. They pull releases with `bin/skills-sync sync` and keep their own skills in their fork. Never commit a `my-skills.txt` here, because every fork would inherit it.
 
 ## The layout contract
 
@@ -45,8 +45,8 @@ The rules exist because an agent breaks without them, and each finding names whi
 - No `SKILL.md` may sit beneath another. Pi stops at the first one it finds and never looks below it.
 - A skill directory is real, never a symlink. Codex drops symlinks when it copies a plugin into its cache.
 - `name:` matches the directory, and names are unique library-wide. A mismatch or a duplicate fails silently at run time.
-- The generated index is current. `decide-skills` finds uninstalled skills only through it.
-- Every profile in `profiles.json` names real skills, and every `metadata.requires` names a real skill.
+- Every skill appears in exactly one of the four themes in `profiles.json`, and Ask-kb's generated catalogue is current.
+- Every profile in `profiles.json` names real skills, and every `metadata.requires` or `metadata.lazy-requires` names a real skill.
 - Installed descriptions stay within the per-skill and library budgets in [policies/skill-format.md](policies/skill-format.md). Codex truncates past a fixed budget with no error, which degrades routing invisibly.
 
 Do not relax a rule to make a change fit. The layout is what allows one copy of a skill to serve every agent, which is the point of the repository.
@@ -82,7 +82,7 @@ First inspect the complete skill package, including `SKILL.md`, scripts, referen
 
 Pause for the owner's discussion and approval before changing the skill into the active library. If adjustments are requested, apply them to the single canonical skill and explain the resulting local behaviour.
 
-After approval, scaffold it with `bin/skills-sync new <name> -d "<description>"` so it starts conformant. Add `--library` unless it meets the installed-tier rule in `skills/skill-tiers/SKILL.md`. Then record it in `registry.yaml`, add relevant evaluation cases under `evals/`, and update the changelog when appropriate.
+After approval, scaffold it with `bin/skills-sync new <name> -d "<description>"` so it starts conformant. Add `--library` unless it meets the installed-tier rule in `library/skill-tiers/SKILL.md`. Then add it to exactly one theme and any relevant install profile, record it in `registry.yaml`, add relevant evaluation cases under `evals/`, and update the changelog when appropriate.
 
 ## Skill changes
 

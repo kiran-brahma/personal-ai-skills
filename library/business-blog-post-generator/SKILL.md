@@ -2,7 +2,8 @@
 name: business-blog-post-generator
 description: "Draft an evidence-led company blog post: audit existing content, find topic gaps, interview the owner. Not for personal essays or autonomous publishing."
 metadata:
-  requires: grilling technical-writing unslop
+  requires: grilling
+  lazy-requires: technical-writing unslop
 ---
 
 # Business blog post generator
@@ -90,6 +91,6 @@ Draft only after the content brief is confirmed. Choose one article mode:
 
 Give the article one reader, one promise, one argument, and one call to action, and keep the argument narrower than the topic. Use the business's actual terms, mechanisms, limitations, and evidence. Do not add invented statistics, customer outcomes, quotations, case studies, regulatory claims, or product capabilities. Put unsupported claims in the unresolved section or remove them.
 
-Use the existing [technical-writing skill](../../skills/technical-writing/SKILL.md) as the first editorial pass. Apply its mode, reader, sentence, working-memory, heading, and ambiguity rules to the post. Use the existing [unslop skill](../../skills/unslop/SKILL.md) as the final pass, including its pattern catalogue. Preserve facts, attribution, quotations, uncertainty, business terms, and the owner's intended voice. Unslop is not permission to flatten a real point of view into generic marketing prose.
+Use the indexed [technical-writing skill](../../library/technical-writing/SKILL.md) as the first editorial pass. Apply its mode, reader, sentence, working-memory, heading, and ambiguity rules to the post. Use the indexed [unslop skill](../../library/unslop/SKILL.md) as the final pass, including its pattern catalogue. Preserve facts, attribution, quotations, uncertainty, business terms, and the owner's intended voice. Unslop is not permission to flatten a real point of view into generic marketing prose.
 
 Return the article package described in [output-contract.md](references/output-contract.md). Include a brief verification note that lists unsupported claims removed, source conflicts left unresolved, and any owner approval still needed. Do not publish, edit the website, or send the article to a third party unless the user separately asks for that action.

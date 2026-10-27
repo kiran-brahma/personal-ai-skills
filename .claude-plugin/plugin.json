@@ -1,6 +1,6 @@
 {
   "name": "kb",
-  "description": "Kiran Brahma's canonical skill library: coding, writing, business, research, and governance workflows.",
+  "description": "Kiran Brahma's skill library with three default skills and a four-theme on-demand catalogue.",
   "version": "0.8.0",
   "author": {
     "name": "Kiran Brahma"

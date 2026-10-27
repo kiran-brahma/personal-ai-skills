@@ -25,4 +25,4 @@ Pick the narrowest installed skill whose description matches the task, then read
 
 ## Outside coding
 
-Writing, business, UI visual design, video, and other occasional work live in the on-demand library. Hand them to `decide-skills`. For UI changes or UI ideas, go through `decide-skills` before building.
+Writing, business, UI visual design, video, and other occasional workflows live in the on-demand library. Route a new cross-theme request through Ask-kb, which will offer the relevant skills and wait for the user's choice before loading one. For UI changes or ideas, use Ask-kb to consider `frontend-design` before building.

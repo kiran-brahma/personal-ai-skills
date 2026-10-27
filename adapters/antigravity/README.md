@@ -2,6 +2,8 @@
 
 Antigravity-specific discovery and installation details belong here.
 
+The default tier contains Ask-kb, Grilling, and Implement only. Ask-kb reads on-demand skill instructions from the complete repository checkout using its generated catalogue; do not install every `library/` skill into Antigravity's scanned skill folders.
+
 The canonical skills under `skills/` must remain portable and must satisfy the common Agent Skills format. This adapter may describe how Google Antigravity discovers or links the selected skills, but it must not create a second maintained copy of their instructions.
 
 ## Discovery and Surfaces

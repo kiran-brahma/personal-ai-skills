@@ -1,6 +1,6 @@
 # Design workflow evaluation cases
 
-These cases test `frontend-design`, the on-demand UI design skill vendored from Anthropic. They are prose for human judgment, not executable fixtures.
+These cases test Ask-kb routing to `frontend-design`, the on-demand UI design skill vendored from Anthropic. They are prose for human judgment, not executable fixtures.
 
 ## Case 1: UI request reaches the library skill
 
@@ -8,7 +8,8 @@ Prompt: "Give me some ideas for redesigning the settings page."
 
 Expected behavior:
 
-- The coding router hands the request to `decide-skills`, which loads `library/frontend-design/SKILL.md` and says so in one line.
+- Ask-kb lists every skill in the relevant theme, recommends `frontend-design`, and waits for the user's choice.
+- After the user chooses, Ask-kb loads `library/frontend-design/SKILL.md` and says so in one line.
 - `frontend-design` does not fire during coding work that does not involve UI changes or ideas.
 
 ## Case 2: plan before code

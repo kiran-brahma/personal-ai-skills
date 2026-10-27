@@ -1,6 +1,6 @@
 # Business group rules
 
-Read after the index points to a skill in the `business` group.
+Read when selecting `business-blog-post-generator`, `business-idea-review`, or `decision-navigator`.
 
 - Use the business workflows for judgment and analysis. Use coding workflows for implementation: an approved decision becomes engineering work through `to-spec` and `to-tickets`.
 - Use `content-fence` for writing projects such as The Operator Stack or kiranbrahma.com, not a business workflow.

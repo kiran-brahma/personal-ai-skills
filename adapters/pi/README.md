@@ -10,7 +10,7 @@ Pi loads skills from its agent directory, `~/.pi/agent/skills` unless `PI_AGENT_
 
 Pi also reads the user-global `~/.agents/skills`, the cross-harness Agent Skills location that `refresh` populates for Codex, and deduplicates by real path. A skill present in both directories is listed once, so the overlap costs nothing. Pi's own source treats that directory as a trusted user resource; the project-local `.agents/skills` inside a repository is gated behind project trust instead, which is a separate mechanism and is not what this repository relies on.
 
-Pi honours `disable-model-invocation`, so gated skills are installed but do not appear in `available_skills`. Verified: 26 of the 59 are listed, matching the count that is not gated. Codex does not honour it.
+Pi honours `disable-model-invocation`, so gated skills are installed but do not appear in `available_skills`. Implement remains directly available through its explicit command and Ask-kb's selection flow. Codex does not honour the gate, so Implement's instructions enforce the same user-choice requirement in its body.
 
 Pi's discovery differs from the other agents in one way that constrains the whole library: it recurses into subdirectories, but stops at the first `SKILL.md` it finds and does not look beneath it. A skill nested under another skill is therefore invisible to Pi. `bin/skills-sync validate` enforces the flat layout that keeps this from happening.
 

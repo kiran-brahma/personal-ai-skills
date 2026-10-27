@@ -18,20 +18,28 @@ Every concrete skill is a directory directly under `skills/` (installed) or `lib
 `library/content-fence/SKILL.md`. The layout is flat, one level, with no exceptions. A name
 is unique across both tiers.
 
-A skill that calls another skill declares it, so `bin/skills-sync select` installs both:
+A skill that always needs another skill declares an install-time dependency, so `bin/skills-sync select` installs both:
 
 ```yaml
 metadata:
   requires: grilling domain-modeling
 ```
 
-Declare only real calls, where the skill tells the agent to invoke the other one. A mention
-or a "see also" does not count. `validate` fails on a requirement that names no skill
-(`R1-requires`).
+For a skill needed only in one branch, declare a lazy dependency. Ask-kb loads it from the
+catalogue only when that branch runs:
 
-`profiles.json` groups skills into install bundles. The first profile that lists a skill
-sets its section in the `decide-skills` index. A skill in no profile is indexed under
-`unsorted` and draws a `P2-unprofiled` warning.
+```yaml
+metadata:
+  lazy-requires: tdd code-review
+```
+
+Declare only real dependencies. A mention or a "see also" does not count. `validate`
+checks both kinds of dependency against the complete skill catalogue (`R1-requires`), but
+only `requires` makes `select` install another skill.
+
+`profiles.json` separates the four primary themes from optional install profiles. Every
+skill appears in exactly one theme, which sets its section in Ask-kb's generated catalogue.
+Optional profiles only affect what a particular machine installs.
 
 This is not a stylistic preference, and it is worth being exact about which agent
 forces it:
@@ -50,10 +58,11 @@ forces it:
 So the flat layout is required by Claude Code and Pi. Codex tolerates nesting but
 cannot tolerate symlinks.
 
-Routers (`coding`, `decide-skills`) stay at `skills/<name>/SKILL.md`. Because every concrete
+Ask-kb stays at `skills/ask-kb/SKILL.md` and is the only general router. Theme names are
+catalogue groups, not parent directories or separate router skills. Because every concrete
 skill is a sibling, nothing is nested beneath a router and the discovery order in
-`AGENTS.md` still holds. A router lists skills and their trigger boundaries; it never
-duplicates their instructions.
+`AGENTS.md` still holds. Ask-kb lists trigger boundaries and loads selected instructions; it
+never duplicates those instructions.
 
 `bin/skills-sync validate` enforces all of this. A change that breaks it is a change
 that breaks at least one agent.
@@ -66,7 +75,7 @@ in the body, where it costs nothing until the skill is actually invoked.
 
 Budget: **200 bytes per description, 9000 bytes across the installed tier.** Library
 descriptions are never loaded at startup, so they are exempt from the total; they still
-keep the 200-byte rule because each one becomes a line in the index `decide-skills` reads. Codex loads every
+keep the 200-byte rule because each one becomes a line in the index Ask-kb reads. Codex loads every
 description into a fixed skills budget and silently truncates once that is exceeded.
 Truncation degrades routing with no error, so the limit is a correctness constraint
 rather than a cost optimisation. `disable-model-invocation` does not exempt a skill: Codex

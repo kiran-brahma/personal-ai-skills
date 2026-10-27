@@ -11,7 +11,7 @@ Using every available skill by default creates two problems:
 - The agent spends too much context carrying instructions that do not apply to the current task.
 - Skills change over time, so keeping many installed copies updated becomes manual work.
 
-This repository is one canonical, version-controlled source for the skills I use, shared across Claude Code, Codex, and Pi. Each agent reads the same `SKILL.md` files from the same directories on disk, so there is one copy to edit and one copy to update.
+This repository is one canonical, version-controlled source for the skills I use, shared across Claude Code, Codex, Pi, and Gemini via Antigravity. Each agent reads the same `SKILL.md` files from the same directories on disk, so there is one copy to edit and one copy to update.
 
 The second problem is handled by [`bin/skills-sync`](bin/skills-sync), which installs the library into every agent, keeps those installs reconciled with the repository, and gates releases. Git hooks run it, so a skill added in a commit reaches every agent without anyone remembering a step.
 
@@ -34,12 +34,13 @@ Agents read skills at startup, so restart them after installing.
 | Claude Code | `~/.claude/skills` | `/skill-name` |
 | Codex | `~/.agents/skills` | `$skill-name`, or the `/skills` selector |
 | Pi | `~/.pi/agent/skills` | `/skill:name` |
+| Antigravity | `~/.gemini/config/skills` | `/<skill-name>` |
 
 Codex and Pi both read `~/.agents/skills`, the cross-harness Agent Skills location. Pi deduplicates by real path, so the overlap costs nothing.
 
 ## Installing this library yourself
 
-The sections above are for my own machines. To use these skills yourself, **fork** the repository and install only what you need. Everything you don't install stays in your fork, and `decide-skills` can still find and run it.
+The sections above are for my own machines. To use these skills yourself, **fork** the repository and install only what you need. Everything you don't install stays in your fork, and Ask-kb can still find and run it.
 
 1. Fork `kiran-brahma/personal-ai-skills` on GitHub, then:
 
@@ -48,34 +49,34 @@ The sections above are for my own machines. To use these skills yourself, **fork
    ~/.kb-skills/bin/skills-sync setup
    ```
 
-   `setup` adds this repository as the `upstream` remote, installs three entry-point skills into every agent it finds (Claude Code, Codex, Pi), and wires the git hooks.
+   `setup` adds this repository as the `upstream` remote, installs the three default skills into every supported agent it finds, and wires the git hooks.
 
-2. Restart your agent and run `/setup-skills` (`$setup-skills` in Codex). It asks what you work on, recommends a few **profiles** (`coding`, `typescript`, `deep-review`, `business`, and others in [`profiles.json`](profiles.json)), and installs them with their dependencies. Your choice lives in `my-skills.txt`, per machine and git-ignored. Change it any time with `/setup-skills` or `bin/skills-sync select --add profile:video`.
+2. Restart your agent and ask Ask-kb to set up optional skill installs. It loads `setup-skills`, which recommends optional **profiles** (`coding`, `typescript`, `deep-review`, `business`, and others in [`profiles.json`](profiles.json)). Your choice lives in `my-skills.txt`, per machine and git-ignored. Change it any time through Ask-kb or `bin/skills-sync select --add profile:video`.
 
 3. Pull my releases with `bin/skills-sync sync`. It merges the latest release tag, never unreleased work, and reinstalls. New skills arrive uninstalled but reachable.
 
-Your own skills belong in your fork. When `decide-skills` finds that nothing fits a repeated need, it offers to build one: `bin/skills-sync new <name> --library`, then `select --add <name>` to install it.
+Your own skills belong in your fork. When no skill fits a repeated need, Ask-kb loads `decide-skills` to help build one: `bin/skills-sync new <name> --library`, then `select --add <name>` to install it.
 
-**Install everything instead.** The plugin installs the default set (everything in `skills/`) with no selection:
+**Use the default set.** The plugin installs Ask-kb, Grilling, and Implement with no selection. It also packages the complete repository so Ask-kb can read on-demand skills without exposing their descriptions at startup:
 
 ```bash
 claude plugin marketplace add kiran-brahma/personal-ai-skills && claude plugin install kb@kb-skills
 codex plugin marketplace add kiran-brahma/personal-ai-skills && codex plugin add kb@kb-skills
 ```
 
-Invoke plugin skills as `/kb:skill-name` in Claude Code. Use one route or the other on a machine, never both, or every skill loads twice.
+Invoke plugin skills as `/kb:skill-name` in Claude Code. Choose either the plugin or the global installation on a machine so the same skills are not exposed twice.
 
 ### Using it
 
 You do not need to memorise anything:
 
-- **Coding**: just work. The engineering skills fire on their own. Run `/ask-matt` for the idea-to-ship flow.
-- **Everything else**: `/decide-skills review my musing`, `/decide-skills should I take this client`, or name a skill: `/decide-skills content-fence`. Plain language reaches it too.
-- **Lost?** `/ask-kb` explains what exists and how to invoke it. In Codex, use `$` instead of `/`. With the plugin, add the `kb:` prefix.
+- **Any skill-driven request**: Ask-kb lists every skill in the relevant theme, recommends one, and waits for your choice before loading it. Cross-theme requests get one combined list.
+- **Direct skill use**: name the skill or select it from Ask-kb. Grilling remains available directly. Implement runs only after you name it or choose it from the menu.
+- **Find or build a skill**: ask Ask-kb to search the catalogue or help create a skill in your fork.
 
 ### Two things worth knowing first
 
-**These are personal skills, not a neutral toolkit.** They encode how I want an agent to work with me. Four of them name me directly and are tuned to my writing and my blogs: `cognitive-editor`, `content-fence`, `musings-reviewer`, and the `writing` router. Most of the engineering skills are portable, but if you want a library shaped around your own judgment, fork this and adapt it rather than installing it as-is. That is what I did with the sources below.
+**These are personal skills, not a neutral toolkit.** They encode how I want an agent to work with me. Several name me directly and are tuned to my writing and my blogs: `cognitive-editor`, `content-fence`, and `musings-reviewer`. Most of the engineering skills are portable, but if you want a library shaped around your own judgment, fork this and adapt it rather than installing it as-is. That is what I did with the sources below.
 
 **Much of the value is not mine.** The engineering and productivity workflows are adapted from [Matt Pocock's skills](https://github.com/mattpocock/skills), the supporting lenses from [pstack and thermos](https://github.com/cursor/plugins), and the business methods from [gstack](https://github.com/garrytan/gstack). Those authors distribute their own work, kept current by them, and you may prefer to take it from the source. Licences and attribution are in [`THIRD_PARTY.md`](THIRD_PARTY.md); local adaptations and pinned upstream commits are recorded in [`registry.yaml`](registry.yaml).
 
@@ -129,16 +130,18 @@ For a major code change, the sequence is:
 
 Every pull request must complete `code-review`. Detailed security audits use the separately loaded Codex Security workflow rather than the normal coding workflow.
 
-## Two tiers
+## Three defaults and four themes
 
-A library that keeps growing cannot load every skill into every session. Each installed skill's description sits in the agent's context from startup, and Codex silently truncates once the combined descriptions pass a fixed budget. So the library is split:
+Only three skills are installed by default: Ask-kb, Grilling, and Implement. Ask-kb uses four themes to organize the full skill catalogue. Each skill has exactly one primary theme; themes do not install their skills.
 
-- **Installed** ([`skills/`](skills/)): the daily set. This is the full coding workflow, the [`coding`](skills/coding/SKILL.md) router, cross-cutting tools such as `unslop`, `grilling`, `handoff`, and `research`, and three entry points: `decide-skills`, `ask-kb`, and `skill-tiers`. These fire on their own.
-- **On demand** ([`library/`](library/)): writing, business, video, and occasional governance workflows. No agent scans this folder. [`decide-skills`](skills/decide-skills/SKILL.md) reads a generated [index](skills/decide-skills/references/index.md), one line per skill, then loads only the skill that fits.
+The default set stays small as the library grows. Each installed skill's description sits in the agent's context from startup, and Codex silently truncates once the combined descriptions pass a fixed budget. The library is split:
 
-The startup cost is the installed descriptions plus one line for `decide-skills`, whether the library holds 20 skills or 200. Both tiers use the same flat, one-level layout. Claude Code searches only one level, and Pi stops at the first `SKILL.md` it finds. [`bin/skills-sync validate`](bin/skills-sync) enforces the layout, checks that the index is current, and charges only the installed tier against the budget. [`policies/skill-format.md`](policies/skill-format.md) records which agent imposes which constraint.
+- **Installed** ([`skills/`](skills/)): Ask-kb routes requests, Grilling handles design interviews, and Implement is the explicitly chosen implementation workflow.
+- **On demand** ([`library/`](library/)): all other skills. Agents do not load their descriptions at startup. Ask-kb reads the generated [themed catalogue](skills/ask-kb/references/index.md) and loads a selected skill's full instructions.
 
-Move a skill between tiers with `bin/skills-sync tier <name> library` or `bin/skills-sync tier <name> installed`. The [`skill-tiers`](skills/skill-tiers/SKILL.md) skill decides which tier a skill belongs in.
+The four themes are Coding, Writing, Productivity, and Misc. Optional install profiles remain separate bundles for users who want more skills installed on a particular machine. The index groups by theme, not profile. Both tiers use the same flat, one-level layout. Claude Code searches only one level, and Pi stops at the first `SKILL.md` it finds. [`bin/skills-sync validate`](bin/skills-sync) enforces the layout, checks that each skill has one theme and the catalogue is current, and charges only the installed tier against the budget. [`policies/skill-format.md`](policies/skill-format.md) records which agent imposes which constraint.
+
+Move a skill between tiers with `bin/skills-sync tier <name> library` or `bin/skills-sync tier <name> installed`. Ask Ask-kb to load [`skill-tiers`](library/skill-tiers/SKILL.md) when changing repository defaults.
 
 ## Current skill sources
 
@@ -147,7 +150,7 @@ Move a skill between tiers with `bin/skills-sync tier <name> library` or `bin/sk
 - **Thermos:** deep review for major changes before Matt's final code review.
 - **Continual learning:** proposal-first updates to `AGENTS.md` and `CLAUDE.md` based on durable lessons.
 - **gstack:** selected product-discovery and founder-review methods, adapted into portable business workflows.
-- **HyperFrames:** not vendored. `decide-skills` runs it from [heygen-com/hyperframes](https://github.com/heygen-com/hyperframes) on demand for video work.
+- **HyperFrames:** not vendored. `decide-skills` runs it from [heygen-com/hyperframes](https://github.com/heygen-com/hyperframes) when Ask-kb routes a video request there.
 - **Codex Security:** external-only workflow for detailed security audits.
 
 The source list and pinned references are in [`registry.yaml`](registry.yaml). Adapted-license notices are in [`THIRD_PARTY.md`](THIRD_PARTY.md). Upstream provenance documents that are not skills live in [`packages/`](packages/).
@@ -187,14 +190,14 @@ personal-ai-skills/
 ├── .githooks/           Hooks that validate and reconcile on every commit
 ├── .claude-plugin/      Claude Code plugin and marketplace manifests
 ├── .codex-plugin/       Codex plugin manifest
-├── skills/              Installed tier: daily skills and routers, one level deep
-├── library/             On-demand tier, reached only through decide-skills
+├── skills/              Default-loaded Ask-kb, Grilling, and Implement
+├── library/             All other skills, loaded on demand through Ask-kb
 ├── adapters/            Agent-specific discovery and installation details
 ├── packages/            Provenance documents for vendored upstream packages
 ├── policies/            Repository rules and decision records
 ├── evals/               Behavioral evaluation cases
 ├── registry.yaml        Skill inventory and provenance metadata
-├── profiles.json        Install bundles for `select`; sections of the decide-skills index
+├── profiles.json        Four theme maps plus optional install bundles
 ├── THIRD_PARTY.md       Notices for adapted external skills
 ├── CHANGELOG.md         Release index
 └── changelog/           Release notes, one file per month

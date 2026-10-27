@@ -12,8 +12,8 @@ bin/skills-sync refresh
 
 This links each `skills/<name>` into `~/.claude/skills` (or `$CLAUDE_CONFIG_DIR/skills`), creating what is missing, removing links whose skill left the repository, and repairing links whose target moved. It only ever touches links that point into this repository: a real directory, or a link into another library, is reported as a conflict and left alone. Re-run it after any pull that adds, renames, or removes a skill. Do not maintain a second instruction copy here.
 
-Claude Code reads skills at startup, so restart or run `/reload-plugins` afterwards.
+Claude Code reads the three default skills at startup, so restart or run `/reload-plugins` afterwards.
 
-Only the installed tier (`skills/`) is linked. The on-demand tier (`library/`) is never linked; `/decide-skills <request or name>` reads it through its generated index, resolving the repository from the symlink's real path. The plugin install should copy the whole repository, `library/` included, so the same relative path works there; confirm with a consumer install before relying on it.
+Only the default tier (`skills/`) is linked. The on-demand tier (`library/`) is never linked; Ask-kb reads a selected skill through its generated index, resolving the repository from the symlink's real path. The marketplace source is the repository root, so a plugin package must include `library/` as data while exposing only `skills/` as skills. Verify that a consumer plugin cache contains the full library and that the library skills are not injected at startup.
 
 The canonical skills may contain `disable-model-invocation: true` for explicit gates such as `goldilocks-review`, `thermos`, and `continual-learning`. Keep those gates explicit when using `/skill-name`.

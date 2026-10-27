@@ -1,24 +1,27 @@
 # Skill catalogue
 
-The library has two tiers. Pick the door, then let that router pick the skill. Do not load every skill for one request.
+The library has two tiers. Ask-kb is the single default router; its generated catalogue groups every skill into the four themes.
 
-## Installed: coding and daily tools
+## Default set
 
-`skills/` is installed into every agent. Its skills fire on their own, and each one's description is charged against the shared budget in [policies/skill-format.md](policies/skill-format.md).
+`skills/` contains the three skills loaded by default:
 
-Engineering work, such as understanding a codebase, planning, implementing, debugging, reviewing, testing, or releasing, starts at [skills/coding/SKILL.md](skills/coding/SKILL.md).
+- `ask-kb`: the universal router. It lists every skill in relevant themes, recommends one, waits for the user's choice, then loads it.
+- `grilling`: the user's frequently used design-interview workflow.
+- `implement`: the user's frequently used, explicitly invoked implementation workflow. It loads TDD and Code Review lazily.
 
-## On demand: everything else
+## On demand
 
-`library/` is never installed, so it costs nothing until a skill is used. It holds writing, business, and occasional governance workflows. Video work runs from the upstream HyperFrames repository on demand, through `decide-skills`.
+`library/` holds the rest of the skill collection. Ask-kb reads [`skills/ask-kb/references/index.md`](skills/ask-kb/references/index.md) to find and load the selected skill. The four themes are Coding, Writing, Productivity, and Misc; each skill has exactly one primary theme.
 
-[skills/decide-skills/SKILL.md](skills/decide-skills/SKILL.md) is the only door into it. It reads a generated index, [skills/decide-skills/references/index.md](skills/decide-skills/references/index.md), and loads one skill.
+`decide-skills` remains on demand for explicit skill-library requests and for finding or building a skill. Ask-kb omits Ask-kb and `decide-skills` from ordinary task menus.
 
-## Orientation and upkeep
+## Optional install profiles
 
-- [skills/ask-kb/SKILL.md](skills/ask-kb/SKILL.md): which skill or flow fits, and how to invoke it.
-- [skills/skill-tiers/SKILL.md](skills/skill-tiers/SKILL.md): move a skill between tiers and audit the budget.
+Profiles in [`profiles.json`](profiles.json) remain optional bundles for `setup-skills`. They do not define theme membership or the default set. A machine can install extra skills with `bin/skills-sync select`; otherwise the remaining library stays available through Ask-kb without loading its descriptions at startup.
 
-## Selection rule
+## Maintenance
 
-If a task spans both tiers, start with the tier that governs the riskiest or most consequential part of the task. Bring in the other only when its workflow is genuinely needed.
+- [`skills/ask-kb/SKILL.md`](skills/ask-kb/SKILL.md): routing behavior and loading rules.
+- [`library/skill-tiers/SKILL.md`](library/skill-tiers/SKILL.md): repository-default tier changes.
+- [`library/setup-skills/SKILL.md`](library/setup-skills/SKILL.md): per-machine optional installs.

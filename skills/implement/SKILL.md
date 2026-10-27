@@ -1,9 +1,9 @@
 ---
 name: implement
-description: "Implement a piece of work based on a spec or set of tickets."
+description: "Run only when the user names or selects Implement; implement a spec or ticket."
 disable-model-invocation: true
 metadata:
-  requires: tdd code-review
+  lazy-requires: tdd code-review
 ---
 
 # Implement
@@ -12,13 +12,17 @@ Implement the work described by the user in the spec or tickets.
 
 ## Before you write code
 
+Run this workflow only when the user invokes `implement` directly or chooses it from Ask-kb's menu. If it was reached only because the request resembles the description, stop and ask the user whether they want this workflow.
+
 If the user passes a ticket reference, fetch it from the issue tracker and state its title before starting. If the reference is ambiguous, ask.
 
 State which ticket you are implementing and which user stories it covers. If the ticket leaves a business rule ambiguous, stop and ask. A guessed business rule produces code that compiles, passes review, and is wrong, which is the most expensive failure to find later.
 
 ## The loop
 
-Work in vertical slices, one at a time. Use `tdd` where possible, at pre-agreed seams. Do not write all the code first and the tests after: bulk implementation commits you to a shape before any of it has been exercised.
+Load the TDD skill from its current path in Ask-kb's generated index when the work is test-first or benefits from test-driven development. Load Code Review from its indexed path for the required review at the end. These are lazy dependencies: read their full instructions from the repository when needed; do not install them as startup skills for this workflow.
+
+Work in vertical slices, one at a time, using TDD where it fits at pre-agreed seams. Do not write all the code first and the tests after: bulk implementation commits you to a shape before any of it has been exercised.
 
 Run typechecking regularly and single test files regularly. Run the full test suite once at the end.
 

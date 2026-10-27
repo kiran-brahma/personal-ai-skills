@@ -1,6 +1,6 @@
-# Writing group rules
+# Writing theme rules
 
-Read after the index points to a skill in the `writing` group.
+Read when a request routes to a skill in the Writing theme.
 
 Use `content-fence` as the primary workflow for Kiran's personal essays, The Operator Stack, personal blog posts, book-based essays, observation pieces, and related long-form writing. It owns the phase boundaries and must not be silently combined with another workflow.
 
@@ -14,7 +14,7 @@ Use `content-fence` as the primary workflow for Kiran's personal essays, The Ope
 - General developmental audit, or a request to run the Cognitive Editor: `cognitive-editor`.
 - A transcript of someone else's video, podcast, lecture, or interview that should become readable prose: `youtube-transcript-to-prose`. A request to reshape, summarize, or argue from a transcript goes to `content-fence` instead.
 
-`unslop` is an installed skill, not a library one. Run it only as a separate final pass after the diagnostic workflow, never in place of argument or reader-response review.
+`unslop` is a separate final pass after the diagnostic workflow, never a replacement for argument or reader-response review.
 
 ## Source-document preflight
 
