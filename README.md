@@ -2,6 +2,8 @@
 
 This is my public, version-managed library of AI-agent skills.
 
+**Current release: [V0.9.0](https://github.com/kiran-brahma/personal-ai-skills/releases/tag/V0.9.0).** The skills now share one small default set, a four-theme catalogue, and on-demand loading across supported agents.
+
 The skills are being adopted and adapted from my experience using AI agents to build software. They are not a neutral collection of generic prompts. Each skill reflects how I want an agent to think, plan, implement, review, and learn while working with me.
 
 ## Why this repository exists
@@ -11,7 +13,7 @@ Using every available skill by default creates two problems:
 - The agent spends too much context carrying instructions that do not apply to the current task.
 - Skills change over time, so keeping many installed copies updated becomes manual work.
 
-This repository is one canonical, version-controlled source for the skills I use, shared across Claude Code, Codex, Pi, and Gemini via Antigravity. Each agent reads the same `SKILL.md` files from the same directories on disk, so there is one copy to edit and one copy to update.
+This repository is one canonical, version-controlled source for the skills I use across Claude Code, Codex, Pi, and Gemini via Antigravity. Author installs link the default skills from the checkout; consumer plugin installs expose the three default skills and package the full library as data. Ask-kb uses the generated themed catalogue to load a selected skill only when needed, so there is one copy to edit and one copy to update.
 
 The second problem is handled by [`bin/skills-sync`](bin/skills-sync), which installs the library into every agent, keeps those installs reconciled with the repository, and gates releases. Git hooks run it, so a skill added in a commit reaches every agent without anyone remembering a step.
 
@@ -51,7 +53,7 @@ The sections above are for my own machines. To use these skills yourself, **fork
 
    `setup` adds this repository as the `upstream` remote, installs the three default skills into every supported agent it finds, and wires the git hooks.
 
-2. Restart your agent and ask Ask-kb to set up optional skill installs. It loads `setup-skills`, which recommends optional **profiles** (`coding`, `typescript`, `deep-review`, `business`, and others in [`profiles.json`](profiles.json)). Your choice lives in `my-skills.txt`, per machine and git-ignored. Change it any time through Ask-kb or `bin/skills-sync select --add profile:video`.
+2. Restart your agent and ask Ask-kb to set up optional skill installs. It loads `setup-skills`, which recommends optional **profiles** (`coding`, `typescript`, `deep-review`, `business`, and others in [`profiles.json`](profiles.json)). Your choice lives in `my-skills.txt`, per machine and git-ignored. Change it any time through Ask-kb or `bin/skills-sync select --add profile:business`.
 
 3. Pull my releases with `bin/skills-sync sync`. It merges the latest release tag, never unreleased work, and reinstalls. New skills arrive uninstalled but reachable.
 
@@ -118,7 +120,7 @@ The registry records the upstream repository, commit, license, local adaptations
 
 ## The workflow foundation
 
-The default engineering workflow is based on Matt Pocock's skills:
+One engineering workflow, based on Matt Pocock's skills, is:
 
 `grill-with-docs → to-spec → goldilocks-review → to-tickets → implement → code-review`
 
