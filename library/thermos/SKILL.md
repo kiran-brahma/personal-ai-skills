@@ -13,6 +13,6 @@ Use this gate for major changes: cross-system or cross-module work, data-model o
 1. Pin the review scope to the branch, PR, or changed files. Read the diff and the relevant spec without guessing beyond the change.
 2. Run the `thermo-nuclear-review` and `thermo-nuclear-code-quality-review` passes in parallel when the harness supports parallel workers. Otherwise run them separately with the same fixed scope.
 3. Synthesize findings by priority, keeping correctness/security/devex findings distinct from maintainability findings.
-4. Fix all material findings and rerun the affected verification. Do not proceed to Matt’s `code-review` with unresolved material Thermos findings.
+4. Fix all material findings and rerun the affected verification. Load `thermo-nuclear-review`, `thermo-nuclear-code-quality-review`, and `code-review` through Ask-kb's index. Do not proceed to Matt’s `code-review` with unresolved material Thermos findings.
 
 Thermos is a major-change review gate, not a substitute for the final two-axis spec-and-standards review. Detailed security audits use the external Codex Security workflow.

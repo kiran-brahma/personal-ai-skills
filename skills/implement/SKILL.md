@@ -3,7 +3,7 @@ name: implement
 description: "Run only when the user names or selects Implement; implement a spec or ticket."
 disable-model-invocation: true
 metadata:
-  lazy-requires: tdd code-review
+  lazy-requires: tdd code-review thermos
 ---
 
 # Implement
@@ -20,7 +20,7 @@ State which ticket you are implementing and which user stories it covers. If the
 
 ## The loop
 
-Load the TDD skill from its current path in Ask-kb's generated index when the work is test-first or benefits from test-driven development. Load Code Review from its indexed path for the required review at the end. These are lazy dependencies: read their full instructions from the repository when needed; do not install them as startup skills for this workflow.
+Load the TDD skill from its current path in Ask-kb's generated index when the work is test-first or benefits from test-driven development. Load Code Review from its indexed path for the required review at the end, and Thermos first when the change is major. These are lazy dependencies: read their full instructions from the repository when needed; do not install them as startup skills for this workflow.
 
 Work in vertical slices, one at a time, using TDD where it fits at pre-agreed seams. Do not write all the code first and the tests after: bulk implementation commits you to a shape before any of it has been exercised.
 
@@ -41,6 +41,6 @@ A pre-commit hook may run the same checks. If it blocks a commit, fix the findin
 
 List what you did not do: parts of the ticket left undone, edge cases not handled, and any assumption you made. An unstated assumption is the part a reviewer cannot check.
 
-Once done, if this is a major change, use `thermos` first. Fix its material findings and repeat the relevant verification. Then use `code-review` to review the work. Every pull request must complete `code-review` before it is ready.
+Once done, if this is a major change, load `thermos` through Ask-kb first. Fix its material findings and repeat the relevant verification. Then load `code-review` through Ask-kb to review the work. Every pull request must complete `code-review` before it is ready.
 
 Commit your work to the current branch.

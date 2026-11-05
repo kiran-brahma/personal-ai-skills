@@ -14,4 +14,6 @@ Pi honours `disable-model-invocation`, so gated skills are installed but do not 
 
 Pi's discovery differs from the other agents in one way that constrains the whole library: it recurses into subdirectories, but stops at the first `SKILL.md` it finds and does not look beneath it. A skill nested under another skill is therefore invisible to Pi. `bin/skills-sync validate` enforces the flat layout that keeps this from happening.
 
+Only the installed tier is visible to Pi, so `code-review`, `thermos`, and the other library skills do not appear as `/skill:name` by default. A skill that calls for another skill therefore loads it through Ask-kb's index (see "When a skill calls for another skill" in `skills/ask-kb/SKILL.md`) rather than by command name.
+
 The canonical skills intentionally use standard `SKILL.md` frontmatter and relative references. Keep Pi-specific settings, extensions, model choices, and command aliases here rather than inside the shared skill.

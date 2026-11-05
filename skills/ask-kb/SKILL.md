@@ -29,7 +29,11 @@ Resolve the repository root from this skill's physical directory: this file is a
 
 An exact skill name, explicit invocation, or unmistakable request for a named workflow is already the user's choice; load it without presenting a menu. This includes Grilling requests such as "grill me on this" and the user-invoked Implement skill. Implement remains gated: run it only after the user invokes it or selects it from Ask-kb's menu.
 
-When Implement runs, load its lazy dependencies from the indexed library paths: TDD when its workflow applies, and Code Review for its required final review. These dependencies are not installed by default.
+When Implement runs, load its lazy dependencies from the indexed library paths: TDD when its workflow applies, Thermos for a major change, and Code Review for its required final review. These dependencies are not installed by default.
+
+## When a skill calls for another skill
+
+A skill that tells you to use, run, or hand off to another skill (`code-review`, `thermos`, `tdd`, and so on) does not invoke it directly. Do not rely on `/name`, a Skill-tool call, or `/skill:name`: library skills are not installed, so Pi and other agents cannot reach them that way. Read this skill, look the target up in [`references/index.md`](references/index.md), load its `SKILL.md` from the indexed path, and follow it. A skill reached this way is the user's choice already made by the calling workflow, so skip the menu. Explicit gates such as Thermos still run only when the calling workflow or the user asks for them.
 
 ## Skill-library requests
 

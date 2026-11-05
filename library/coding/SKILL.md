@@ -12,7 +12,7 @@ Pick the narrowest installed skill whose description matches the task, then read
 `grill-with-docs → to-spec → goldilocks-review → to-tickets → implement → code-review`
 
 - `goldilocks-review` must approve a design before `to-tickets` publishes work.
-- For a major change, run `thermos` after implementation and fix its material findings before `code-review`. A change is major when it crosses system boundaries, changes a data model or migration, alters a public API, touches authentication or authorization, introduces concurrency, or spans several subsystems.
+- Load skills through Ask-kb's index; do not invoke them directly. For a major change, run `thermos` after implementation and fix its material findings before `code-review`. A change is major when it crosses system boundaries, changes a data model or migration, alters a public API, touches authentication or authorization, introduces concurrency, or spans several subsystems.
 - Every pull request passes `code-review` before it is complete.
 - A user-invoked gate is never bypassed silently.
 
