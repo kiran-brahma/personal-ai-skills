@@ -10,7 +10,7 @@ Copyright (c) 2026 Matt Pocock
 
 ## pstack and Thermos
 
-Source: [cursor/plugins](https://github.com/cursor/plugins), commit `efa2a531985e0a8084d36ff3cf87233be8a9f34b`, pstack version `0.14.7`, Thermos version `1.0.0`. `correct` and `principle-test-behavior-not-implementation` come from commit `2cbf58508f40de470d7490b55c51d71241928fa2`, pstack version `0.15.13`.
+Source: [cursor/plugins](https://github.com/cursor/plugins), commit `7698375f92a729f8bb89d113c633dce9ff9dc6db`, pstack version `0.15.30` and Thermos version `1.0.0`. The pstack skills include `correct` and `principle-test-behavior-not-implementation`.
 
 Copyright (c) 2026 Lauren Tan (pstack)
 

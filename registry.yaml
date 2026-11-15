@@ -41,13 +41,6 @@ sources:
     license: MIT
     role: supporting-lenses
     update_policy: Selectively review relevant skills; do not wholesale-sync Cursor-specific orchestration.
-  - id: cursor-pstack-0.15
-    repository: https://github.com/cursor/plugins/tree/main/pstack
-    reference: 7698375f92a729f8bb89d113c633dce9ff9dc6db
-    version: 0.15.30
-    license: MIT
-    role: supporting-lenses
-    update_policy: Skills first vendored after the cursor-pstack pin. Fold into cursor-pstack once that source is reviewed and pinned forward to this commit or later.
   - id: cursor-thermos
     repository: https://github.com/cursor/plugins/tree/main/thermos
     reference: 7698375f92a729f8bb89d113c633dce9ff9dc6db
@@ -118,7 +111,7 @@ packages:
     skills: [architect, arena, blast-radius, create-verification-skill, how, interrogate, maintain-verification-skill, recall, reflect, show-me-your-work, swarm, technical-writing, typescript-best-practices, why]
     adaptations: [portable-paths, selective-adoption, matt-workflow-routing]
   - id: pstack-correctness
-    source: cursor-pstack-0.15
+    source: cursor-pstack
     status: trial
     upstream_prefix: skills
     skills: [correct, principle-test-behavior-not-implementation]

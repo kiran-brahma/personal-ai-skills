@@ -2,7 +2,7 @@
 
 This is my public, version-managed library of AI-agent skills.
 
-**Current release: [V0.9.1](https://github.com/kiran-brahma/personal-ai-skills/releases/tag/V0.9.1).** The skills now share one small default set, a four-theme catalogue, and on-demand loading across supported agents.
+**Current release: [V0.9.2](https://github.com/kiran-brahma/personal-ai-skills/releases/tag/V0.9.2).** The skills now share one small default set, a four-theme catalogue, and on-demand loading across supported agents.
 
 The skills are being adopted and adapted from my experience using AI agents to build software. They are not a neutral collection of generic prompts. Each skill reflects how I want an agent to think, plan, implement, review, and learn while working with me.
 
