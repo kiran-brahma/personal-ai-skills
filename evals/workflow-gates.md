@@ -11,6 +11,16 @@ Given a brief with `Status: approved`, `to-tickets` may draft tickets and still 
 ## Major-change review
 
 For a change spanning multiple subsystems or changing a public API, `implement` must run Thermos, fix material findings, and then run Matt’s two-axis `code-review` before the PR is ready.
+
+Given a major change handled by `implement-spec`, the Thermos gate remains before code review. Each ticket and each review-fix pass uses a fresh implementer subagent with pointers to the necessary context.
+
+Given a code review using subagents, the Standards and Spec reviewers start with fresh context windows and receive the material needed for their respective axes.
+
+## Matt setup: tracker target
+
+Given an existing `origin` for another host and a selected GitHub or GitLab tracker, setup must preserve that remote, add a distinct remote if needed, and verify the intended project is reachable.
+
+Given a fork where `gh` targets the upstream parent rather than the user's repo, the GitHub tracker instructions must check the target before creating an issue and confirm when it is not the user's repo.
 ## Implement: rules that survive a green build
 
 Given a ticket whose business rule is ambiguous, `implement` must stop and ask rather than choose a plausible interpretation and proceed.

@@ -4,7 +4,7 @@ This repository contains adapted skill instructions from several third-party pro
 
 ## Matt Pocock skills
 
-Source: [mattpocock/skills](https://github.com/mattpocock/skills), commit `24fe0ef7737efae15c87225755e9f6f5965e4888`, version `1.3.1`. The `pr` skill adapts the Summary visuals of Dex Horthy's `show-me` skill (HumanLayer); see `skills/pr/CREDITS.md`.
+Source: [mattpocock/skills](https://github.com/mattpocock/skills), commit `5863806dd4e15c63174bee4e7515a4256792ecfa`, version `1.3.2`. The `pr` skill adapts the Summary visuals of Dex Horthy's `show-me` skill (HumanLayer); see `library/pr/CREDITS.md`.
 
 Copyright (c) 2026 Matt Pocock
 

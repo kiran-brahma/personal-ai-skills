@@ -3,7 +3,7 @@ name: research
 description: "Investigate a question against primary sources and capture findings as a Markdown file. Use to gather docs/API facts, or delegate reading legwork."
 ---
 
-Spin up a **background agent** to do the research, so you keep working while it reads.
+Spin up a **background agent** to do the research, so you keep working while it reads. Start it with a fresh context window.
 
 Its job:
 
